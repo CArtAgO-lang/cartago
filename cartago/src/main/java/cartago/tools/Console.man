@@ -1,0 +1,75 @@
+manual console  {
+
+	usageprot print1 {
+		:function print(X)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,print(X),s0);
+			sense(s0,op_exec_completed("print"))
+		}
+	}
+
+	usageprot print2 {
+		:function print(X1,X2)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,print(X1,X2),s0);
+			sense(s0,op_exec_completed("print"))
+		}
+	}
+
+	usageprot print3 {
+		:function print(X1,X2,X3)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,print(X1,X2,X3),s0);
+			sense(s0,op_exec_completed("print"))
+		}
+	}
+
+	usageprot print4 {
+		:function print(X1,X2,X3,X4)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,print(X1,X2,X3,X4),s0);
+			sense(s0,op_exec_completed("print"))
+		}
+	}
+
+	usageprot println1 {
+		:function println(X)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,println(X),s0);
+			sense(s0,op_exec_completed("println"))
+		}
+	}
+
+	usageprot println2 {
+		:function println(X1,X2)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,println(X1,X2),s0);
+			sense(s0,op_exec_completed("println"))
+		}
+	}
+
+	usageprot println3 {
+		:function println(X1,X2,X3)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,println(X1,X2,X3),s0);
+			sense(s0,op_exec_completed("println"))
+		}
+	}
+
+	usageprot println4 {
+		:function println(X1,X2,X3,X4)
+		:body {
+	        locate("console",ToolId);
+			use(ToolId,println(X1,X2,X3,X4),s0);
+			sense(s0,op_exec_completed("println"))
+		}
+	}
+
+}

@@ -1,0 +1,36 @@
+manual blackboard  {
+
+	usageprot out {
+		:function out(X)
+		:body {
+	        locate("blackboard",ToolId);
+	        argToTuple(X,T);
+			use(ToolId,out(T),s0);
+			sense(s0,op_exec_completed("out"))
+		}
+	}
+
+	usageprot in {
+		:function in(X)
+		:body {
+	        locate("blackboard",ToolId);
+	        argToTupleTemplate(X,TT);
+			use(ToolId,in(TT),s0);
+			sense(s0,tuple(Y));
+			tupleToArg(Y,Z);
+			matchArg(Z,X)						
+		}
+	}
+
+	usageprot rd {
+		:function rd(X)
+		:body {
+	        locate("blackboard",ToolId);
+	        argToTupleTemplate(X,TT);
+			use(ToolId,rd(TT),s0);
+			sense(s0,tuple(Y));
+			tupleToArg(Y,Z);
+			matchArg(Z,X)						
+		}
+	}
+}

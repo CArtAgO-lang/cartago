@@ -1,0 +1,9 @@
+MAS test {
+
+    environment: c4jason.CartagoEnvironment
+
+    agents:  
+   	tester_agent agentArchClass c4jason.CAgentArch;
+
+	aslSourcePath: "src/test";
+}

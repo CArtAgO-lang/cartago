@@ -1,0 +1,9 @@
+MAS example09_java_data_binding {
+
+    environment: c4jason.CartagoEnvironment
+
+    agents:  
+   	java_data_binding_tester agentArchClass c4jason.CAgentArch;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}

@@ -1,0 +1,11 @@
+MAS fulltest {
+
+    environment: c4jason.CartagoEnvironment("infrastructure", service(rmi), protocol(rmi))
+
+    agents:  
+	   	server_agent agentArchClass c4jason.CAgentArch;
+	
+	aslSourcePath: "src/test";
+    
+
+}

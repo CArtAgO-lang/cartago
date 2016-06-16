@@ -1,0 +1,123 @@
+/* CArtAgO gradle build file */
+
+task hello << {
+    println 'CArtAgO Gradle build file'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'distribution'
+
+
+	repositories {
+    	mavenCentral()
+
+		maven {
+    	    url "http://jacamo.sourceforge.net/maven2"
+    	}
+	}
+
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+
+  task copySrc(type: Copy) {
+      from 'src/main/java'
+      into 'src/main/dist/src'
+      include('**')
+  }
+
+  task copyLib(type: Copy) {
+      from 'build/libs','libs'
+      into 'src/main/dist/lib'
+      include('**')
+  }
+
+
+}
+
+project(':cartago') {
+    sourceSets {
+	    main {
+    	    java {
+        	    srcDir 'src/main/java'
+        	}
+        	resources {
+            	srcDir 'src/main/resources'
+	        }
+    	}
+    }
+
+	jar {
+    	baseName = 'cartago'
+    	version =  '2.2.0'
+	}
+
+	dependencies {
+    	compile files('libs/lipermi-0.4.jar')
+	}
+
+
+  task copyExamples(type: Copy) {
+      from 'src/examples/java'
+      into 'src/main/dist/examples'
+      include('**')
+  }
+
+  task copyTest(type: Copy) {
+      from 'src/test/java'
+      into 'src/main/dist/test'
+      include('**')
+  }
+
+  task prepareDist {
+      dependsOn copySrc, copyExamples, copyTest, copyLib
+  }
+
+  installDist.dependsOn prepareDist
+
+}
+
+project(':jaca') {
+    sourceSets {
+	    main {
+	        java {
+    	        srcDir 'src/main/java'
+        	}
+        	resources {
+            	srcDir 'src/main/resources'
+        	}
+    	}
+    }
+
+	dependencies {
+    	compile project(':cartago')
+    	compile files('libs/jason.jar')
+	}
+
+	// tag::jar[]
+	jar {
+    	baseName = 'c4jason'
+    	version =  '1.1.0'
+	}
+
+  task copyExamples(type: Copy) {
+      from 'src/examples'
+      into 'src/main/dist/examples'
+      include('**')
+  }
+
+  task copyTest(type: Copy) {
+      from 'src/test'
+      into 'src/main/dist/test'
+      include('**')
+  }
+
+
+  task prepareDist {
+      dependsOn copySrc, copyExamples, copyTest, copyLib
+  }
+
+  installDist.dependsOn prepareDist
+
+
+}

@@ -1,0 +1,46 @@
+manual calculator  {
+
+	usageprot compute_sin {
+		:function sin(X,Y)
+		:body {
+	        locate("calc",ToolId);
+			use(ToolId,computeSin(X),s0);
+			sense(s0,sin(X,Y))
+		}
+	}
+	
+	usageprot enter_critical_section1 {
+	  :function enterCS
+	  :precond not known_artifact("cs",_)
+	  :body {
+	     build("cs",[1],ToolId);
+	     use(ToolId,acquire); 
+	     +inside_cs(ToolId)
+	  }
+	}
+	
+	usageprot enter_critical_section2 {
+	  :function enterCS
+	  :precond known_artifact("cs",ToolId) & not inside_cs(_)
+	  :body {
+	     use(ToolId,acquire); 
+	     +inside_cs(ToolId)
+	  }
+	}
+	
+	usageprot enter_critical_section3 {
+	  :function enterCS
+	  :precond inside_cs(_)
+	  :body {}
+	}
+	
+	usageprot exit_critical_section {
+	  :function exitCS
+	  :precond inside_cs(ToolId)
+	  :body {
+	    use(ToolId,release); 
+	    -inside_cs(ToolId)
+	  }
+	}
+
+}
