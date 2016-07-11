@@ -1,0 +1,16 @@
+\contentsline {chapter}{\numberline {1}Introduction}{2}
+\contentsline {chapter}{\numberline {2}Examples}{5}
+\contentsline {section}{\numberline {2.1}Example 00 - Hello World}{5}
+\contentsline {section}{\numberline {2.2}Example 01 - Artifact definition, creation and use}{7}
+\contentsline {section}{\numberline {2.3}Example 02 - Action Failure}{12}
+\contentsline {section}{\numberline {2.4}Example 03 - Operations with output parameters (i.e. actions with feedbacks)}{14}
+\contentsline {section}{\numberline {2.5}Example 04 - Operations with guards }{16}
+\contentsline {section}{\numberline {2.6}Example 05 - Structured Operations}{19}
+\contentsline {section}{\numberline {2.7}Example 05a - Implementing coordination artifacts}{22}
+\contentsline {section}{\numberline {2.8}Example 06 - Internal operations and timed await: implementing a clock}{25}
+\contentsline {section}{\numberline {2.9}Example 07 - Await with blocking commands: Implementing artifacts for I/O}{28}
+\contentsline {section}{\numberline {2.10}Example 07a - Programming GUI as Artifacts}{32}
+\contentsline {section}{\numberline {2.11}Example 08 - Linkability}{35}
+\contentsline {section}{\numberline {2.12}Example 09 - Java data-binding}{38}
+\contentsline {section}{\numberline {2.13}Example 10 - Working with Multiple Workspaces}{40}
+\contentsline {section}{\numberline {2.14}Example 11 - Working in Remote Workspaces}{42}

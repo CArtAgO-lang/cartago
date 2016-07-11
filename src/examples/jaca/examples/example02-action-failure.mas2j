@@ -1,0 +1,10 @@
+MAS example02_action_failure {
+
+    environment: c4jason.CartagoEnvironment
+
+    agents:  
+   	 	user2 agentArchClass c4jason.CAgentArch #1;
+    	observer agentArchClass c4jason.CAgentArch #1;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}

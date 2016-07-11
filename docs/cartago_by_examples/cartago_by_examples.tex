@@ -1,0 +1,2335 @@
+\sloppy
+%
+% CArtAgO guide
+%
+\documentclass[11pt]{report}
+ \newif\ifpdf
+ \ifx\pdfoutput\undefined
+ \pdffalse % we are not running PDFLaTeX
+ \else
+ \pdfoutput=1 % we are running PDFLaTeX
+ \pdftrue
+ \fi
+
+\newcommand\xc[1]{\chaptername~\ref{chap:#1}}
+\newcommand\labelchap[1]{\label{chap:#1}}
+\newcommand\xa[1]{\appendixname~\ref{app:#1}}
+\newcommand\labelsec[1]{\label{sec:#1}}
+\newcommand\xs[1]{\sectionname~\ref{sec:#1}}
+\newcommand\xsp[1]{\sectionname~\ref{sec:#1} \onpagename~\pageref{sec:#1}}
+\newcommand\labelssec[1]{\label{ssec:#1}}
+\newcommand\xss[1]{\subsectionname~\ref{ssec:#1}}
+\newcommand\xssp[1]{\subsectionname~\ref{ssec:#1} \onpagename~\pageref{ssec:#1}}
+\newcommand\labelsssec[1]{\label{sssec:#1}}
+\newcommand\xsss[1]{\subsectionname~\ref{sssec:#1}}
+\newcommand\xsssp[1]{\subsectionname~\ref{sssec:#1} \onpagename~\pageref{sssec:#1}}
+\newcommand\labelfig[1]{\label{fig:#1}}
+\newcommand\xf[1]{\figurename~\ref{fig:#1}}
+\newcommand\xff[2]{\figurenames~\ref{fig:#1}~and~\ref{fig:#2}}
+\newcommand\xfp[1]{\figurename~\ref{fig:#1} \onpagename~\pageref{fig:#1}}
+\newcommand\labeltab[1]{\label{tb:#1}}
+\newcommand\xt[1]{\tablename~\ref{tb:#1}}
+\newcommand\xtt[2]{\tablenames~\ref{tb:#1}~and~\ref{ab:#2}}
+\newcommand\xtp[1]{\tablename~\ref{tb:#1} \onpagename~\pageref{tb:#1}}
+\newcommand\labelenum[1]{\label{enum:#1}}
+\newcommand\xen[1]{(\ref{enum:#1})}
+\newcommand\xenp[1]{(\ref{enum:#1}) \onpagename~\pageref{enum:#1}}
+%\newcommand{\chaptername}{Chapter}
+%\newcommand{\figurename}{Figure}
+%\newcommand{\tablename}{Table}
+\newcommand{\sectionname}{Section}
+
+%******************************************************************************%
+\newcommand\note[1]{NOTE:\emph{#1}}
+\newcommand\tbc[1]{TO BE COMPLETED: \emph{#1}}
+\newcommand\outd[1]{OUTDATED: \emph{#1}}
+\newcommand\tbd[1]{TO BE COMPLETED: \emph{#1}}
+\newcommand\code[1]{{\small{\mbox{\texttt{{#1}}}}}}
+\newcommand\sym[1]{{\small{\mbox{\textit{{#1}}}}}}
+\newcommand\ttit[1]{\texttt{\textit{#1}}}
+
+\newcommand\version[1]{\mbox{Document revision: #1}}
+\newcommand\approvedby[1]{\mbox{Approved by: #1}}
+\newcommand\receivedby[1]{\mbox{Received by: #1}}
+\newcommand\creationdate[1]{\mbox{Creation date: #1}}
+\newcommand\repauthor[1]{\mbox{Main author: #1}}
+\newcommand\lastchangesdate[1]{\mbox{Last Changes date: #1}}
+\newcommand\noa[2]{\noindent\emph{Note of the author (#1): }#2\\\\}
+\newcommand\logo{
+    \begin{figure}[tp]
+        \begin{center}
+            \inputgraphics[width=4cm]{../shared/logo}
+        \end{center}
+\end{figure}}
+
+%******************************************************************************%
+\newcommand{\cartagoversion}{2.0.2}
+\newcommand{\jasonversion}{1.3.4}
+\newcommand{\jaca}{\mbox{\sf{JaCa}}}
+\newcommand{\jason}{\mbox{\sf{\emph{{Jason}}}}}
+\newcommand{\AandA}{\mbox{\sf{{A\&A~}}}}
+\newcommand{\cartago}{\mbox{\sf{CArtAgO}}}
+%******************************************************************************%
+
+\title{{\huge{\bf{{\cartago} and {\jaca} By Example}}\\~\\~\\}
+{\large{
+   {\cartago} version: \cartagoversion, {\jason} version: \jasonversion \\~\\~\\}}
+{\small{
+   \repauthor{aricci, asanti}  \\  
+    \creationdate{20100801}\\
+    \lastchangesdate{20121116}\\
+    % \receivedby{aricci}\\
+    % \approvedby{aricci}\\
+    }}
+}
+
+\author{Universit\`{a} di Bologna, Italy}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+\sloppy
+
+\tableofcontents
+
+\chapter{Introduction}
+
+In the following we describe some main features of the artifact programming model on the one side and of the integration with agent platforms on the other side by making a sequence of simple examples, focussing each on one aspect.
+%
+{\jason} is used as reference agent programming language, to program agents
+%
+All the examples can be found in the \texttt{examples/bridges/jason/basic} folder.
+
+Before going with the examples, it follows a sum up of some main key point about {\cartago} (more can be found in the annotated reference):
+%
+\begin{itemize}
+\item \emph{Workspaces} --- A {\cartago} environment is given by one or multiple workspaces, possibly spread on multiple network nodes. Multiple workspaces can be running on the same node. By default each node has a \code{default} workspace.
+%
+In order to work inside a workspace an agent must join it.  By default, when booted, an agent is automatically joined to the \code{default workspace}.
+%
+Then, the same agent can join and work simultaneously in multiple workspaces. 
+%
+\item \emph{Agents' action repertoire}  --- By working inside a {\cartago} environment, the repertoire of an agent's actions is determined by the set of artifacts available/usable in the workspace, in particular by the operations provided by such artifacts.
+%
+There is one-to-one mapping between actions and operations:
+%
+if there is an artifact providing an operation \code{myOp}, then each agent of the workspace -- modulo security constraints -- can perform an external action called \code{myOp}.
+%
+Accordingly, by performing an external action, the action completes with success or failure if the corresponding operation completes with success or fails.
+%
+Since the set of artifacts can be changed dynamically by agents (creating new artifacts, disposing existing ones), the repertoire of actions is dynamic too.
+
+\item \emph{Default artifacts} --- By default, each workspace contains a basic set of predefined artifacts that provide core functionalities to the agents.
+%
+In particular:
+\begin{itemize}
+\item \code{workspace} artifact (\code{cartago.WorkspaceArtifact}) --- provides functionalities to create, dispose, lookup, link, focus artifacts of the workspace.
+%
+Also it provides operations to set roles and policies related to the RBAC security model.
+%
+\item \code{node} artifact (\code{cartago.NodeArtifact}) --- provides functionalities to create new workspaces, to join local and remote workspaces
+%
+\item \texttt{blackboard} artifact, type \code{cartago.tools.TupleSpace} -- provides a tuple space that agents can exploit to communicate and coordinate;
+%
+\item \code{console} artifact (\code{cartago.tools.Console}) --- provides functionalities to print messages on standard output.
+%
+\end{itemize}
+%
+\end{itemize}
+
+\noindent Specific points related to the {\jason}$+${\cartago} integration (whose semantics, however, should be preserved also in the other integrations, when possible):
+% 
+\begin{itemize}
+\item \emph{Mapping observable properties and events into beliefs} --- by focussing an artifact, observable properties are mapped into agent's belief base.
+%
+So each time an observable property is updated, the corresponding belief is updated too.
+%
+Percepts related to observable events adopt the same syntax of belief-update events (so \code{+event(Params)}), however they are not automatically mapped into the belief base;
+
+\item \emph{Java data-binding} --- Java object model is used in {\cartago} as data model to represent and manipulate data structures. 
+%
+That means that operations' parameters, observable properties' and signals' arguments are either Java's primitive data types or objects.
+%
+To work with {\cartago}, {\jason}'s data type has been extended to work also with objects -- referenced by atoms with a specific functor -- and a translation between primitive data types is applied.
+%
+Translation rules:
+%
+From {\cartago} to {\jason}:
+%
+\begin{itemize}
+\item boolean are mapped into boolean
+\item int, long, float, double are mapped into doubles (NumberTerm)
+\item String are mapped into String
+\item null value is mapped into an unbound variable
+\item arrays are mapped into lists
+\item objects in general are mapped by atoms \code{cobj\_XXX} that work as object reference
+\end{itemize}
+%
+\noindent From {\jason} to {\cartago}:
+\begin{itemize}
+\item boolean are mapped into boolean
+\item a numeric term is mapped into the smallest type of number which is sufficient to contain the data 
+\item String are mapped into String objects
+\item structures are mapped into String objects
+\item unbound variables are mapped into output parameters (represented by the class \code{OpFeedbackParam}) 
+\item lists are mapped into arrays 
+\item atoms  \code{cobj\_XXX} referring to objects are mapped into the referenced objects
+\end{itemize}
+%
+\noindent {\jason} agents do not share objects: each agent has its own object pool.
+%
+ 
+\end{itemize}
+
+
+\chapter{Examples}
+
+\section{Example 00 - Hello World}
+
+This first example is the classic hello world.  It is composed by a single agent executing a \code{println} action to print on the console the message.
+%
+The {\jason} MAS configuration file \texttt{hello-world} is the following:
+%
+{\small{
+\begin{verbatim}
+MAS hello_world {
+  environment: 
+  c4jason.CartagoEnvironment
+    
+  agents:  
+  hello_agent agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../../lib/cartago.jar";
+             "../../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+%
+\noindent The declarations \code{environment: c4jason.CartagoEnvironment} and  \code{agentArchClass c4jason.CAgentArch} are fixed, and specify that the MAS will exploit {\cartago} environments and that agents need to have a proper predefined architecture to work within such environment.
+%
+The \code{classpath:} declaration is needed to include {\cartago} library (\code{cartago.jar}) and the specific {\jason} bridge (\code{c4jason.jar}) in the classpath.
+
+\medskip
+
+\noindent The program spawns a single agent (\code{hello\_agent}) whose task is to print on standard output the classic hello message.
+%
+For that purpose it exploits the \code{println} operation provided by the \code{console} artifact.
+%
+Source code of the \code{hello\_agent} (in \code{hello\_agent.asl}):
+%
+{\small{
+\begin{verbatim}
+!hello.
+
++!hello : true
+  <- println("Hello, world!").
+\end{verbatim}}}
+%
+\noindent  Highlights:
+%
+\begin{itemize}
+\item by default an agent, when booting, joins the \code{default} workspace on current node -- this can be avoided or controlled by specifying further parameters to the \code{environment: c4jason.CartagoEnvironment}  declaration (see later)
+\item \code{println} is an operation provided by the \code{console} artifact, which is available by default in the \code{default} workspace: 
+%
+so the agent external action \code{println} is mapped onto the operation of this artifact.
+%
+This is the case of operation execution without specifying the specific target artifact.
+%
+\end{itemize}
+
+%Some arguments can be specified, in order to specify more information about  the environment, in particular its location:
+%%
+%\begin{itemize}
+%\item \texttt{standalone} means that a new {\cartago} environment is created with this application, not reachable by other agents outside this MAS
+%\item \texttt{infrastructure} means that a new {\cartago} environment is created with this application, also reachable by other agents outside this MAS
+%\item \texttt{remote} means that agents  is created with this application, also reachable by other agents outside this MAS
+%\end{itemize}
+\newpage
+\section{Example 01 - Artifact definition, creation and use}
+
+This example shows the basics about artifact creation and use, including observation.
+%
+Two agents create, use and observe a shared artifact.
+
+{\small{
+\begin{verbatim}
+MAS example01_useobs {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  user user agentArchClass c4jason.CAgentArch #1;
+  observer observer agentArchClass c4jason.CAgentArch #1;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+%
+%The \code{environment: c4jason.CartagoEnvironment} declaration and  \code{agentArchClass c4jason.CAgentArch} are fixed, and must be included, respectively, to specify that the MAS will exploit {\cartago} environments and that agents need to have a proper predefined architecture to work within such environment.
+
+\noindent The \code{user} agent creates a \code{c0} artifact of type \code{c4jexamples.Counter} and then uses it twice, executing the \code{inc} action (operation) two times:
+
+{\small{
+\begin{verbatim}
+!create_and_use.
+
++!create_and_use : true
+  <- !setupTool(Id);
+     inc;
+     inc [artifact_id(Id)].
+
++!setupTool(C): true 
+  <- makeArtifact("c0","c4jexamples.Counter",[],C).
+\end{verbatim}}}
+%
+\noindent Hightlights:
+%
+\begin{itemize}
+\item \emph{Artifact creation} -- To create the artifact, the agent exploits the \code{makeArtifact} action,  provided by the \code{workspace} artifact.
+%
+An empty list of parameters is specified, and the artifact id is retrieved, bound to the \code{C} variable.
+%
+\item \emph{Operation invocation with no target artifact specified} -- operation invocation -- i.e. action execution -- can be done either specifying or not which is the specific target artifact providing the operation.
+%
+No artifact is specified in the first \code{inc}:
+%
+the artifact is automatically selected from the workspace.
+%
+If there are no artifacts providing such action, the action fails.
+%
+If more than one artifact is found, first artifacts created by the agent itself are considered. If more than one artifact is found, one is selected non deterministically.
+%
+Then, the rest of the artifacts are considered, and one is selected non deterministically.
+%
+\item \emph{Artifact disposal} -- To dispose an artefact, the action \code{disposeArtifact(\emph{Id})} is provided by the \code{workspace} artifact, where  \code{\emph{Id}} is the identifier of the artifact to be disposed.
+%
+\item \emph{Operation invocation with the target artifact specified} -- The second time the \code{inc} is executed, the target artifact is specified. 
+%
+This can be done by adding the annotation \code{[artifact\_id(Id)]}, where \code{Id} must be bound to the artifact identifier.
+%
+Alternatively, the annotation  \code{[artifact\_name(Name)]} can be used, where \code{Name} must be bound to the logic name of the artifact.
+%
+\item \emph{Operation invocation with the target workspace specified}  -- As a further variant, the workspace identifier can be specified, instead of the target artifact, by means of the \code{wsp\_id} annotation. Ex: \code{inc [wsp\_id(WspID)]}
+%
+\end{itemize}
+%
+\noindent The \code{Counter} artifact is characterised by a single \code{inc} operation and a \code{count} observable property, updated by the operation.
+%
+The operation also generates a \code{tick} signal.
+%
+{\small{
+\begin{verbatim}
+package c4jexamples;
+
+import cartago.*;
+
+public class Counter extends Artifact {
+
+  void init(){
+    defineObsProperty("count",0);
+  }
+	    
+  @OPERATION void inc(){
+    ObsProperty prop = getObsProperty("count");
+    prop.updateValue(prop.intValue()+1);
+    signal("tick");
+  }
+}
+\end{verbatim}}}
+%
+\noindent Highlights
+\begin{itemize}
+\item \emph{Artifact definition} -- an artifact template can be implemented by defining a class -- whose name corresponds to the artifact template name -- extending the \code{Artifact} base class.
+%
+\item \emph{Artifact initialization} -- the \code{init} method in artifact classes represents artifact constructor, useful to initialize the artifact as soon as it is created.
+%
+The actual parameter of the \code{init} method -- in this case there are no parameters -- can be specified when executing the \code{makeArtifact} action. 
+%
+\item \emph{Operations} -- Operations are implemented by methods annotated with \code{@OPERATION} and with \code{void} return parameter.
+%
+Methods parameter corresponds to operations parameters.
+%
+\item \emph{Observable properties} -- New observable properties can be defined by the \code{defineObsProp} primitive.
+%
+In their most general form, an observable properties is represented by a tuple, with a functor and one or multiple arguments, of any type.
+%
+In this case the \code{count} property has a single argument value, of integer type.
+%
+To retrieve the reference to an observable property the \code{getObsProperty} primitive is provided, specifying the property name.
+%
+Then \code{updateValue} methods can be used to change the value of the property.
+%
+\item \emph{Signals} -- like observable properties, also signals can be tuple structures, with a functor and one or multiple arguments, of any type.
+%
+In this case the \code{tick} signal generated by the operation has no argument.
+%
+The primitive \code{signal} is provided to generate signals. It comes in two flavours:
+%
+\begin{itemize}
+\item \code{signal(String signalName, Object... params)} -- generates a signal which is perceivable by all the agents that are observing the artifact (because they did a focus)
+%
+\item \code{signal(AgentId id, String signalName, Object... params)} -- generates a signal which is perceivable only by the specified agent.  
+%
+The agent must be observing the artifact, anyway.
+%
+\end{itemize}
+%
+\item \emph{Atomicity} and \emph{transactionality} -- Operations are executed \emph{transactionally} with respect to the observable state of the artifact.
+%
+ So no interferences can occur when multiple agents concurrently use an artifact, since the operations are executed \emph{atomically}.
+%
+Changes to the observable properties of an artifact are made observable only when:
+%
+\begin{itemize}
+\item the operation completes, successfully 
+\item a signal is generated
+\item the operation is suspended (by means of an \code{await}, described in next examples)
+\end{itemize}
+%
+If an operation fails, changes to the observable state of the artifact are rolled back. 
+
+
+\end{itemize}
+
+
+\noindent Finally, an \code{observer} agent observes the counter and prints on standard output a message each time it perceives a change in \code{count} observable property or  a \code{tick} signal:
+%
+{\small{
+\begin{verbatim}
+!observe.
+
++!observe : true 
+  <- ?myTool(C);  // discover the tool
+     focus(C).
+
++count(V) 
+  <- println("observed new value: ",V).
+
++tick [artifact_name(Id,"c0")]  
+  <- println("perceived a tick").
+
++?myTool(CounterId): true 
+  <- lookupArtifact("c0",CounterId).
+
+-?myTool(CounterId): true 
+  <- .wait(10); 
+     ?myTool(CounterId).
+\end{verbatim}}}
+%
+\noindent Highlights
+\begin{itemize}
+%
+\item \emph{Artifact lookup} -- agents can discover the identifier of an artifact by means of the \code{lookupArtifact} action provided by the \code{workspace} artifact, specifying either the logic name of the artifact to discover or its type (in this last case, if multiple artifacts are found, one is chosen non deterministically).
+%
+In the example, if the observer agent executes a \code{lookupArtifact} before the artifact has been created (by the other agent), then the \code{lookupArtifact} fails and the repairing plan \code{-?myTool(...)} is executed.
+
+\item \emph{Focus action} -- agents can select which parts (artifacts) of the environment to observe by means of the \code{focus} action, provided by the \code{workspace} artifact, specifying the identifier of the artifact to focus.
+%
+Variants:
+\begin{itemize}
+\item \code{focus(ArtifactId id, IEventFilter filter)} -- specifies a filter to select the percepts to receive
+\item \code{focusWhenAvailable(String artName)} -- focuses the specified artifact as soon as it is available in the workspace;
+\end{itemize}
+%
+\item \emph{stopFocus action} -- agents can stop focusing an artifact by means of the \code{stopFocus(\emph{Id})} action, provided by the \code{workspace} artifact, specifying the identifier of the artifact.
+%
+\item \emph{Observable properties - Beliefs mapping} -- by focussing an artifact, artifact observable properties are mapped into the agent's belief base. So changes to the observable properties are detected as changes to the belief base.
+%
+In the example: \code{+count(V)} triggering event.
+%
+Beliefs related to observable properties are decorated with annotations that can be used to select the relevant/applicable plan, in particular:
+\begin{itemize}
+\item \code{source(percept)}, \code{percept\_type(obs\_prop)} -- define the percept type
+\item \code{artifact\_id(Id)}, \code{artifact\_name(id,name)}, \code{artifact\_type(id,type)}, \code{workspace(id,wspname)} -- provide information about the source artifact and workspace.
+%
+It is important to remark that, being beliefs, the value of observable properties can be accessed by means of test goals (e.g. \code{?count(X)}, when specifying context conditions, and so on).
+
+\item \emph{Percept mixing} -- due to the belief base model adopted in {\jason}, beliefs (and so observable properties) with the same functor and argument are collapsed together, mixing the annotations.
+\end{itemize}
+
+\item \emph{Signals percept} -- by focussing an artifact, signals generated by an artifact are detected as changes in the belief base -- in the example: \code{+tick} -- even if in this case the belief base is not changed.
+%
+As in the case of observable properties, annotations that can be used to select the relevant/applicable plan, in particular:
+\begin{itemize}
+\item \code{source(ArtifactId)}, \code{percept\_type(obs\_ev)} -- define the percept type
+\item \code{artifact\_id(Id)}, \code{artifact\_name(id,name)}, \code{artifact\_type(id,type)}, \code{workspace(id,wspname)} -- provide information about the source artifact and workspace.
+%
+\end{itemize}
+%
+
+\end{itemize}
+
+% ============================================================
+
+\newpage
+\section{Example 02 - Action Failure}
+
+This example is a simple variation of the previous one, to show action failure.
+%
+As in the previous case, two agents create, use and observe a shared artifact, in this case a \emph{bounded counter}:
+%
+{\small{
+\begin{verbatim}
+MAS example01b_useobs {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  user2 agentArchClass c4jason.CAgentArch #1;
+  observer agentArchClass c4jason.CAgentArch #1;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+%
+\noindent The counter used by the agents has the following code:
+%
+{\small{
+\begin{verbatim}
+public class BoundedCounter extends Artifact {
+  private int max;
+	
+  void init(int max){
+    defineObsProperty("count",0);
+    this.max = max;
+  }	    
+  @OPERATION void inc(){
+    ObsProperty prop = getObsProperty("count");
+    if (prop.intValue() < max){
+      prop.updateValue(prop.intValue()+1);
+      signal("tick");
+    } else {
+      failed("inc failed","inc_failed","max_value_reached",max);
+    }
+  }
+}
+\end{verbatim}}}
+%
+\noindent Highlights:
+\begin{itemize}
+\item \emph{failed primitive} -- Differently from the non-bound case, in this case the \code{inc} action fails if the count already achieved the maximum value, specified as a parameter of \code{init}.
+%
+To specify the failure of an operation the \code{failed} primitive is provided:
+\begin{itemize}
+\item \code{failed(String failureMsg)}
+\item \code{failed(String failureMsg, String descr, Object... args)}
+\end{itemize} 
+%
+\noindent An action feedback is generated, reporting a failure msg and optionally also a tuple \code{descr(Object...)} describing the failure.
+%
+\end{itemize}
+%
+\noindent Then, the \code{user2} agent creates a bounded counter with 50 as bound and tries to increment it 100 times: as soon as the maximum value is reached, the action \code{inc} fails and a repairing plan is executed:
+%
+{\small{
+\begin{verbatim}
+!create_and_use.
+
++!create_and_use : true
+  <- !setupTool(Id);
+     !use(Id).
+     
++!use(Counter)
+  <- for (.range(I,1,100)){
+      inc [artifact_id(Counter)];
+     }.
+     
+-!use(Counter) [error_msg(Msg),env_failure_reason(inc_failed("max_value_reached",Value))]  
+  <- println(Msg);
+     println("last value is ",Value).
+
++!setupTool(C): true 
+  <- makeArtifact("c0","c4jexamples.BoundedCounter",[50],C).
+\end{verbatim}}}
+%
+\noindent Highlights:
+\begin{itemize}
+\item \emph{Failure info} -- on the {\jason} side, feedback information generated by \code{failed} on the artifact side are included in annotations in the repairing plan.
+%
+In particular:
+\begin{itemize}
+\item \code{error\_msg(Msg)} contains the failure message;
+\item the description tuple  (\code{inc\_failed(...)} in the example) is directly included as the argument of the \code{env\_failure\_reason} annotation.
+\end{itemize}
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 03 - Operations with output parameters (i.e. actions with feedbacks)}
+
+Operations can have output parameters,  i.e. parameters whose value is meant to be computed by the operation execution.
+%
+On the agent side such parameters are managed as \emph{action feedbacks}.
+%
+At the API level, output parameters are represented by the class \code{OpWithFeedbackParam<ParamType>}, where \code{ParamType} must be the specific type of the output parameter.
+%
+The class provides then a \code{set} method to set the output parameter value.
+
+%
+\noindent In the following example, an agent creates and uses a \code{Calc} artifact, by executing operations with output parameters: 
+
+%
+{\small{
+\begin{verbatim}
+MAS example03_output_param {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  calc_user agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}\end{verbatim}}}
+%
+
+\noindent The \code{Calc} used by the agents has the following code:
+
+%
+{\small{
+\begin{verbatim}
+public class Calc extends Artifact {
+
+  @OPERATION 
+  void sum(double a, double b, OpFeedbackParam<Double> sum){
+    sum.set(a+b);
+  }
+
+  @OPERATION 
+  void sumAndSub(double a, double b, OpFeedbackParam<Double> sum, 
+                                     OpFeedbackParam<Double> sub){
+    sum.set(a+b);
+    sub.set(a-b);
+  }
+}\end{verbatim}}}
+
+%
+\noindent The source code of the agent follows:
+
+%
+{\small{
+\begin{verbatim}
+!use_calc.
+
++!use_calc 
+  <- makeArtifact("myCalc","c4jexamples.Calc",[]);
+     sum(4,5,Sum);
+     println("The sum is ",Sum);
+     sumAndSub(0.5, 1.5, NewSum, Sub);
+     println("The new sum is ",NewSum," and the sub is ",Sub).\end{verbatim}}}
+
+%
+\noindent Highlights:
+\begin{itemize}
+\item On the agent side output parameters are denoted by bound variables, which are bound with operation execution.
+\item An operation can have any number of  output parameters
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 04 - Operations with guards }
+
+When defining an operation, a \emph{guard} can be specified as a condition that must be verified to start operation execution, otherwise such execution is suspended.
+%
+This can be done by including a \code{guard} attribute in the \code{@OPERATION} annotation, specifying the name of the boolean method (guard method) -- annotated with \code{@GUARD}, representing the condition to be tested.
+%
+Guard methods are called passing the same parameters of the guarded operation (so they must declare the same parameters).
+%
+Typically guard methods do checks on the value of internal and observable state of the artifact, without changing it.
+
+Operations with guards are useful to realise artifacts with synchronisation functionalities.
+%
+In the following example, guards are used to implement a \emph{bounded buffer} artifact in a producers-consumers architecture.
+
+{\small{
+\begin{verbatim}
+MAS example04_prodcons {
+
+    environment: 
+    c4jason.CartagoEnvironment
+
+    agents:  
+    producer agentArchClass c4jason.CAgentArch #10;
+    consumer agentArchClass c4jason.CAgentArch #10;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+%
+\noindent Ten producers agents and ten consumers agents exchange information items by exploiting the bounded buffer.
+%
+Guarded operations allow for realising a simple coordinated behaviour, such that consumers' get action is suspended if the buffer is empty, and producers' put action is suspended if the buffer is full.
+%
+\noindent Bounded buffer code:
+
+%
+{\small{
+\begin{verbatim}
+public class BoundedBuffer extends Artifact {
+
+  private LinkedList<Object> items;
+  private int nmax;
+	
+  void init(int nmax){
+    items = new LinkedList<Object>();
+    defineObsProperty("n_items",0);
+    this.nmax = nmax;
+  }
+	
+  @OPERATION(guard="bufferNotFull") 
+  void put(Object obj){
+    items.add(obj);
+    getObsProperty("n_items").updateValue(items.size());
+  }
+	
+  @OPERATION(guard="itemAvailable") 
+  void get(OpFeedbackParam<Object> res){
+    Object item = items.removeFirst();
+    res.set(item);
+    getObsProperty("n_items").updateValue(items.size());
+  }
+	
+  @GUARD 
+  boolean itemAvailable(OpFeedbackParam<Object> res){
+    return items.size() > 0;
+  }
+
+  @GUARD 
+  boolean bufferNotFull(Object obj){
+    return items.size() < nmax;
+  }		
+}
+\end{verbatim}}}
+%
+
+\noindent Producers code:
+
+{\small{\begin{verbatim}
+item_to_produce(0).
+
+!produce.
+
++!produce: true <- 
+  !setupTools(Buffer);
+  !produceItems.
+	  
++!produceItems : true <- 
+  ?nextItemToProduce(Item);
+  put(Item);
+  !!produceItems.
+
++?nextItemToProduce(N) : true 
+ <- -item_to_produce(N);
+    +item_to_produce(N+1).
+
++!setupTools(Buffer) : true <- 	
+  makeArtifact("myBuffer","c4jexamples.BoundedBuffer",[10],Buffer).
+
+-!setupTools(Buffer) : true <- 	
+  lookupArtifact("myBuffer",Buffer).
+\end{verbatim}}}
+
+\noindent Consumers code:
+{\small{\begin{verbatim}
+!consume.
+
++!consume: true 
+  <- ?bufferReady;
+     !consumeItems.
+    
++!consumeItems: true 
+  <- get(Item);
+     !consumeItem(Item);
+     !!consumeItems.
+
++!consumeItem(Item) : true 
+  <- .my_name(Me);
+     println(Me,": ",Item).
+  
++?bufferReady : true 
+  <- lookupArtifact("myBuffer",_).  
+-?bufferReady : true 
+  <-.wait(50);
+     ?bufferReady.
+\end{verbatim}}}
+
+\noindent Highlights:
+\begin{itemize}
+\item \emph{Operation execution resume} -- When an agent executes a guarded operation whose guard is false, the operation execution is suspended until the guard is evaluated to true.
+%
+\item \emph{Mutual exclusion} -- Mutual exclusion and atomicity are enforce, anyway:  a suspended guarded operation is  reactivated and executed only if (when) no operations are in execution.
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 05 - Structured Operations}
+
+In order to realise  complex operations, a family of primitives (called \code{await}) is provided to \emph{suspend} the execution of an operation until some specified condition is met, breaking the execution of an operation in multiple transactional steps.
+%
+By suspending the execution of an operation, other operations can be invoked before the current one is terminated.
+%
+When the specified condition holds and no operations are in execution, the suspended operation is resumed.
+
+Complex operations which can be implemented by using this mechanism include:
+\begin{itemize}
+\item long-term operations which need not to block the use of the artifact;
+\item concurrent operations i.e. operations whose execution must overlap,  which are essential for realising coordination mechanisms and functionalities.
+\end{itemize}
+
+\noindent In the following example, two agents share and concurrently use an artifact, which provides an  operation using this mechanism.
+% 
+{\small{
+\begin{verbatim}
+MAS example05_complexop {
+
+    environment: 
+    c4jason.CartagoEnvironment
+
+    agents:     	  
+    complexop_userA agentArchClass c4jason.CAgentArch;
+    complexop_userB agentArchClass c4jason.CAgentArch;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+\noindent The artifact used by the two agents has the following code: 
+%
+{\small{
+\begin{verbatim}
+public class ArtifactWithComplexOp extends Artifact {
+	
+  int internalCount;
+
+  void init(){
+    internalCount = 0;
+  }
+	
+  @OPERATION void complexOp(int ntimes){
+    doSomeWork();
+    signal("step1_completed");
+    await("myCondition", ntimes);
+    signal("step2_completed",internalCount);
+  }
+	
+  @GUARD boolean myCondition(int ntimes){
+    return internalCount >= ntimes;
+  }
+	
+  @OPERATION void update(int delta){
+    internalCount+=delta;
+  }
+  
+  private void doSomeWork(){}
+  
+}
+\end{verbatim}}}
+%
+\noindent In \code{complexOp} first we do some work, then we generate a signal \code{step1\_completed}, and after that, by means of \code{await}, we suspend the execution of the operation until the condition defined by the  guard method \code{myCondition} --  whose name (and parameters, if needed) are specified as parameters of the \code{await} primitive -- holds.
+%
+The effect is to suspend the execution of the operation until the value of \code{internalCount} is greater than or equal to the value specified by the \code{complexOp} \code{ntimes} parameter.
+%
+
+Besides \code{complexOp}, the \code{update} operation is provided to increment the internal counter.
+%
+In the example one agent -- \code{complexop\_userA} -- executes a \code{complexOp} and the other agent -- \code{complexop\_userB} -- repeatedly execute \code{update}.
+%
+The action and plan of the first agent is suspended until the second agent has executed a number of updates which is sufficient to resume the \code{complexOp} operation.
+
+\noindent Here it is the \code{complexop\_userA} source code:
+%
+{\small{\begin{verbatim}
+!do_test.
+
+@do_test
++!do_test     
+  <- println("[userA] creating the artifact...");
+     makeArtifact("a0","c4jexamples.ArtifactWithComplexOp",[],Id);
+     focus(Id);
+     println("[userA] executing the action...");
+     complexOp(10);
+     println("[userA] action completed."). 
+
++step1_completed
+  <- println("[userA] first step completed.").
+
++step2_completed(C)
+  <- println("[userA] second step completed: ",C).
+\end{verbatim}}}
+
+\noindent It is worth noting that the agent reacts to \code{step1\_completed} signal generated by the artifact, printing a message on the console, even if the \code{do\_test} plan execution is suspended waiting for \code{complexOp(10)} action completion.
+
+\medskip
+
+\noindent \code{complexop\_userB} source code:
+{\small{\begin{verbatim}
+!do_test.
+
++!do_test 
+  <- !discover("a0");
+     !use_it(10).     
+     
++!use_it(NTimes) : NTimes > 0 
+  <- update(3);
+     println("[userB] updated.");
+     !use_it(NTimes - 1).
+          
++!use_it(0) 
+  <- println("[userB] completed.").
+     
++!discover(ArtName)
+  <- lookupArtifact(ArtName,_).
+-!discover(ArtName)
+  <- .wait(10);
+     !discover(ArtName).
+\end{verbatim}}}
+%
+\noindent The agent simply executes for 10 times the \code{update} operation.
+%
+By running the example it is possible to see the interleaving of the agent actions.
+
+\medskip
+
+\noindent Highlights:
+
+\begin{itemize}
+%
+\item {\emph{Concurrency}} -- the execution of the operations overlaps in time: however always only one operation step is in execution at a time, so no interferences can occur in accessing and modifying artifact state
+%
+\item {\emph{Transactionality and Observability}} -- by executing \code{await}, all the changes to the observable properties done so far by the operation are committed.
+%
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 05a - Implementing coordination artifacts}
+
+Here we show an example of how to exploit structured operations to implement a coordination artifact, a simple \emph{tuple space}, and its usage to solve the dining philosophers coordination problem.
+%
+The \code{in} and \code{rd} operations (that corresponds to the \code{in} and \code{rd} Linda primitives) are easily implemented exploiting the \code{await} mechanism: 
+%
+{\small{
+\begin{verbatim}
+public class TupleSpace extends Artifact {
+	
+  TupleSet tset;
+	
+  void init(){
+    tset = new TupleSet();
+  }
+	
+  @OPERATION void out(String name, Object... args){
+    tset.add(new Tuple(name,args));
+  }
+	
+  @OPERATION void in(String name, Object... params){
+    TupleTemplate tt = new TupleTemplate(name,params);
+    await("foundMatch",tt);
+    Tuple t = tset.removeMatching(tt);
+    bind(tt,t);
+  }
+
+  @OPERATION void rd(String name, Object... params){
+    TupleTemplate tt = new TupleTemplate(name,params);
+    await("foundMatch",tt);
+    Tuple t = tset.readMatching(tt);
+    bind(tt,t);
+  }
+	
+  private void bind(TupleTemplate tt, Tuple t){
+    Object[] tparams = t.getContents();
+    int index = 0;
+    for (Object p: tt.getContents()){
+      if (p instanceof OpFeedbackParam<?>){
+        ((OpFeedbackParam) p).set(tparams[index]);
+      }
+      index++;
+    }
+  }
+	
+  @GUARD boolean foundMatch(TupleTemplate tt){
+    return tset.hasTupleMatching(tt);
+  }
+}
+\end{verbatim}}}
+%
+\noindent (The description of \code{Tuple}, \code{TupleTemplate} and \code{TupleSet} classes is omitted).
+%
+This is actually the implementation of the \code{blackboard} tuple space artifact available by default in any workspace.
+
+\noindent It follows a solution to the dining philosophers problem using a tuple space:
+% 
+{\small{
+\begin{verbatim}
+MAS example05a_philo {
+
+    environment: 
+    c4jason.CartagoEnvironment
+
+    agents:     	  
+    waiter agentArchClass c4jason.CAgentArch;
+    philo agentArchClass c4jason.CAgentArch #5;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+%
+\noindent The MAS is composed by a waiter agent and five philosophers
+%
+The waiter is responsible of preparing the environment, injecting the tuples representing the forks (five \code{fork(F)} tuples) and tickets (four \code{ticket} tuples), which allow for avoiding deadlocks.
+
+{\small{\begin{verbatim}
+philo(0,"philo1",0,1).
+philo(1,"philo2",1,2).
+philo(2,"philo3",2,3).
+philo(3,"philo4",3,4).
+philo(4,"philo5",4,0).
+
+!prepare_table.
+
++!prepare_table
+  <- for ( .range(I,0,4) ) {
+       out("fork",I);
+       ?philo(I,Name,Left,Right);
+       out("philo_init",Name,Left,Right);
+     };
+     for ( .range(I,1,4) ) {
+       out("ticket");
+     };
+     println("done.").
+\end{verbatim}}}
+
+%
+\noindent The philosophers repeatedly get a couple of forks, use them to eat, and then release them.
+%
+Before taking the forks they must get a ticket, which is released then after releasing the forks.
+{\small{\begin{verbatim}
+!start.
+
++!start
+  <- .my_name(Me);
+     in("philo_init",Me,Left,Right);
+     +my_left_fork(Left);
+     +my_right_fork(Right);
+     println(Me," ready.");
+     !!living.
+     
++!living
+ <- !thinking;
+    !eating;
+    !!living.
+
++!eating 
+ <- !acquireRes;
+    !eat;
+    !releaseRes.
+      
++!acquireRes : 
+  my_left_fork(F1) & my_right_fork(F2) 
+  <- in("ticket");
+     in("fork",F1);
+     in("fork",F2).
+  
++!releaseRes: 
+  my_left_fork(F1) & my_right_fork(F2) 
+ <-  out("fork",F1);
+     out("fork",F2);
+     out("ticket").
+       
++!thinking 
+  <- .my_name(Me); println(Me," thinking").
++!eat 
+  <- .my_name(Me); println(Me," eating").
+\end{verbatim}}}
+%
+
+\noindent Highlights:
+
+\begin{itemize}
+%
+\item no one created the tuple space artifact, since it is already available in the workspace by default.
+%
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 06 - Internal operations and timed await: implementing a clock}
+
+Sometimes it is useful to implement operations that trigger the asynchronous execution of other operations inside the artifact, which are typically long-term.
+%
+For instance: a clock artifact can have the \code{start} operation, triggering the execution of a long-term \code{counting} operation.
+%
+Such operations are typically \emph{internal}, i.e. not (necessarily) part of the usage interface, and are annotated with \code{@INTERNAL\_OPERATION}.
+%
+To trigger the execution of an internal operation the \code{execInternalOp} primitive is provided.
+%
+
+\noindent In the following example, an agent creates a clock and uses it.
+ 
+{\small{
+\begin{verbatim}
+MAS example06_clock {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  clock_user agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}\end{verbatim}}}
+
+\noindent The clock artifact has two usage interface operations -- \code{start} and \code{stop} -- and an internal operation \code{count}, triggered by \code{start}:
+%
+{\small{
+\begin{verbatim}
+public class Clock extends Artifact {
+
+  boolean counting;
+  final static long TICK_TIME = 100;
+	      
+  void init(){
+    counting = false;
+  }
+	    
+  @OPERATION void start(){
+    if (!counting){
+      counting = true;
+      execInternalOp("count");
+    } else {
+      failed("already_counting");
+    }
+  }
+	  
+  @OPERATION void stop(){
+    counting = false;
+  }
+
+  @INTERNAL_OPERATION void count(){
+    while (counting){
+      signal("tick");
+      await_time(TICK_TIME);
+    }
+  }
+}
+\end{verbatim}}}
+%
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Timed await} -- \code{await\_time} primitive belongs to the \code{await} primitives: it suspends the execution of the operation until the specified time (in milliseconds) has elapsed (from now).
+
+Like in the \code{await} case, by suspending the operation, the artifact is made accessible to agents for executing operations and possible changes to its observable state are committed and made observable.
+ %
+\end{itemize} 
+
+The agent starts a clock, then reacts to ticks generated by it for a certain number of times, and finally  stopping it.
+%
+%
+{\small{\begin{verbatim}
+!test_clock.
+
++!test_clock
+  <- makeArtifact("myClock","c4jexamples.Clock",[],Id);
+     focus(Id);
+     +n_ticks(0);
+     start;
+     println("clock started.").
+
+@plan1
++tick: n_ticks(10)  
+  <- stop;
+     println("clock stopped.").
+
+@plan2 [atomic]
++tick: n_ticks(N)  
+  <- -+n_ticks(N+1);
+     println("tick perceived!").
+\end{verbatim}}}
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Controllable processes} -- these features make it possible to exploit artifacts also to implement controllable long-term processes, without the need to use agents for this purpose (e.g. clock agent).
+%
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 07 - Await with blocking commands: Implementing  artifacts for I/O}
+
+In order to implement artifacts that provides I/O functionalities for interacting with the external world (e.g. network communication, user I/O, GUI, etc.), a further kind of \code{await} primitive is provided, accepting an object of type \code{IBlockingCommand} representing a command to be executed.
+%
+The primitive suspends the execution of the operation until the specified command -- which typically contains some kind of I/O and a blocking behaviour -- has been executed.
+%
+
+\noindent In the following example, two agents communicate by means of two artifacts that function as network port, providing I/O network communication based on UDP sockets.
+ 
+{\small{
+\begin{verbatim}
+MAS example07_extcommand {
+
+  environment: c4jason.CartagoEnvironment
+
+  agents:  
+  sender agentArchClass c4jason.CAgentArch #1;
+  receiver agentArchClass c4jason.CAgentArch #1;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+\noindent The agent \code{sender} creates and uses its port to send two messages:
+%
+%
+{\small{\begin{verbatim}
+!send_info.
+
++!send_info : true
+  <- makeArtifact("senderPort","c4jexamples.Port",[23000]);
+     sendMsg("hello1","localhost:25000");
+     sendMsg("hello2","localhost:25000"). 
+\end{verbatim}}}
+
+%
+\noindent The agent \code{receiver} creates and uses its own port to get the messages, using two different receiving styles:
+%
+{\small{\begin{verbatim}
+!receive_msgs.
+
++!receive_msgs : true
+  <- makeArtifact("receiverPort","c4jexamples.Port",[25000],Id);
+     receiveMsg(Msg,Sender);
+     println("received ",Msg," from ",Sender);
+     focus(Id);
+     startReceiving.
+     
++new_msg(Msg,Sender)
+  <- println("received ",Msg," from ",Sender).
+\end{verbatim}}}
+
+\noindent The first message is received by means of a \code{receiveMsg} action, while the second as a signal  \code{new\_msg} generated by the artifact. 
+
+The \code{Port} artifact exploits the await with a blocking command to implement its functionalities:
+%
+{\small{
+\begin{verbatim}
+public class Port extends Artifact {
+
+  DatagramSocket socket;
+  ReadCmd cmd;
+  boolean receiving;
+
+  @OPERATION
+  void init(int port) throws Exception {
+    socket = new DatagramSocket(port);
+    cmd = new ReadCmd();
+    receiving = false;
+  }
+
+  @OPERATION
+  void sendMsg(String msg, String fullAddress) {
+    try {
+      int index = fullAddress.indexOf(':');
+      InetAddress address = InetAddress.getByName(fullAddress.substring(
+          0, index));
+      int port = Integer.parseInt(fullAddress.substring(index + 1));
+      socket.send(new DatagramPacket(msg.getBytes(),
+          msg.getBytes().length, address, port));
+    } catch (Exception ex) {
+      this.failed(ex.toString());
+    }
+  }
+
+  @OPERATION
+  void receiveMsg(OpFeedbackParam<String> msg, OpFeedbackParam<String> sender) {
+    await(cmd);
+    msg.set(cmd.getMsg());
+    sender.set(cmd.getSender());
+  }
+
+  @OPERATION
+  void startReceiving() {
+    receiving = true;
+    execInternalOp("receiving");
+  }
+
+  @INTERNAL_OPERATION
+  void receiving() {
+    while (true) {
+      await(cmd);
+      signal("new_msg", cmd.getMsg(), cmd.getSender());
+    }
+  }
+
+  @OPERATION
+  void stopReceiving() {
+    receiving = false;
+  }
+
+  class ReadCmd implements IBlockingCmd {
+
+    private String msg;
+    private String sender;
+    private DatagramPacket packet;
+
+    public ReadCmd() {
+      packet = new DatagramPacket(new byte[1024], 1024);
+    }
+
+    public void exec() {
+      try {
+        socket.receive(packet);
+        byte[] info = packet.getData();
+        msg = new String(info);
+        sender = packet.getAddress().toString();
+      } catch (Exception ex) {
+      }
+    }
+
+    public String getMsg() {
+      return msg;
+    }
+
+    public String getSender() {
+      return sender;
+    }
+  }
+}
+\end{verbatim}}}
+
+%
+\noindent The \code{ReadCmd} implements a blocking command -- implementing the \code{IBlockingCmd} interface -- containing in the \code{exec} method the command code, in this case receiving an UDP packet from a socket.
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Command implementation} -- typically the class implementing a command provides methods to check success and retrieve results  after the command has been executed and the \code{await} unblocked.
+ %
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 07a - Programming GUI as Artifacts}
+
+An important example of artifacts encapsulating I/O functionalities is given by GUI artifacts, i.e. artifacts functioning as GUI components, enabling the interaction between human users and agents.
+%
+Such artifacts allow to use Swing to define the structure of a GUI;
+%
+then, they allow for defining -- on the one side -- operations corresponding to user actions on the GUI, so handling specific GUI events. Such operations generates signals or change some observable events to trigger agents observing the GUI;
+%
+on the other side, they provide operations that can be possibly used by agents to change the GUI.
+%
+\medskip
+
+\noindent In the following example, a \code{gui\_tester} agent creates and uses a GUI artifact to interact with the user.
+%
+{\small{
+\begin{verbatim}
+MAS example07a_gui {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:
+  gui_tester agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+To make it easier GUI artifact development, a \code{cartago.tools.GUIArtifact} base artifact is provided among the {\cartago} utility tools.
+% 
+The implementation of  \code{cartago.tools.GUIArtifact} -- which can be checked in {\cartago} source code -- exploits \code{await} and blocking commands.
+%
+The base artifact provides basic functionalities to link GUI events to the artifact operations.
+
+%
+In the following, \code{MySimpleGUI} GUI artifact creates a simple GUI with a text field and a button.
+%
+Some GUI events -- pressing the button, key stroke in the text field, closing the window -- are linked to some artifact's internal operations, which in turn generate observable events to agents.
+%
+{\small{\begin{verbatim}
+public class MySimpleGUI extends GUIArtifact {
+
+  private MyFrame frame;
+  
+  public void setup() {
+    frame = new MyFrame();
+    
+    linkActionEventToOp(frame.okButton,"ok");
+    linkKeyStrokeToOp(frame.text,"ENTER","updateText");
+    linkWindowClosingEventToOp(frame, "closed");
+
+    defineObsProperty("value",getValue());
+    frame.setVisible(true);   
+  }
+
+  @INTERNAL_OPERATION void ok(ActionEvent ev){
+    signal("ok");
+  }
+
+  @INTERNAL_OPERATION void closed(WindowEvent ev){
+    signal("closed");
+  }
+  
+  @INTERNAL_OPERATION void updateText(ActionEvent ev){
+    getObsProperty("value").updateValue(getValue());
+  }
+
+  @OPERATION void setValue(int value){
+    frame.setText(""+value);
+    getObsProperty("value").updateValue(getValue());
+  }
+
+  private int getValue(){
+    return Integer.parseInt(frame.getText());
+  }
+  
+  class MyFrame extends JFrame {    
+    
+    private JButton okButton;
+    private JTextField text;
+    
+    public MyFrame(){
+      setTitle("Simple GUI ");
+      setSize(200,100);
+      JPanel panel = new JPanel();
+      setContentPane(panel);
+      okButton = new JButton("ok");
+      okButton.setSize(80,50);
+      text = new JTextField(10);
+      text.setText("0");
+      text.setEditable(true);
+      panel.add(text);
+      panel.add(okButton);
+    }
+    
+    public String getText(){
+      return text.getText();
+    }
+
+    public void setText(String s){
+      text.setText(s);
+    }
+  }
+}
+\end{verbatim}}}
+%
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Designing GUI artifacts} -- a GUI artifact is defined by extending \code{GUIArtifact}, wrapping the definition and creation of the structure of the GUI -- using the Swing API -- and then linking/mapping Swing events into artifact's internal operations by using \code{linkXXXtoYYY} primitives.
+%
+%\item \emph{}
+\end{itemize} 
+
+%
+\noindent The agent creates an instance of the artifact and reacts to user actions on the GUI:
+%
+{\small{\begin{verbatim}
+!test_gui.
+
++!test_gui
+  <-  makeArtifact("gui","c4jexamples.MySimpleGUI",[],Id);
+      focus(Id).
+
++value(V) 
+  <- println("Value updated: ",V).
+  
++ok : value(V)
+  <-  setValue(V+1).
+      
++closed
+  <-  .my_name(Me);
+      .kill_agent(Me).
+\end{verbatim}}}
+
+%
+\noindent In particular, the agent reacts to the pressing of the button by setting a new value in the GUI;
+%
+it prints a message on the console as soon as a new value is observed;
+%
+it shutdown as soon as the window is closed.
+
+
+% ============================================================
+
+\newpage
+\section{Example 07b - Doing I/O with the Operating System - Shell artifact}
+
+This example shows how to implement an artifact (\texttt{Shell}) that makes  it possible for agents to execute shell commands and get  results, using various style of interaction.
+
+%
+\medskip
+
+%
+{\small{
+\begin{verbatim}
+MAS example07b_shell {
+
+  environment: c4jason.CartagoEnvironment
+
+  agents:
+    shell_user agentArchClass c4jason.CAgentArch;
+    
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+
+The \code{Shell} artifact provides the shell command directly  as operations (in this simple example, only a couple of commands are implemented).
+%
+Depending on the specific commands, the output can be managed  as action feedback or observable events:
+ %
+{\small{\begin{verbatim}
+package c4jexamples;
+
+import cartago.*;
+import java.io.*;
+
+public class Shell extends Artifact {
+
+  @OPERATION void whoami(OpFeedbackParam<String> res){
+    try {
+      Process proc = Runtime.getRuntime().exec("whoamI");
+      BufferedReader reader = 
+        new BufferedReader(new InputStreamReader(proc.getInputStream()));
+      StringBuffer buffer = new StringBuffer("");
+      String st = reader.readLine();
+      while (st != null){
+        buffer.append(st+"\n");
+        st = reader.readLine();
+      }
+      res.set(buffer.toString());
+    } catch (Exception ex){
+      failed("cmd failed");
+    }
+  }
+  
+  @OPERATION void traceroute(String address){
+    try {
+      Process proc = 
+        Runtime.getRuntime().exec(new String[]{"traceroute", address});
+      InputStream is = proc.getInputStream();
+      BufferedReader reader = 
+        new BufferedReader(new InputStreamReader(is));
+      String st = reader.readLine();
+      while (st != null){
+        String tokens[] = st.trim().split(" ");
+          if (!tokens[0].equals("*")){
+            try {
+              int num = Integer.parseInt(tokens[0]);
+              String logicalAddress = tokens[2];
+              String ipAddress = tokens[3].substring(1,tokens[3].length()-1);
+              double delay1 = Double.parseDouble(tokens[5]);
+              double delay2 = Double.parseDouble(tokens[8]);
+              double delay3 = Double.parseDouble(tokens[11]);
+              signal("hop",num,logicalAddress,ipAddress,delay1,delay2,delay3);
+            } catch (Exception ex){
+              // ex.printStackTrace();
+              // not hop info, ignore
+            }
+          }
+        st = reader.readLine();
+      }
+    } catch (Exception ex){
+      ex.printStackTrace();
+      failed("cmd failed");
+    }
+  } 
+}
+\end{verbatim}}}
+%
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item For commands like \code{whoami} -- which are short-term, generating a single output -- it is more effective to encode the output directly as the action feedback; 
+%
+instead, for commands like \code{traceroute} -- which generates multiple outputs, possibly distributed in time -- signals reporting information about individual output (\code{hop(Num,LogicalAddr,IPAddr,Delay,Delay2,Delay3)} are more effective. 
+%
+%\item \emph{}
+\end{itemize} 
+
+%
+\noindent The code of the \code{shell\_user} agent using the artifact follows:
+%
+{\small{\begin{verbatim}
+!test.
+
++!test
+  <- makeArtifact("shell","c4jexamples.Shell",[],Id);
+     !test_whoami;
+     focus(Id);
+     !test_traceroute.
+   
++!test_whoami : true
+  <- println("who is the user:");
+     whoami(User);
+     println(User).
+   
++!test_traceroute 
+  <- println("Tracing the route to CArtAgO site:");
+     traceroute("cartago.sourceforge.net");
+     println("done.").
+  
++hop(N,Addr,IP,D0,D1,D2)
+  <- println(N," ",Addr," (",IP,") ",D0," ",D1," ",D2).
+\end{verbatim}}}
+
+%
+\noindent The agent simply tests the two commands, using a reactive plan to observe to hop signals generated by traceroute.
+%
+An example of output:
+\begin{scriptsize}
+\begin{verbatim}
+[ shell_user ] who is the user:
+[ shell_user ] uid=501(aricci) gid=20(staff) groups=20(staff),204(_developer),100(_lpoperator),
+                        98(_lpadmin),81(_appserveradm),80(admin),79(_appserverusr),61(localaccounts),
+                        12(everyone),402(com.apple.sharepoint.group.1),401(com.apple.access_screensharing)
+
+[ shell_user ] Tracing the route to CArtAgO site:
+[ shell_user ] 1 192.168.1.1 (192.168.1.1) 2.148 1.395 1.574
+[ shell_user ] 2 192.168.100.1 (192.168.100.1) 41.229 41.274 41.104
+[ shell_user ] 3 host137-230-static.44-88-b.business.telecomitalia.it (88.44.230.137) 41.94 41.86 41.378
+[ shell_user ] 4 80.17.209.142 (80.17.209.142) 43.021 42.492 42.282
+[ shell_user ] 5 172.17.8.225 (172.17.8.225) 48.744 48.898 47.36
+[ shell_user ] 6 172.17.6.113 (172.17.6.113) 52.567 52.342 53.743
+[ shell_user ] 7 te1-15-2-0.milano26.mil.seabone.net (195.22.196.113) 49.46 50.212 49.44
+[ shell_user ] 8 xe-3-0-0.franco31.fra.seabone.net (195.22.211.223) 58.309 58.737 83.66
+[ shell_user ] 9 acr1-ge-4-1-0.frankfurtfrx.savvis.net (80.81.192.128) 63.671 63.114 64.246
+[ shell_user ] 10 cr1-te-0-8-1-0.frankfurtft3.savvis.net (204.70.206.153) 61.415 62.124 61.768
+[ shell_user ] 11 cr1-bundle-pos2.chicago.savvis.net (204.70.200.89) 165.637 165.833 165.797
+[ shell_user ] 12 hr1-te-12-0-1.elkgrovech3.savvis.net (204.70.198.73) 171.554 171.149 171.351
+[ shell_user ] 13 das4-v3041.ch3.savvis.net (64.37.207.194) 164.267 164.824 165.461
+[ shell_user ] 14 64.27.160.198 (64.27.160.198) 184.606 181.603 179.925
+[ shell_user ] 15 projects.sourceforge.net (216.34.181.96) 166.767 166.875 167.791
+[ shell_user ] done.
+\end{verbatim}
+\end{scriptsize}
+
+% ============================================================
+
+\newpage
+\section{Example 08 - Linkability}
+
+Linkability is the mechanism that makes it possible to create interactions among artifacts, i.e. execute inter-artifacts operations.
+%
+Besides the usage interface, an artifact can expose operations -- to be tagged with \code{@LINK}.
+%
+These operations are meant to be called by other artifacts.
+%
+In order to allow an artifact A to execute operations over an artifact B, two options are provided:
+%
+\begin{itemize}
+\item the artifact A must be explicitly \emph{linked} to the artifact B by an agent, executing \code{linkArtifacts} action, specifying the name of an \emph{output} port that the artifact A must expose.
+%
+Then, operations of artifact A can execute operations of the linked artifact B by using the \code{execLinkedOp} primitive, specifying the \emph{output} port where the linked artifact has been linked. 
+%
+\item without linking the two artifacts, an artifact A can execute operations over the artifact B by specifying in \code{execLinkedOp} the target identifier of the artifact B 
+\end{itemize}
+%
+\medskip
+
+\noindent In the following example, an agent creates and links together two artifacts. 
+%
+Then, it executes some operations of one artifact, the \emph{linking} one, which in turns executes operations over the second one, the \emph{linked} one:
+
+{\small{
+\begin{verbatim}
+MAS example08_linkability {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  linkability_tester agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+\noindent Source code of the linkable artifact:
+
+{\small{\begin{verbatim}
+public class LinkableArtifact extends Artifact {
+  
+  int count;
+  
+  void init(){
+    count = 0;
+  }
+      
+  @LINK void inc(){
+    log("inc invoked.");
+    count++;
+  }
+
+  @LINK void getValue(OpFeedbackParam<Integer> v){
+    log("getValue invoked");
+    v.set(count);
+  }
+}
+\end{verbatim}}}
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{\code{@LINK} operations} -- the semantics of linked operations is the same of normal operation.
+\item \emph{Output parameters} -- linked operations can contain also output parameters, as normal operations.
+%
+%\item \emph{}
+\end{itemize} 
+
+\noindent Source code of the linking artifact:
+
+%
+{\small{\begin{verbatim}
+@ARTIFACT_INFO(
+  outports = {
+    @OUTPORT(name = "out-1")
+  }
+) public class LinkingArtifact extends Artifact {
+  
+  @OPERATION void test(){
+      log("executing test.");
+      try {
+        execLinkedOp("out-1","inc");
+      } catch (Exception ex){
+        ex.printStackTrace();
+      }
+  }
+
+  @OPERATION void test2(OpFeedbackParam<Integer> v){
+      log("executing test2.");
+      try {
+        execLinkedOp("out-1","getValue", v);
+        log("back: "+v.get());
+      } catch (Exception ex){
+        ex.printStackTrace();
+      }
+  }
+
+  @OPERATION void test3(){
+      log("executing test3.");
+      try {
+        ArtifactId id = makeArtifact("new_linked", 
+               "c4jexamples.LinkableArtifact", ArtifactConfig.DEFAULT_CONFIG);
+        execLinkedOp(id,"inc");
+      } catch (Exception ex){
+        ex.printStackTrace();
+      }
+  }
+}
+\end{verbatim}}}
+%
+\noindent The \code{test} and \code{test2} operations executes respectively the \code{inc} and \code{getValue} operation over the artifact linked to the \code{out-1} port.
+%
+The operation \code{test3} instead creates an artifact and executes a linked operation directly using artifact identifier.
+ %
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Output ports} -- output ports are declared in the \code{@ARTIFACT\_INFO} annotation of the artifact class, \code{outports} attribute;
+%
+\item \emph{Linked operation execution} -- the execution semantics is the same of normal operations.
+%
+The \code{execOpLinked} primitive suspend the operation execution until the operation execution on the linked artifact has completed.
+%
+
+\end{itemize} 
+%
+
+%
+\noindent Finally, the agent source code:
+%
+{\small{\begin{verbatim}
+!test_link.
+
++!test_link
+  <- makeArtifact("myArtifact","c4jexamples.LinkingArtifact",[],Id1);
+     makeArtifact("count","c4jexamples.LinkableArtifact",[],Id2);
+     linkArtifacts(Id1,"out-1",Id2);      
+     println("artifacts linked: going to test");
+     test;
+     test2(V);
+     println("value ",V);
+     test3.
+\end{verbatim}}}
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Linking artifacts} -- \code{linkArtifacts}'s parameters include the identifier of the linking artifact, its outport and the identifier of the linked artifact.
+%
+\end{itemize} 
+
+
+% ============================================================
+
+\newpage
+\section{Example 09 - Java data-binding}
+
+Since {\cartago} data model is based on Java object (POJO), a set of internal actions is provided on the agent side to create/manipulate Java objects.
+%
+In particular:
+%
+\begin{itemize}
+\item \code{cartago.new\_obj(ClassName,ParamList,?ObjRef)} -- instantiate a new object of the specified class, retrieving its reference
+\item \code{cartago.invoke\_obj{ObjRef,MethodName\{(Params)\},RetValue}} -- call a method, possibly getting the return value
+\item \code{cartago.invoke\_obj{ClassName,MethodName\{(Params)\},RetValue}} -- call a static method, possibly getting the return value
+\end{itemize}
+%
+It follows a simple example:
+{\small{
+\begin{verbatim}
+MAS example09_java_data_binding {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  java_data_binding_tester agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+%
+\noindent The agent source code:
+%
+{\small{\begin{verbatim}
+!test_java_api.
+
++!test_java_api
+  <- cartago.new_obj("c4jexamples.FlatCountObject",[10],Id);
+     cartago.invoke_obj(Id,inc);
+     cartago.invoke_obj(Id,getValue,Res);
+     println(Res);
+     cartago.invoke_obj("java.lang.System",currentTimeMillis,T);
+     println(T);
+     cartago.invoke_obj("java.lang.Class",
+                   forName("c4jexamples.FlatCountObject"),Class);
+     println(Class).
+\end{verbatim}}}
+%
+\noindent where the class \code{FlatCountObject} is defined as follows:
+{\small{\begin{verbatim}
+package c4jexamples;
+
+public class FlatCountObject {
+
+  private int count;
+  
+  public FlatCountObject(int v){
+    count = v;
+  }
+
+  public FlatCountObject(){
+    count = 0;
+  }
+  
+  public void inc(){
+    count++;
+  }
+
+  public void inc(int dv){
+    count+=dv;
+  }
+  
+  public int getValue(){
+    return count;
+  }
+
+}
+\end{verbatim}}}
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{No sharing} -- Java objects are not meant to be shared, each agent has its own Java library, managing its own Java objects
+\item \emph{Object references} -- Object references are kept track by means of atoms with a specific signature. When used outside the Java related internal actions, they are treated as normal atoms. When used in Java related internal actions, they refer to objects.
+\item \emph{Null value} -- Underscore (\code{\_}) is used to represent the null value. 
+%
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 10 - Working with Multiple Workspaces}
+
+In the following example, creates two workspaces, joins both and prints messages using 
+different console artifacts, and then uses internal actions to set the current workspace.
+
+{\small{
+\begin{verbatim}
+MAS example10_workspaces {
+
+    environment: 
+    c4jason.CartagoEnvironment
+
+    agents: 
+    wsp_tester agentArchClass c4jason.CAgentArch;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+%
+\noindent The agent source code:
+%
+{\small{\begin{verbatim}
+!test_wsp. 
+
++!test_wsp 
+  <- ?current_wsp(Id0,Name,NodeId);
+     println("current workspace ",Name," ",NodeId);  
+     println("creating new workspaces...");
+     createWorkspace("myNewWorkspace1");
+     createWorkspace("myNewWorkspace2");
+     joinWorkspace("myNewWorkspace1",WspID1);
+     ?current_wsp(_,Name1,_);
+     println("hello in ",Name1);
+     makeArtifact("myCount","c4jexamples.Counter",[],ArtId);
+     joinWorkspace("myNewWorkspace2",WspID2);
+     ?current_wsp(_,Name2,_);
+     println("hello in ",Name2);
+     println("using the artifact of another wsp...");
+     inc [artifact_id(ArtId)];
+     cartago.set_current_wsp(WspID1);
+     println("hello again in ",WspID1);
+     println("quit..");
+     quitWorkspace;
+     ?current_wsp(_,Name3,_);
+     println("back in ",Name3);
+     quitWorkspace;
+     cartago.set_current_wsp(Id0);
+     ?current_wsp(_,Name4,_);     
+     println("...and finallly in ",Name4," again.").
+\end{verbatim}}}
+%
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Working with mutiple workspaces} -- Agents can create, join and work in multiple workspace at a time.
+%
+However there is always a \emph{current} workspace, to which are routed actions with no artifact id or workspace id  specified.
+%
+Current workspace info are automatically tracked by the \code{current\_wsp(WspId,Name,NodeId} belief.
+%
+\item \emph{Setting the current workspace} -- The \code{cartago.set\_current\_wsp(WspID)} internal action makes it possible to set the current workspace, specifying its id.
+
+\item \emph{Actions on workspaces} -- Actions on workspaces include \code{createWorkspace} -- to create a new workspace in current node, provided by the \code{NodeArtifact}, \code{joinWorkspace} -- to join a workspace on the node, provided by the  \code{NodeArtifact}, \code{quitWorkspace} to quit the workspace, provided by the \code{WorkspaceArtifact}.
+
+\end{itemize} 
+
+% ============================================================
+
+\newpage
+\section{Example 11 - Working in Remote Workspaces}
+
+Agents can join workspaces that are hosted on remote nodes, by means of a \code{joinRemoteWorkspace} action (provided by the \code{NodeArtifact}.
+%
+As soon as the join succeed, the interaction within remote workspaces is the same as local workspace.
+
+In the following example, a {\jason} agent joins the default workspace of a {\cartago} node running on localhost.
+%
+The following Java program installs a  {\cartago} node on localhost, to make it reachable (also) by remote agents:
+{\small{
+\begin{verbatim}
+package examples;
+
+import cartago.*;
+import cartago.util.BasicLogger;
+
+public class Ex00a_HelloRemoteWorld {
+	
+  public static void main(String[] args) throws Exception {			
+    CartagoService.startNode();
+    CartagoService.installInfrastructureLayer("default");
+    CartagoService.startInfrastructureService("default");
+    CartagoService.registerLogger("default",new BasicLogger());  
+    System.out.println("CArtAgO Node Ready.");
+  }
+}
+\end{verbatim}}}
+%
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Starting a {\cartago} Node} -- to execute {\cartago} artifact-based environment, first of all a {\cartago} node must be started.
+%
+This is done by the \code{startNode} service of \code{CartagoService}.
+%
+The node functions as virtual machine for running workspaces and artifacts, it does not include any infrastructural (network) support.
+
+\item \emph{Installing infrastructure layers} -- in order to allow agents working in the local node to interact also with remote nodes -- or to allow linking with remote artifacts -- a proper infrastructural layer must be installed by means of \code{installInfrastructureLayer}, specifying the protocol(s) to be used (\code{default} means the default protocol of the platform, which is RMI in the case of Java SE desktop environments).
+%
+\item \emph{Intalling infrastructure services} -- in order to make the node reachable from remote agents, then infrastructure services must be started by means of \code{startInfrastructureService}, again specifying the protocol.
+%
+\end{itemize} 
+\noindent Then, it follows the {\jason} program which creates a standalone {\cartago} node with a single agent:
+{\small{
+\begin{verbatim}
+MAS example11_remote {
+
+  environment: 
+  c4jason.CartagoEnvironment
+
+  agents:  
+  voyager agentArchClass c4jason.CAgentArch;
+
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+%
+\noindent The \code{voyager} agent boots in the standalone node, then it joins a remote workspace, where he creates and uses an artifact. 
+%
+{\small{\begin{verbatim}
+!test_remote.
+
++!test_remote 
+  <- ?current_wsp(Id,_,_);
+     +default_wsp(Id);
+     println("testing remote..");
+     joinRemoteWorkspace("default","localhost",WspID2);
+     ?current_wsp(_,WName,_);
+     println("hello there ",WName);
+     !use_remote;
+     quitWorkspace.
+      
++!use_remote 
+  <- makeArtifact("c0","examples.Counter",[],Id);
+     focus(Id);
+     inc;
+     inc.
+
++count(V) 
+  <- ?default_wsp(Id);
+     println("count changed: ",V)[wsp_id(Id)].
+  
+-!use_remote [makeArtifactFailure("artifact_already_present",_)]
+  <- ?default_wsp(WId);
+     println("artifact already created ")[wsp_id(WId)];
+     lookupArtifact("c0",Id);
+     focus(Id);
+     inc.   
+\end{verbatim}}}
+%
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item \emph{Infrastructure options} -- By default, {\jason} programs using {\cartago} environment create a standalone {\cartago} node, i.e. not accessible through the network, and install the default infrastructure layer (RMI) for joining remote workspaces. Besides the default {\cartago} installation, {\jason} programs have the possibility to work with {\cartago} environment technology in four different ways specifying a set of parameters in the \code{c4jason.CartagoEnvironment} definition inside the {\jason} \code{mas2j} file:
+
+
+\begin{itemize}\item \code{c4jason.CartagoEnvironment("standalone"\{,\\}
+\code{\mbox{~~~~~~~~~~~~~~~~~~~~~~~~~~~~} protocol(ProtName), ...\})} 
+analogous to the default installation except for the declaration of one (or more) infrastructure layers that specify the protocols used for working with remote workspaces (ex: c4jason.CartagoEnvironment("standalone",protocol(lipermi)).
+
+
+\item \code{c4jason.CartagoEnvironment("infrastructure"\{,\\}
+\code{\mbox{~~~~~~~~~~~~~~} protocol(ProtName), ..., service(ServName)\})} 
+
+installs a {\cartago} node accessible through the network. The default service protocol supported by the node is RMI, other service protocols can be installed specifying one or more \code{service} attributes. RMI is installed as the default protocol for joining remote workspaces but other protocols can be installed as well using the \code{protocol} attribute (ex: c4jason.CartagoEnvironment("infrastructure", service("lipermi"), protocol("lipermi"))).
+
+
+\item \code{c4jason.CartagoEnvironment("remote"\{,\\}
+\code{\mbox{~~~~}WspName, WspAddress, protocol(ProtName, Address), ...\})} 
+does not install any node -- agents directly join the specified remote workspace. As usual RMI is installed  by default and further protocols can be specified using the \code{protocol} attribute (ex: c4jason.CartagoEnvironment("remote", "myWsp", "localhost", protocol("lipermi"))).
+
+\item \code{c4jason.CartagoEnvironment("local"\{,WspName\})} \\
+does not install any node -- agents directly join the specified local workspace (or the default workspace if no workspace name is specified) (ex: c4jason.CartagoEnvironment("local", "WspName")).
+%
+\end{itemize} 
+\end{itemize}
+\newpage
+
+% ============================================================
+
+\newpage
+\section{Example 11a - Working in Remote Workspaces using LIP RMI Protocol (JaCa-Android)}
+
+To be completed.
+
+% ============================================================
+
+\newpage
+\section{Example 12 - Contract Net Protocol (CNP) using Artifacts}
+
+This example shows  a contract net protocol, which is a well-known protocol used for MAS coordination, realized using artifacts instead of direct communication.
+%
+In particular, two kinds of artifacts are used:
+%
+\begin{itemize}
+\item a \emph{task board}, used by announcers to announce a new task to do and by bidders to be aware of available tasks.
+% 
+\item a \emph{contract net board}, used to manage the coordination between an announcer  and the bidders involved in the CNP for a specific task.
+%
+\end{itemize}
+%
+So one instance of \emph{task board} is created and one of \emph{contract net board} for each task which is announced.
+
+\medskip
+%
+\noindent It follows the implementation \code{TaskBoard} of the \emph{task board} artifact:
+
+{\scriptsize{\begin{verbatim}
+public class TaskBoard extends Artifact {
+  private int taskId;
+  
+  void init(){
+    taskId = 0;
+  }
+
+  @OPERATION void announce(String taskDescr, int duration, 
+                                    OpFeedbackParam<String> id){
+    taskId++;
+    try {
+      String artifactName = "cnp_board_"+taskId;
+      makeArtifact(artifactName, "c4jexamples.ContractNetBoard", 
+                                    new ArtifactConfig(taskDescr,duration));
+      defineObsProperty("task", taskDescr, artifactName);
+      id.set(artifactName);
+    } catch (Exception ex){
+      failed("announce_failed");
+    }   
+  }
+
+  @OPERATION void clear(String id){
+    String artifactName = "cnp_board_"+taskId;
+    this.removeObsPropertyByTemplate("task", null, artifactName);
+  }
+}
+ \end{verbatim}}}
+
+\noindent A new task is announced by means of the \code{announce} operation, whose effect is to create a new \code{ContractNetBoard} artifact  and define a new observable property \code{task} with information about the task and the name of corresponding artifact.
+%
+The operation \code{clear} is requested when a previously announced task has been allocated and it can be removed from the task board.
+
+\noindent It follows the \code{ContractNetBoard} implementation of the \emph{contract net board}:
+
+{\scriptsize{\begin{verbatim}
+public class ContractNetBoard extends Artifact {
+
+  private List<Bid> bids;
+  private int bidId;
+  
+  void init(String taskDescr, long duration){
+    this.defineObsProperty("task_description", taskDescr);
+    long started = System.currentTimeMillis(); 
+    this.defineObsProperty("created", started);
+    long deadline = started + duration;
+    this.defineObsProperty("deadline", deadline);
+    this.defineObsProperty("state","open");
+    bids = new ArrayList<Bid>();
+    bidId = 0;
+    this.execInternalOp("checkDeadline",duration);
+  }
+  
+  @OPERATION void bid(String bid, OpFeedbackParam<Integer> id){
+    if (getObsProperty("state").stringValue().equals("open")){
+      bidId++;
+      bids.add(new Bid(bidId,bid));
+      id.set(bidId);
+    } else {
+      this.failed("cnp_closed");
+    }
+  }
+  
+  @OPERATION void award(Bid prop){
+    this.defineObsProperty("winner", prop.getId());
+  }
+
+  @INTERNAL_OPERATION void checkDeadline(long dt){
+    await_time(dt);
+    getObsProperty("state").updateValue("closed");
+    log("bidding stage closed.");
+  }
+  
+  @OPERATION void getBids(OpFeedbackParam<Bid[]> bidList){
+    await("biddingClosed");
+    Bid[] vect = new Bid[bids.size()];
+    int i = 0;
+    for (Bid p: bids){
+      vect[i++] = p;
+    }
+    bidList.set(vect);
+  }
+  
+  @GUARD boolean biddingClosed(){
+    return this.getObsProperty("state").stringValue().equals("closed");
+  }
+
+  static public class Bid {
+    
+    private int id;
+    private String descr;
+    
+    public Bid(int id, String descr){
+      this.descr = descr;
+      this.id = id;
+    }
+    
+    public int getId(){ return id; }
+    public String getDescr(){ return descr; }
+    public String toString(){ return descr; }
+  }
+}
+\end{verbatim}}}
+%
+\noindent The observable property \code{state} is used to keep track of the state of the session, which is \code{open} until the timeout specified by the announcer expires, after that the state is set to \code{closed} -- this behavior is realized by the \code{checkDeadline} internal operation, triggered during artifact initialization.
+%
+While the state is open, bidders can submit their bids by means of the \code{bid} operation, getting back as action feedback an identifier of their bid.
+%
+The operation fails if the state is closed.
+%
+The announcer can use the artifact to first retrieve the submitted list of bidders by means of the \code{getBids} action, which completes as soon as the session closes,  and then to award a bidder by means of the \code{award} action, whose effect is to create a new observable property \code{winner} carrying on the identifier of the selected bid.
+%
+
+
+\medskip
+
+
+%
+\noindent The main of the application launches a simple MAS composed by an announcer and a bunch of bidders:
+%
+
+{\small{\begin{verbatim}
+MAS example12_cnp {
+
+  environment: c4jason.CartagoEnvironment
+
+  agents:     	  
+    announcer agentArchClass c4jason.CAgentArch;
+    bidder    agentArchClass c4jason.CAgentArch #5;
+	  
+  classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
+\end{verbatim}}}
+
+\noindent The announcer agent announces a \code{t0} task, with a timeout of 1000 ms.
+%
+{\small{\begin{verbatim}
+!allocate_task("t0",1000).
+
++!allocate_task(Task,Timeout)
+  <- makeArtifact("task_board","c4jexamples.TaskBoard",[]);
+     println("taskboard allocated");
+     announce(Task,Timeout,CNPBoardName);
+     println("announced: ",Task," on ",CNPBoardName);
+     getBids(Bids) [artifact_name(CNPBoardName)];
+     println("got bids (",.length(Bids),")");
+     !select_bid(Bids,Bid);
+     println("selected: ",Bid);
+     award(Bid)[artifact_name(CNPBoardName)];
+     println("awarded: ",Bid);
+     clear(Task).
+	   
++!select_bid([Bid|_],Bid).
+\end{verbatim}}}
+%
+\noindent The agent first create a task board, then announce a task by doing the \code{announce} action.
+%
+Then it retrieves the bids, selects a bid -- in this case choosing always the first in the list -- award it.
+
+\medskip
+
+Bidder agents observe the task board and react as soon as a new task matching their capabilities is announced.
+%
+In this simple case all bidders are interested to do \code{t0} tasks, so there is a full competition.
+%
+
+{\small{\begin{verbatim}
+!look_for_tasks("t0",1400).
+
++!look_for_tasks(Task,MaxBidMakingTime) 
+  <-  +task_descr(Task);
+      +max_bid_time(MaxBidMakingTime);
+      focusWhenAvailable("task_board");
+      println("task board located.").
+  
++task(Task,CNPBoard) : task_descr(Task)
+  <-  println("found a task: ",Task);
+      lookupArtifact(CNPBoard,BoardId);
+      focus(BoardId);
+      !make_bid(Task,BoardId).
+    
++winner(BidId) : my_bid(BidId)
+  <-  println("awarded!.").
+
++winner(BidId) : my_bid(X) & not my_bid(BidId)
+  <-  println("not awarded.").
+  
++!make_bid(Task,BoardId)
+  <-  !create_bid(Task,Bid);
+      bid(Bid,BidId)[artifact_id(BoardId)];
+      +my_bid(BidId);
+      println("bid submitted: ",Bid," - id: ",BidId).
+
+-!make_bid(Task,BoardId)
+  <-  println("too late for submitting the bid.");
+      .drop_all_intentions.
+  
++!create_bid(Task,Bid) 
+  <-  ?max_bid_time(Timeout); 
+      Num = math.random(Timeout);
+      .wait(Num);
+      .my_name(Name);
+      .concat("bid_",Name,Bid).
+ \end{verbatim}}}
+
+\noindent As soon as a matching task is announced, a bidder creates a bid -- this can take a different randomly chosen amount of time -- and submit it through the proper contract net board artifact (whose identifier is part of task announcement).
+%
+The \code{bid} action actually can fail -- if the session is closed -- so a repairing plan is specified.
+%
+Finally, bidders react to the winner announcement -- only in the case that their bid was successfully submitted --  printing  a message on the console.
+
+\medskip
+
+\noindent Highlights:
+%
+\begin{itemize}
+%
+\item TBC
+%
+\end{itemize}
+
+% ============================================================
+
+\newpage
+
+\noindent TODO:
+\begin{itemize}
+\item example on RBAC security model
+\end{itemize}
+
+\bibliography{../shared/biblio}
+\bibliographystyle{abbrv}
+
+\end{document}

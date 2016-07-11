@@ -1,0 +1,9 @@
+MAS example07b_shell {
+
+    environment: c4jason.CartagoEnvironment
+
+    agents:  
+   	shell_user agentArchClass c4jason.CAgentArch;
+
+    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+}
