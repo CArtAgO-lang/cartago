@@ -1,9 +1,0 @@
-MAS test_man {
-
-    environment: c4jason.CartagoEnvironment
-
-    agents:  
-   	 	manuser agentArchClass c4jason.CAgentArch #1;
-
-	aslSourcePath: "src/test";
-}

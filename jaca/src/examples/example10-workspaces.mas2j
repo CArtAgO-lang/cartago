@@ -1,9 +1,0 @@
-MAS example10_workspaces {
-
-    environment: c4jason.CartagoEnvironment
-
-    agents:  
-   	wsp_tester agentArchClass c4jason.CAgentArch;
-
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
-}
