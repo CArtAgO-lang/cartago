@@ -36,6 +36,7 @@ sourceSets {
       compile files('libs/jason.jar')
 	}
 
+  /*
   // copy dep jars and scritps into build directory
   task copyJarsToBuild {
     inputs.files configurations.runtime.files
@@ -60,7 +61,20 @@ sourceSets {
 
   jar.dependsOn(copyJarsToBuild)
 
-  task makeDist {
+  */
+
+  task cartagoJar(type: Jar, dependsOn: classes) {
+    baseName 'cartago'
+    from sourceSets.main.allSource
+  }
+
+  task jacaJar(type: Jar, dependsOn: classes) {
+    baseName 'jaca'
+    from sourceSets.jaca.allSource
+  }
+  
+
+  task makeDist (dependsOn: ['build','jar']) {
      copy {
           from '.'
           into 'build/dist/cartago-'+version
@@ -99,7 +113,7 @@ sourceSets {
           include('**')
       }
       copy {
-          from 'src/libs'
+          from 'libs'
           into 'build/dist/cartago-'+version+'/lib'
           include('**')
       }
@@ -108,7 +122,16 @@ sourceSets {
           into 'build/dist/cartago-'+version+'/doc'
           include('*.pdf')
       }
+      cartagoJar {
+        destinationDir = new File('build/dist/cartago-'+version+'/lib')
+      }
+      jacaJar {
+        destinationDir = new File('build/dist/cartago-'+version+'/lib')
+      }
   }
 
-  makeDist.dependsOn(build)
+artifacts {
+    archives cartagoJar
+    archives jacaJar
+}
 
