@@ -1,22 +1,17 @@
-/* CArtAgO gradle build file */
+/* CArtAgO + JaCa naive gradle build file 
+ * - to be improved -
+ *
+ * Note:
+ *
+ * Task to create the distribution: makeDist
+ *
+ */
+
 apply plugin: 'java'
 
 version '2.2-SNAPSHOT'
-
-task hello << {
-    println 'CArtAgO Gradle build file - '+version
-}
-
-repositories {
-    mavenCentral()
-		maven {
-    	    url "http://jacamo.sourceforge.net/maven2"
-    	}
-}
-
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
-
 
 sourceSets {
   main {
@@ -31,50 +26,32 @@ sourceSets {
   }
 }
 
-	dependencies {
-      compile files('libs/lipermi-0.4.jar')
-      compile files('libs/jason.jar')
-	}
+/* still using local dep */
+dependencies {
+  compile files('libs/lipermi-0.4.jar')
+  compile files('libs/jason.jar')
+}
 
-  /*
-  // copy dep jars and scritps into build directory
-  task copyJarsToBuild {
-    inputs.files configurations.runtime.files
-    outputs.dir  'build/libs'
-    doLast {
-        copy {
-            from configurations.runtime
-            into 'build/libs'
-        }
-    }
-  }
+/* still not used */
+repositories {
+  mavenCentral()
+	maven {
+ 	    url "http://jacamo.sourceforge.net/maven2"
+  	}
+}
 
-  jar {
-    baseName 'cartago'
-    version =  '2.2-SNAPSHOT'
-    manifest {
-        attributes 'Specification-Title': 'CArtAgO framework',
-                   'Specification-Version': project.version,
-                   'Implementation-Version': new Date().toString()
-    }
-  }
+task cartagoJar(type: Jar, dependsOn: classes) {
+  baseName 'cartago'
+  from sourceSets.main.allSource
+}
 
-  jar.dependsOn(copyJarsToBuild)
-
-  */
-
-  task cartagoJar(type: Jar, dependsOn: classes) {
-    baseName 'cartago'
-    from sourceSets.main.allSource
-  }
-
-  task jacaJar(type: Jar, dependsOn: classes) {
-    baseName 'jaca'
-    from sourceSets.jaca.allSource
-  }
+task jacaJar(type: Jar, dependsOn: classes) {
+  baseName 'jaca'
+  from sourceSets.jaca.allSource
+}
   
 
-  task makeDist (dependsOn: ['build','jar']) {
+task makeDist (dependsOn: ['build','jar']) {
      copy {
           from '.'
           into 'build/dist/cartago-'+version
@@ -128,7 +105,7 @@ sourceSets {
       jacaJar {
         destinationDir = new File('build/dist/cartago-'+version+'/lib')
       }
-  }
+}
 
 artifacts {
     archives cartagoJar
