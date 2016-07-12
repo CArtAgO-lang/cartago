@@ -73,4 +73,11 @@ public class Percept implements java.io.Serializable {
 			return null;
 		}
 	}
+	
+	public String toString(){
+		return "{ signal: "+event.getSignal()+", added_props: "
+				+event.getAddedProperties()+", changed_props: "
+				+event.getChangedProperties()+", removed_props: "
+				+event.getRemovedProperties()+ "}";
+	}
 }

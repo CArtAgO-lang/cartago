@@ -530,10 +530,10 @@ public class CartagoBasicContext {
 					actionFeedbackQueue.add((CartagoActionEvent)ev);
 					if (ev instanceof FocusSucceededEvent){
 						FocusSucceededEvent ev1 = (FocusSucceededEvent) ev;
-						obsPropMap.addProperties(ev1.getArtifactId(),ev1.getObsProperties());
+						obsPropMap.addProperties(ev1.getTargetArtifact(),ev1.getObsProperties());
 					} else if (ev instanceof StopFocusSucceededEvent){
 						StopFocusSucceededEvent ev1 = (StopFocusSucceededEvent) ev;
-						obsPropMap.removeProperties(ev1.getArtifactId());
+						obsPropMap.removeProperties(ev1.getTargetArtifact());
 					}
 				} else if (ev instanceof ArtifactObsEvent){
 					obsEventQueue.add((ArtifactObsEvent)ev);

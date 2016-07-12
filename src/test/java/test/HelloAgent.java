@@ -31,17 +31,12 @@ public class HelloAgent extends Agent {
 			doAction(new Op("inc"));
 			doAction(new Op("inc"));			
 			log("start perceiving...");
-		    Percept p = null;
-			do {
-				IEventFilter filter = new IEventFilter() {
-					public boolean select(ArtifactObsEvent ev){ 
-						return ev.getArtifactId().equals(counter);
-					};
-				};
-				p = waitForPercept(filter);
-				log("new percept: "+p);
-			} while (!p.hasSignal());
-						
+			Percept p  = waitForPercept();
+		    log("percept 1: "+p);
+		    p  = waitForPercept();
+		    log("percept 2: "+p);
+		    
+		    
 			log("reading obs prop: "+getObsProperty("count").intValue());
 			
 			stopFocus(counter);
@@ -53,7 +48,6 @@ public class HelloAgent extends Agent {
 			do {
 				p = waitForPercept();
 				log("new percept: "+p);
-				log("count value:  "+getObsProperty("count").intValue());
 			} while (!p.hasSignal());
 									
 		} catch (Exception ex){
