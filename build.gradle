@@ -15,16 +15,25 @@ targetCompatibility = 1.7
 
 sourceSets {
   main {
+
       java {
         srcDir 'src/main/java'
       }
+
+      output.classesDir = 'build/classes/main'
   }
+
   jaca {
+
       java {
         srcDir 'src/jaca/java'
       }
+  
+      output.classesDir = 'build/classes/jaca'
+      compileClasspath = files ('build/classes/main','build/classes/jaca','libs/jason.jar')
   }
 }
+
 
 /* still using local dep */
 dependencies {
@@ -42,14 +51,17 @@ repositories {
 
 task cartagoJar(type: Jar, dependsOn: classes) {
   baseName 'cartago'
-  from sourceSets.main.allSource
+  from 'build/classes/main'
+  include '**'
 }
 
-task jacaJar(type: Jar, dependsOn: classes) {
+task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   baseName 'jaca'
-  from sourceSets.jaca.allSource
+  from 'build/classes/jaca'
+  include '**'
 }
   
+
 
 task makeDist (dependsOn: ['build','jar']) {
      copy {
