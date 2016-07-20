@@ -144,7 +144,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					Term annot = it.next();
 					if (annot.isStructure()){
 						Structure st = (Structure)annot;
-						if (st.getFunctor().equals("art")){
+						if (st.getFunctor().equals("art") || st.getFunctor().equals("artifact_name")){
 						    if (st.getTerm(0).isString())
 						        artName = ((StringTerm)(st.getTerm(0))).getString();
 						    else
