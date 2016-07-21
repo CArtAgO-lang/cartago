@@ -371,9 +371,9 @@ public class WorkspaceKernel  {
 					throw new CartagoException("User not in workspace.");
 				}
 				if (body.getAgentBodyArtifact()!=null){
-					disposeArtifact(userId, body.getAgentBodyArtifact().getId());
 					List<ArtifactObsProperty>  props = this.stopFocus(userId, body.getCallback(), body.getAgentBodyArtifact().getId());
 					notifyStopFocusCompleted(body.getCallback(), -1, null, null, body.getAgentBodyArtifact().getId(),props);
+					disposeArtifact(userId, body.getAgentBodyArtifact().getId());
 				}
 				long time = System.currentTimeMillis();
 				if (logManager.isLogging()){
@@ -1236,6 +1236,7 @@ public class WorkspaceKernel  {
 		try {
 			quitAgent(ctx.getAgentId());
 		} catch (Exception ex){
+			ex.printStackTrace();
 			log("CONTEXT TO REMOVE NOT FOUND: "+id);
 		}
 	}
