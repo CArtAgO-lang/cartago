@@ -1,3 +1,4 @@
+!test_double_join.
 //!main_test.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
@@ -12,7 +13,7 @@
 //!test_java_api.
 //!test_remote.
 //!test_shutdown.
-!test_wsp.
+//!test_wsp.
 //!test_art.
 //!test_obs_multiple_artifacts_same_type.
 //!test_op_fail.
@@ -20,6 +21,19 @@
 //!test_array_obj.
 //!test_ext_interface.
 
+/* test double join */
+
++!test_double_join 
+  <- createWorkspace("w0");
+     println("joining...");
+     joinWorkspace("w0",WspID);
+     joinWorkspace("w0",WspID2)[wsp("main")].
+     
+-!test_double_join [error_msg(Msg)] 
+  <- println("OK, got error");
+  	 println("Message: ",Msg).
+  
+     
 /* testing artifact with a direct external interface */
 
 +!test_ext_interface

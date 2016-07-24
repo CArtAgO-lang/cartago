@@ -43,7 +43,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param aid the artifact id
 	 */
 	@OPERATION void focus(ArtifactId aid){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			List<ArtifactObsProperty> props = wspKernel.focus(userId, null, opFrame.getAgentListener(), aid);
@@ -61,7 +61,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param filter filter to select which events to perceive
 	 */
 	@OPERATION void focus(ArtifactId aid, IEventFilter filter){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			List<ArtifactObsProperty> props = wspKernel.focus(userId, filter, opFrame.getAgentListener(), aid);
@@ -78,7 +78,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param artName artifact name
 	 */
 	@OPERATION void focusWhenAvailable(String artName){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			ArtifactId aid = null;
@@ -103,7 +103,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param filter a filter to select the events to perceive
 	 */
 	@OPERATION void focusWhenAvailable(String artName, IEventFilter filter){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			ArtifactId aid = null;
@@ -129,7 +129,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param aid
 	 */
 	@OPERATION void stopFocus(ArtifactId aid){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			List<ArtifactObsProperty> props = wspKernel.stopFocus(userId, opFrame.getAgentListener(), aid);
@@ -141,7 +141,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 	
 	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		try {
 			wspKernel.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
 		} catch(Exception ex){
@@ -174,7 +174,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION @LINK void lookupArtifact(String artifactName, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.lookupArtifact(this.getOpUserId(),artifactName);
+			ArtifactId id = wspKernel.lookupArtifact(this.getCurrentOpAgentId(),artifactName);
 			aid.set(id);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -193,7 +193,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION @LINK void lookupArtifactByType(String artifactType, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.lookupArtifactByType(this.getOpUserId(),artifactType);
+			ArtifactId id = wspKernel.lookupArtifactByType(this.getCurrentOpAgentId(),artifactType);
 			aid.set(id);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -246,7 +246,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getOpUserId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
 			// signal("new_artifact_created",artifactName,templateName,id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
@@ -273,7 +273,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] param){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getOpUserId(),artifactName,templateName,new ArtifactConfig(param));
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
@@ -303,7 +303,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] params, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getOpUserId(),artifactName,templateName,new ArtifactConfig(params));
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
 			aid.set(id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
@@ -317,7 +317,7 @@ public class WorkspaceArtifact extends Artifact {
 
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
-			wspKernel.disposeArtifact(this.getOpUserId(),id);
+			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
 			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
 		} catch (Exception ex){
 			failed(ex.toString());

@@ -35,7 +35,7 @@ public class AuctionArtEx1 extends Artifact {
 		 		(opCurrentWinner.stringValue().equals("no_winner") &&
 				 opMaxValue.intValue()==(int)bidValue)) { // first bid exactly at starting value
 					opCurrentValue.updateValue(bidValue);
-					opCurrentWinner.updateValue(getOpUserName());
+					opCurrentWinner.updateValue(getCurrentOpAgentId().getAgentName());
 	        }
         } else {
         	failed("Auction not open","bid_failed","auction_closed");

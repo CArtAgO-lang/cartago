@@ -55,7 +55,7 @@ public class WorkspaceKernel  {
 	private java.util.concurrent.atomic.AtomicInteger artifactIds;
 	private int ctxIds;
 
-	private HashMap<String,AgentBody> agentBodyMap;
+	private HashMap<String,AgentBody> joinedAgents;
 
 	private HashMap<String,ArtifactDescriptor> artifactMap;
 	private HashMap<String,List<ArtifactDescriptor>> opMap;
@@ -93,7 +93,7 @@ public class WorkspaceKernel  {
 		isShutdown = false;
 		eventRegistry = new EventRegistry();
 
-		agentBodyMap = new HashMap<String,AgentBody>();	
+		joinedAgents = new HashMap<String,AgentBody>();	
 		artifactMap = new HashMap<String,ArtifactDescriptor>();
 		opMap = new HashMap<String,List<ArtifactDescriptor>>();
 		artManuals = new HashMap<String,Manual>();
@@ -176,10 +176,10 @@ public class WorkspaceKernel  {
 		if (roleName == null || roleName.equals("")){
 			roleName = securityManager.getDefaultRoleName();
 		}
-		synchronized (agentBodyMap){
-			AgentBody context = agentBodyMap.get(cred.getGlobalId());
+		synchronized (joinedAgents){
+			AgentBody context = joinedAgents.get(cred.getGlobalId());
 			if (context != null){
-				throw new SecurityException("Duplicate identity.");
+				throw new SecurityException("Agent "+cred.getGlobalId()+" already joined "+this.getId());
 			}
 			ctxIds++;
 			AgentId userId = new AgentId(cred.getId(), cred.getGlobalId(), ctxIds, roleName,id);				
@@ -196,7 +196,7 @@ public class WorkspaceKernel  {
 			} 
 			if (joinOK){
 				context = new AgentBody(userId, this, eventListener); 
-				agentBodyMap.put(userId.getGlobalId(),context);
+				joinedAgents.put(userId.getGlobalId(),context);
 
 				/* creating the body and focusing on it */
 				ArtifactId bodyId = makeAgentBodyArtifact(context);				
@@ -234,8 +234,8 @@ public class WorkspaceKernel  {
 	
 	
 	public void bindAgentBodyArtifact(AgentId agentId, AgentBodyArtifact art){
-		synchronized (agentBodyMap){
-			AgentBody body = agentBodyMap.get(agentId.getGlobalId());
+		synchronized (joinedAgents){
+			AgentBody body = joinedAgents.get(agentId.getGlobalId());
 			 if (body != null){
 				 body.setBodyArtifact(art);
 			 }
@@ -243,8 +243,8 @@ public class WorkspaceKernel  {
 	}
 	
 	public ArtifactId getAgentBodyArtifact(AgentId agentId){
-		synchronized (agentBodyMap){
-			AgentBody body = agentBodyMap.get(agentId.getGlobalId());
+		synchronized (joinedAgents){
+			AgentBody body = joinedAgents.get(agentId.getGlobalId());
 			 if (body != null){
 				 return body.getAgentBodyArtifact().getId();
 			 } else {
@@ -257,8 +257,8 @@ public class WorkspaceKernel  {
 		if (topology != null){
 			//log(">>  agent "+agentId+" position changed.");
 			AgentBody body = null;
-			synchronized (agentBodyMap){
-				 body = agentBodyMap.get(agentId.getGlobalId());
+			synchronized (joinedAgents){
+				 body = joinedAgents.get(agentId.getGlobalId());
 			}
 			if (body != null){
 				List<ObservableArtifactInfo> newFocused = new LinkedList<ObservableArtifactInfo>();
@@ -309,9 +309,9 @@ public class WorkspaceKernel  {
 			}
 			if (des != null){
 				AbstractWorkspacePoint artifactPos = des.getArtifact().getPosition();
-				synchronized (agentBodyMap){
+				synchronized (joinedAgents){
 					double observabilityRadius = des.getAdapter().getObservabilityRadius();
-					for (AgentBody ag: agentBodyMap.values()){
+					for (AgentBody ag: joinedAgents.values()){
 						AgentBodyArtifact ar = ag.getAgentBodyArtifact();
 						if (ar != null){
 							List<ObservableArtifactInfo> newFocused = new LinkedList<ObservableArtifactInfo>();
@@ -365,8 +365,8 @@ public class WorkspaceKernel  {
 			}
 		}
 		if (quitOk){
-			synchronized (agentBodyMap){
-				AgentBody body = agentBodyMap.remove(userId.getGlobalId());
+			synchronized (joinedAgents){
+				AgentBody body = joinedAgents.remove(userId.getGlobalId());
 				if (body==null){
 					throw new CartagoException("User not in workspace.");
 				}
@@ -803,8 +803,8 @@ public class WorkspaceKernel  {
 		try {
 			List<ArtifactObsProperty> obs = des.getAdapter().readProperties();
 			des.addObserver(userId, filter, ctx);
-			synchronized (agentBodyMap){
-				AgentBody body = agentBodyMap.get(userId.getGlobalId());
+			synchronized (joinedAgents){
+				AgentBody body = joinedAgents.get(userId.getGlobalId());
 				if (body!=null){
 					body.addFocusedArtifacts(des);
 				}
@@ -829,8 +829,8 @@ public class WorkspaceKernel  {
 			}
 		}
 		des.removeObserver(userId);
-		synchronized (agentBodyMap){
-			AgentBody body = agentBodyMap.get(userId.getGlobalId());
+		synchronized (joinedAgents){
+			AgentBody body = joinedAgents.get(userId.getGlobalId());
 			if (body!=null){
 				body.removeFocusedArtifacts(des);
 			}
@@ -1229,7 +1229,7 @@ public class WorkspaceKernel  {
 
 
 	HashMap<String,AgentBody> getCurrentAgentContexts(){
-		return this.agentBodyMap;
+		return this.joinedAgents;
 	}
 
 	public void removeGarbageBody(AgentBody ctx){
@@ -1261,8 +1261,8 @@ public class WorkspaceKernel  {
 
 	
 	private AgentId[] getCurrentAgents(){
-		synchronized(agentBodyMap){
-			java.util.Collection<AgentBody> set = agentBodyMap.values();
+		synchronized(joinedAgents){
+			java.util.Collection<AgentBody> set = joinedAgents.values();
 			AgentId[] ids = new AgentId[set.size()];
 			int index = 0;
 			for (AgentBody b: set){
@@ -1301,8 +1301,8 @@ public class WorkspaceKernel  {
 
 	
 	private boolean removeAgent(String globalId){
-		synchronized (agentBodyMap){
-			AgentBody body = agentBodyMap.remove(globalId);
+		synchronized (joinedAgents){
+			AgentBody body = joinedAgents.remove(globalId);
 			if (body != null){
 				if (body.getAgentBodyArtifact()!=null){
 					try {

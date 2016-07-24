@@ -5,5 +5,5 @@ MAS test {
     agents:  
    	tester_agent agentArchClass c4jason.CAgentArch;
 
-	aslSourcePath: "src/test";
+	aslSourcePath: "src/test/jaca/test";
 }

@@ -76,7 +76,7 @@ public class ManRepoArtifact extends Artifact {
 	}
 
 	@OPERATION void getManualContent(String artifactModelName, OpFeedbackParam<String> content){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		try {
 			Manual man = wspKernel.getManual(userId, artifactModelName);
 			content.set(man.getSource());
@@ -86,7 +86,7 @@ public class ManRepoArtifact extends Artifact {
 	}
 	
 	@OPERATION void consultManual(String artifactModelName){
-		AgentId userId = this.getOpUserId();
+		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			Manual man = wspKernel.getManual(userId, artifactModelName);

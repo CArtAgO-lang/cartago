@@ -47,24 +47,17 @@ public class NodeArtifact extends Artifact {
 			CartagoWorkspace wsp = CartagoNode.getInstance().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
-				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.security.AgentIdCredential(this.getOpUserName()), opFrame.getAgentListener());
+				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 				WorkspaceId wspId = ctx.getWorkspaceId();
 				res.set(wspId);
 				thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
-				/* focusing automatically the body */
-				/*
-				ArtifactId body = wspKernel.getAgentBodyArtifact(ctx.getAgentId());
-				if (body != null){
-					wspKernel.focus(ctx.getAgentId(), null, opFrame.getAgentListener(), body);
-				}*/
-				
 				opFrame.setCompletionNotified();
 			} else {
 				failed("Workspace not available.");
 			}
 		} catch (Exception ex){
 			//ex.printStackTrace();
-			failed("Join Workspace error");
+			failed("Join Workspace error: "+ex.getMessage());
 		}
 	}
 	
@@ -106,7 +99,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.security.AgentIdCredential(this.getOpUserName()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -128,7 +121,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinRemoteWorkspace(String wspName, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.security.AgentIdCredential(this.getOpUserName()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);

@@ -25,10 +25,10 @@ package cartago.security;
 public class AgentIdCredential extends AgentCredential {
 
 	public AgentIdCredential(String userName){
-		super(userName,"",java.util.UUID.randomUUID().toString());
+		super(userName,"",userName); // we assume the user name as global id
 	}
 
 	public AgentIdCredential(String userName, String roleName){
-		super(userName,roleName,java.util.UUID.randomUUID().toString());
+		super(userName,roleName, userName); // we assume the user name as global id
 	}
 }

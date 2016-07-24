@@ -606,7 +606,7 @@ public abstract class Artifact {
 	 * Get the identifier of the current user
 	 * 
 	 */
-	protected AgentId getOpUserId() {
+	protected AgentId getCurrentOpAgentId() {
 		return this.opExecFrame.getAgentId();
 	}
 
@@ -614,17 +614,10 @@ public abstract class Artifact {
 	 * Get the identifier of the current user artifact body (if available)
 	 * 
 	 */
-	protected ArtifactId getOpUserBody() {
+	protected ArtifactId getCurrentOpAgentBody() {
 		return env.getAgentBodyArtifact(opExecFrame.getAgentId());
 	}
 
-	/**
-	 * Get the name of the current user
-	 * 
-	 */
-	protected String getOpUserName() {
-		return this.opExecFrame.getAgentId().getAgentName();
-	}
 
 	protected void commit(){
 		commitObsStateChanges();
@@ -883,7 +876,7 @@ public abstract class Artifact {
 			for (ArtifactId aid: port.getArtifactList()){
 				try {
 					PendingOp pop = opCallback.createPendingOp();
-					AgentId userId = this.getOpUserId();
+					AgentId userId = this.getCurrentOpAgentId();
 					Op op = new Op(opName, params);
 					CartagoNode.getInstance().execInterArtifactOp(opCallback, pop.getActionId(),
 									userId, this.getId(), aid, op,
@@ -946,7 +939,7 @@ public abstract class Artifact {
 		OpId id = thisOpId;
 		try {
 			PendingOp pop = opCallback.createPendingOp();
-			AgentId userId = this.getOpUserId();
+			AgentId userId = this.getCurrentOpAgentId();
 			Op op = new Op(opName, params);
 			CartagoNode.getInstance().execInterArtifactOp(opCallback, pop.getActionId(), userId,
 							this.getId(), aid, op, Integer.MAX_VALUE, null);
@@ -981,7 +974,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId makeArtifact(String name, String type, ArtifactConfig params) throws OperationException {
 		try {
-			return env.makeArtifact(this.getOpUserId(), name, type, params);
+			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
 		} catch (Exception ex) {
 			throw new OperationException("makeArtifact failed: " + name + " "
 					+ type);
@@ -997,7 +990,7 @@ public abstract class Artifact {
 	 */
 	protected void dispose(ArtifactId aid) throws OperationException {
 		try {
-			env.disposeArtifact(this.getOpUserId(),id);
+			env.disposeArtifact(this.getCurrentOpAgentId(),id);
 		} catch (Exception ex) {
 			throw new OperationException("disposeArtifact failed: " + aid);
 		}
@@ -1013,7 +1006,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId lookupArtifact(String name) throws OperationException {
 		try {
-			return env.lookupArtifact(this.getOpUserId(),name);
+			return env.lookupArtifact(this.getCurrentOpAgentId(),name);
 		} catch (Exception ex) {
 			throw new OperationException("lookupArtifact failed: " + name);
 		}

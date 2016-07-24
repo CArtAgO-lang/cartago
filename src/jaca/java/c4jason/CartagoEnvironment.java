@@ -62,11 +62,12 @@ public class CartagoEnvironment extends Environment {
 
 		if (standalone){
 			try {
+				 /*
 				 Inspector insp = new Inspector();
 				 insp.start();
 				 CartagoService.startNode(insp.getLogger());
-				 
-				// CartagoService.startNode();
+				 */
+				 CartagoService.startNode();
 				
 				CartagoService.installInfrastructureLayer("default");
 				checkProtocols(args);
