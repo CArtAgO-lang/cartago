@@ -610,6 +610,12 @@ public abstract class Artifact {
 		return this.opExecFrame.getAgentId();
 	}
 
+	@Deprecated
+	public String getOpUserName() {
+		return getCurrentOpAgentId().getAgentName();
+	}
+
+	
 	/**
 	 * Get the identifier of the current user artifact body (if available)
 	 * 
