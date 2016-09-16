@@ -26,7 +26,7 @@ import jason.asSyntax.*;
 import java.lang.reflect.Array;
 import java.util.List;
 
-import c4jason.*;
+import jaca.*;
 
 /**
  * <p>Internal action: <b><code>cartago.current_wsps</code></b>.</p>

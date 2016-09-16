@@ -7,10 +7,10 @@ public class TestController {
 	
 	public static void main(String[] args) throws Exception {		
 		CartagoService.startNode();
-		//CartagoService.registerLogger("default",new BasicLogger());
+		//CartagoService.registerLogger("main",new BasicLogger());
 		new HelloAgent("Michelangelo1","c1").start(); 
 		Thread.sleep(1000);
-		ICartagoController controller = CartagoService.getController("default");
+		ICartagoController controller = CartagoService.getController("main");
 		ArtifactInfo info = controller.getArtifactInfo("c1");
 	    log("id: "+info.getId().getName());
 	    log("template: "+info.getId().getArtifactType());

@@ -1,9 +1,9 @@
 MAS example10_workspaces {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	wsp_tester agentArchClass c4jason.CAgentArch;
+   	wsp_tester agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

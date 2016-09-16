@@ -1,4 +1,4 @@
-package c4jason;
+package jaca;
 
 import jason.asSemantics.ActionExec;
 import jason.asSyntax.*;

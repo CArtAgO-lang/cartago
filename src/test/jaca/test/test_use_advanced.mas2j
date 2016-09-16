@@ -1,11 +1,11 @@
 MAS test_use_adv {
 
-    environment: c4jason.CartagoEnvironment("standalone")
+    environment: jaca.CartagoEnvironment("standalone")
 
     agents:  
-   	coordinator_adv agentArchClass c4jason.CAgentArch;
-	userA user_adv.asl agentArchClass c4jason.CAgentArch;
-	userB user_adv.asl agentArchClass c4jason.CAgentArch;
+   	coordinator_adv agentArchClass jaca.CAgentArch;
+	userA user_adv.asl agentArchClass jaca.CAgentArch;
+	userB user_adv.asl agentArchClass jaca.CAgentArch;
 	
 	aslSourcePath: "src/test";
 }

@@ -1,9 +1,9 @@
 MAS test_man {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	 	manuser agentArchClass c4jason.CAgentArch #1;
+   	 	manuser agentArchClass jaca.CAgentArch #1;
 
 	aslSourcePath: "src/test";
 }

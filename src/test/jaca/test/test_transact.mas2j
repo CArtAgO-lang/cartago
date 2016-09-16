@@ -1,9 +1,9 @@
 MAS testTransact {
 
-    environment: c4jason.CartagoEnvironment("standalone")
+    environment: jaca.CartagoEnvironment("standalone")
 
     agents:  
-   	transact agentArchClass c4jason.CAgentArch #2;
+   	transact agentArchClass jaca.CAgentArch #2;
 
 	aslSourcePath: "src/test";
 

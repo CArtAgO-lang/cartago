@@ -1,10 +1,10 @@
 MAS example01_useobs {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	 	user agentArchClass c4jason.CAgentArch #1;
-    	observer observer agentArchClass c4jason.CAgentArch #1;
+   	 	user agentArchClass jaca.CAgentArch #1;
+    	observer observer agentArchClass jaca.CAgentArch #1;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

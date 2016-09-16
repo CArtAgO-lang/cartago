@@ -1,5 +1,5 @@
-!test_double_join.
-//!main_test.
+//!test_double_join.
+!main_test.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
 //!test_wsp.

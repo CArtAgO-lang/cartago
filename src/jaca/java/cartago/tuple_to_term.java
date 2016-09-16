@@ -22,8 +22,8 @@ import jason.asSemantics.TransitionSystem;
 import jason.asSemantics.Unifier;
 import jason.asSemantics.DefaultInternalAction;
 import jason.asSyntax.*;
-import c4jason.*;
 import cartago.*;
+import jaca.*;
 
 /**
  * <p>Internal action: <b><code>cartago.tupleToTerm</code></b>.</p>

@@ -1,4 +1,4 @@
-package c4jason;
+package jaca;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import cartago.ArtifactId;
 import cartago.ArtifactObsProperty;
 import cartago.CartagoEvent;
-import cartago.CartagoException;
 import cartago.IAlignmentTest;
 import cartago.ICartagoSession;
 import cartago.Manual;
@@ -26,7 +25,6 @@ import cartago.events.FocusSucceededEvent;
 import cartago.events.FocussedArtifactDisposedEvent;
 import cartago.events.JoinWSPSucceededEvent;
 import cartago.events.ObsArtListChangedEvent;
-import cartago.events.QuitWSPSucceededEvent;
 import cartago.events.StopFocusSucceededEvent;
 import jason.architecture.AgArch;
 import jason.asSemantics.ActionExec;

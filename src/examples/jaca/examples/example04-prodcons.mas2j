@@ -1,10 +1,10 @@
 MAS example04_prodcons {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	 	producer agentArchClass c4jason.CAgentArch #2;
-    	consumer agentArchClass c4jason.CAgentArch #3;
+   	 	producer agentArchClass jaca.CAgentArch #2;
+    	consumer agentArchClass jaca.CAgentArch #3;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

@@ -1,10 +1,10 @@
 MAS example05_complexop {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:     	  
-   	  complexop_userA agentArchClass c4jason.CAgentArch;
-   	  complexop_userB agentArchClass c4jason.CAgentArch;
+   	  complexop_userA agentArchClass jaca.CAgentArch;
+   	  complexop_userB agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

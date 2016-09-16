@@ -17,12 +17,12 @@
  */
 package cartago;
 
+import jaca.*;
 import jason.JasonException;
 import jason.asSemantics.TransitionSystem;
 import jason.asSemantics.Unifier;
 import jason.asSemantics.DefaultInternalAction;
 import jason.asSyntax.*;
-import c4jason.*;
 
 /**
  * <p>Internal action: <b><code>cartago.new_array</code></b>.</p>

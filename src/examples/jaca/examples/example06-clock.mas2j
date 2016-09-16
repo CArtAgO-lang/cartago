@@ -1,10 +1,10 @@
 MAS example06_clock {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
    	  
-    clock_user agentArchClass c4jason.CAgentArch;
+    clock_user agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

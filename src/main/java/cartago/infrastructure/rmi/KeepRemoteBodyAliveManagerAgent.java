@@ -29,6 +29,7 @@ public class KeepRemoteBodyAliveManagerAgent extends Thread {
 						it.remove();
 					}
 				}
+			} catch (InterruptedException ex){
 			} catch (Exception ex){
 				log("Error: "+ex);
 			}

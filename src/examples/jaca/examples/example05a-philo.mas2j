@@ -1,10 +1,10 @@
 MAS example05a_philo {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:     	  
-   	  waiter agentArchClass c4jason.CAgentArch;
-   	  philo agentArchClass c4jason.CAgentArch #5;
+   	  waiter agentArchClass jaca.CAgentArch;
+   	  philo agentArchClass jaca.CAgentArch #5;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

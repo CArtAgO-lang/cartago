@@ -1,4 +1,4 @@
-package c4jason;
+package jaca;
 
 import java.io.Serializable;
 

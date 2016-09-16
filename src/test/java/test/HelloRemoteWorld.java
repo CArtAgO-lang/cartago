@@ -9,6 +9,6 @@ public class HelloRemoteWorld {
 		CartagoService.startNode();
 		CartagoService.installInfrastructureLayer("rmi");
 		CartagoService.startInfrastructureService("rmi");
-		CartagoService.registerLogger("default",new BasicLogger());  
+		CartagoService.registerLogger("main",new BasicLogger());  
 	}
 }

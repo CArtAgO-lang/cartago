@@ -1,10 +1,10 @@
 MAS test_synch {
 
-    environment: c4jason.CartagoEnvironment("standalone")
+    environment: jaca.CartagoEnvironment("standalone")
 
     agents:  
-   	user_synch1 agentArchClass c4jason.CAgentArch;
-   	user_synch2 agentArchClass c4jason.CAgentArch;
+   	user_synch1 agentArchClass jaca.CAgentArch;
+   	user_synch2 agentArchClass jaca.CAgentArch;
 
 	aslSourcePath: "src/test";
 }

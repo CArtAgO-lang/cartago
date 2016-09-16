@@ -1,13 +1,14 @@
-package c4jason;
+package jaca;
+
 import jason.asSyntax.Literal;
 import jason.environment.Environment;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import cartago.AbstractWorkspaceTopology;
+import jaca.CAgentArch;
+import jaca.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.CartagoNode;
 import cartago.CartagoService;
 import cartago.ICartagoSession;
 import cartago.tools.inspector.Inspector;
@@ -28,7 +29,7 @@ public class CartagoEnvironment extends Environment {
 	private boolean remote;		// an existing remote node
 	private boolean infrastructure;	// not existing, enable infrastructure service
     private boolean standalone; // default case, install a node
-    
+    private boolean debug;
 	private String serviceType;
 	
 	static Logger logger = Logger.getLogger(CartagoEnvironment.class.getName());
@@ -41,6 +42,7 @@ public class CartagoEnvironment extends Environment {
 		local = false;
 		remote = false;
 		standalone = true;
+		debug = false;
 		serviceType = "default";
 		
 		if (args.length > 0){
@@ -62,11 +64,11 @@ public class CartagoEnvironment extends Environment {
 
 		if (standalone){
 			try {
-				 /*
-				 Inspector insp = new Inspector();
-				 insp.start();
-				 CartagoService.startNode(insp.getLogger());
-				 */
+				 if (debug){
+					 Inspector insp = new Inspector();
+					 insp.start();
+					 CartagoService.startNode(insp.getLogger());
+				 }
 				 CartagoService.startNode();
 				
 				CartagoService.installInfrastructureLayer("default");

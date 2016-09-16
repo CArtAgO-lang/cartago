@@ -1,9 +1,9 @@
 MAS testReactivity {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	react agentArchClass c4jason.CAgentArch;
+   	react agentArchClass jaca.CAgentArch;
 
 	aslSourcePath: "src/test";
 }

@@ -9,7 +9,7 @@ public class Ex00a_HelloRemoteWorld_LipeRMI {
 		CartagoService.startNode();
 		CartagoService.installInfrastructureLayer("lipermi");
 		CartagoService.startInfrastructureService("lipermi");
-		CartagoService.registerLogger("default",new BasicLogger());  
+		CartagoService.registerLogger("main",new BasicLogger());  
 		System.out.println("CArtAgO Node Ready.");
 	}
 

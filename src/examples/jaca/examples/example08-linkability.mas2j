@@ -1,9 +1,9 @@
 MAS example08_linkability {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	linkability_tester agentArchClass c4jason.CAgentArch;
+   	linkability_tester agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

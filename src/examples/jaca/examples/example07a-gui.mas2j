@@ -1,9 +1,9 @@
 MAS example07a_gui {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	gui_tester agentArchClass c4jason.CAgentArch;
+   	gui_tester agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

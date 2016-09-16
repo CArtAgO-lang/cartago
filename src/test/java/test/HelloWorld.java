@@ -7,7 +7,7 @@ public class HelloWorld {
 	
 	public static void main(String[] args) throws Exception {		
 		CartagoService.startNode();
-		//CartagoService.registerLogger("default",new BasicLogger());
+		//CartagoService.registerLogger("main",new BasicLogger());
 		new HelloAgent("Michelangelo1","c1").start(); 
 	}
 }

@@ -1,9 +1,9 @@
 MAS example12_android {
 
-    environment: c4jason.CartagoEnvironment("standalone",protocol(lipermi))
+    environment: jaca.CartagoEnvironment("standalone",protocol(lipermi))
 
     agents:  
-   	voyager_lipermi agentArchClass c4jason.CAgentArch;
+   	voyager_lipermi agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";"../../../lib/lipermi-0.4.jar";
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";"../../../lib/lipermi-0.4.jar";
 }

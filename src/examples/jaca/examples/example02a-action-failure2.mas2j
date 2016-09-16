@@ -1,9 +1,9 @@
 MAS example06_action_failure2 {
 
-    environment: c4jason.CartagoEnvironment
+    environment: jaca.CartagoEnvironment
 
     agents:  
-   	action_failure_tester agentArchClass c4jason.CAgentArch;
+   	action_failure_tester agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

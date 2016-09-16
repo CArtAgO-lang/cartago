@@ -1,8 +1,10 @@
 package c4jtest;
 
 import cartago.*;
-import c4jason.*;
+import jaca.*;
+
 import java.util.*;
+
 
 public class TestToProlog extends Artifact {
 

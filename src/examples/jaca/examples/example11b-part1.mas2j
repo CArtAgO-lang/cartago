@@ -1,9 +1,9 @@
 MAS example11_remote {
 
-    environment: c4jason.CartagoEnvironment( "infrastructure" )
+    environment: jaca.CartagoEnvironment( "infrastructure" )
 
     agents:  
-   	observer1 agentArchClass c4jason.CAgentArch;
+   	observer1 agentArchClass jaca.CAgentArch;
 
-    classpath: "../../../lib/cartago.jar";"../../../lib/c4jason.jar";    
+    classpath: "../../../lib/cartago.jar";"../../../lib/jaca.jar";    
 }

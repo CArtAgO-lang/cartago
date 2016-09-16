@@ -4,7 +4,7 @@
   <- ?current_wsp(Id,_,_);
      +default_wsp(Id);
      println("testing remote..");
-     joinRemoteWorkspace("default","127.0.0.1","lipermi",WspID2);
+     joinRemoteWorkspace("main","127.0.0.1","lipermi",WspID2);
      ?current_wsp(_,WName,_);
      println("hello there ",WName);
      !use_remote;

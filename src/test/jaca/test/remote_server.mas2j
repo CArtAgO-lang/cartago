@@ -1,9 +1,9 @@
 MAS fulltest {
 
-    environment: c4jason.CartagoEnvironment("infrastructure", service(rmi), protocol(rmi))
+    environment: jaca.CartagoEnvironment("infrastructure", service(rmi), protocol(rmi))
 
     agents:  
-	   	server_agent agentArchClass c4jason.CAgentArch;
+	   	server_agent agentArchClass jaca.CAgentArch;
 	
 	aslSourcePath: "src/test";
     
