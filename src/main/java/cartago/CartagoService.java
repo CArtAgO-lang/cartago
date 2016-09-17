@@ -109,6 +109,36 @@ public class CartagoService {
 		}
 	}
 	
+	/**
+	 * 
+	 * Creates a workspace on the node instance 
+	 * @param name workspace name
+	 * @param log
+	 * @throws CartagoException
+	 */
+	public static  void createWorkspace(String name, ICartagoLogger log) throws CartagoException {
+		if (instance != null){
+			instance.createWorkspace(name,log);
+		} else {
+			throw new CartagoNodeNotActiveException();
+		}
+	}
+
+	/**
+	 * 
+	 * Creates a workspace on the node instance 
+	 * @param name workspace name
+	 * @throws CartagoException
+	 */
+	public static synchronized void createWorkspace(String name) throws CartagoException {
+		if (instance != null){
+			instance.createWorkspace(name);
+		} else {
+			throw new CartagoNodeNotActiveException();
+		}
+	}
+		
+	
 	// infrastructure layer management
 
 	/**
@@ -205,7 +235,7 @@ public class CartagoService {
 			if (wsp == null){
 				throw new CartagoException("Unknown workspace "+wspName);
 			} else {			
-				CartagoSession session = new CartagoSession(eventListener);
+				CartagoSession session = new CartagoSession(cred,null,eventListener);
 				ICartagoContext startContext = wsp.join(cred,session);
 				WorkspaceId wspId = startContext.getWorkspaceId();
 				session.setInitialContext(wspId, startContext);
@@ -237,7 +267,7 @@ public class CartagoService {
 		//without installing a CArtAgO node ex. CArtAgO-WS agents..) we install it
 		if(!infraLayers.containsKey(protocol)) installInfrastructureLayer(protocol);
 		
-		CartagoSession session = new CartagoSession(eventListener);
+		CartagoSession session = new CartagoSession(cred,null,eventListener);
 		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, session);
 		WorkspaceId wspId = startContext.getWorkspaceId();
 		session.setInitialContext(wspId, startContext);

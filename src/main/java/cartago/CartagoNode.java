@@ -34,42 +34,29 @@ public class CartagoNode {
 	
 	private HashMap<String,CartagoWorkspace> wsps;
 	private NodeId nodeId;
-	private static CartagoNode instance;
 	public static String MAIN_WSP_NAME = "main";
 	
 	CartagoNode() throws CartagoException {
-		if (instance != null){
-			throw new CartagoNodeAlreadyActiveException();
-		}
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create main workspace		
 		createWorkspace(MAIN_WSP_NAME);		
-		instance = this;
 	}	
 
 	CartagoNode(ICartagoLogger logger) throws CartagoException {
-		if (instance != null){
-			throw new CartagoNodeAlreadyActiveException();
-		}
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
 		createWorkspace(MAIN_WSP_NAME ,logger);		
-		instance = this;
 	}	
 
 	/* experimental support to topology */
 	
 	CartagoNode(AbstractWorkspaceTopology topology) throws CartagoException {
-		if (instance != null){
-			throw new CartagoNodeAlreadyActiveException();
-		}
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
 		createWorkspace(MAIN_WSP_NAME,topology);		
-		instance = this;
 	}	
 	
 	/**
@@ -82,7 +69,7 @@ public class CartagoNode {
 		CartagoWorkspace wsp = wsps.get(name);		
 		if (wsp==null){
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
-			wsp = new CartagoWorkspace(wid);
+			wsp = new CartagoWorkspace(wid,this);
 			wsps.put(name, wsp);
 		} 
 		return wsp;
@@ -99,7 +86,7 @@ public class CartagoNode {
 		CartagoWorkspace wsp = wsps.get(name);		
 		if (wsp==null){
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
-			wsp = new CartagoWorkspace(wid,log);
+			wsp = new CartagoWorkspace(wid,this,log);
 			wsps.put(name, wsp);
 		} 
 		return wsp;
@@ -116,7 +103,7 @@ public class CartagoNode {
 		CartagoWorkspace wsp = wsps.get(name);		
 		if (wsp==null){
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
-			wsp = new CartagoWorkspace(wid);
+			wsp = new CartagoWorkspace(wid,this);
 			wsp.setTopology(topology);
 			wsps.put(name, wsp);
 		} 
@@ -168,22 +155,8 @@ public class CartagoNode {
 		for (CartagoWorkspace wsp:wsps.values()){
 			wsp.getKernel().shutdown();
 		}
-		instance = null;
 	}
-	
-	/**
-	 * Get a reference to the CartagoNode
-	 * 
-	 * @return
-	 */
-	public static CartagoNode getInstance() throws CartagoException {
-		if (instance != null){
-			return instance;
-		} else {
-			throw new CartagoNodeNotActiveException();
-		}
-	}
-	
+		
 	/**
 	 * Get the node id
 	 * 

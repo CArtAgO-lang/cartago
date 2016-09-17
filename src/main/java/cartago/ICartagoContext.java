@@ -17,7 +17,8 @@
  */
 package cartago;
 
-
+import cartago.security.AgentCredential;
+import cartago.util.agent.ArtifactObsProperty;
 
 /**
  * Cartago Context Interface - set of primitives to work inside a workspace.
@@ -77,5 +78,7 @@ public interface ICartagoContext {
 	 * @return
 	 */
 	AgentId getAgentId() throws CartagoException;
+	
+	
 }
 

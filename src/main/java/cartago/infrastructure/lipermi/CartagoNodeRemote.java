@@ -130,7 +130,7 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 
 	@Override
 	public NodeId getNodeId() throws CartagoException {
-		return CartagoNode.getInstance().getId();
+		return mNode.getId();
 	}
 
 }

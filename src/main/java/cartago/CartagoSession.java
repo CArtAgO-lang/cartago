@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.*;
 import cartago.events.*;
+import cartago.security.AgentCredential;
+import cartago.util.agent.ArtifactObsProperty;
 
 /**
  * Class to manage a working session of an agent inside a workspace
@@ -24,10 +26,15 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	private ICartagoListener agentArchListener;
 	private AtomicLong actionId;
 
-	CartagoSession(ICartagoListener listener) throws CartagoException {
+	private static AgentCredential credential;
+	private static String agentRole;
+		
+	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
 		perceptQueue = new java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent>();
 		agentArchListener = listener;
+		this.agentRole = agentRole;
+		this.credential = credential;
 		actionId = new AtomicLong(0);
 	}
 
@@ -153,16 +160,94 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		return wsps;
 	}
 
-	/*
-	 * public WorkspaceId getCurrentWorkspace(){ return currentWspId; }
+	// Utility methods
+
+	public WorkspaceId getJoinedWspId(String wspName) throws CartagoException {
+		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
+			if (c.getKey().getName().equals(wspName)) {
+				return c.getKey();
+			}
+		}
+		throw new CartagoException("Workspace not joined.");
+	}
+	
+	
+	/**
+	 * Join a workspace
 	 * 
-	 * public void setCurrentWorkspace(WorkspaceId wspId) throws
-	 * CartagoException { synchronized (contexts){ ICartagoContext ctx =
-	 * contexts.get(wspId); if (ctx != null){ currentContext = ctx; currentWspId
-	 * = wspId; } else { for (java.util.Map.Entry<WorkspaceId,ICartagoContext>
-	 * c: contexts.entrySet()){ System.out.println(c.getKey()+" "+ctx); } throw
-	 * new CartagoException("Wrong workspace "+wspId); } } }
+	 * @param wspName wsp name
+	 * @param cred agent credential
 	 */
+	public WorkspaceId joinWorkspace(String wspName) throws CartagoException {
+		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
+		try{
+			doAction(new Op("joinWorkspace", wspName, credential, res), null, -1);
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	/**
+	 * Join a remote workspace
+	 * 
+	 * @param wspName wsp name
+	 * @param address address
+	 * @param roleName role
+	 * @param cred agent credentials
+	 * @return
+	 * @throws CartagoException
+	 */
+	public WorkspaceId joinRemoteWorkspace(String wspName, String address)  throws CartagoException {
+		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
+		try{
+			doAction(new Op("joinRemoteWorkspace", address, wspName, agentRole, credential, res), null, -1);
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+
+	/**
+	 * Make a new artifact instance
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(wid, new Op("makeArtifact", artifactName, templateName, new Object[0], res), null,-1);
+		} catch (Exception ex){
+			ex.printStackTrace();
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	
+	/**
+	 * Make a new artifact instance
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName, Object[] params) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(wid, new Op("makeArtifact", artifactName, templateName, params, res), null, -1);
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	
 	//
 
 	/**
@@ -197,5 +282,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 			perceptQueue.add(ev);
 		}
 	}
+
+
 
 }

@@ -1,6 +1,6 @@
 MAS test {
 
-    environment: jaca.CartagoEnvironment
+    environment: jaca.CartagoEnvironment("-debug")
 
     agents:  
    	tester_agent agentArchClass jaca.CAgentArch;

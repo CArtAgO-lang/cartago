@@ -44,24 +44,44 @@ public class CartagoEnvironment extends Environment {
 		standalone = true;
 		debug = false;
 		serviceType = "default";
-		
+
+		/*
+		 * Arguments include also "options", whose prefix is "-"
+		 * Options can be specified in any position. 
+		 */
 		if (args.length > 0){
-			if (args[0].equals("standalone")){
-				standalone = true;
-			} else if (args[0].equals("local")){
-				local = true;
-				standalone = false;
-			} else if (args[0].equals("infrastructure")){
-				infrastructure = true;
-				standalone = false;
-			} else if (args[0].equals("remote")){
-				remote = true;
-				standalone = false;
-			} else {
-				throw new IllegalArgumentException("Unknown argument: "+args[0]+" (should be local, remote or infrastructure)");
+			if (!args[0].startsWith("-")){
+				
+				if (args[0].equals("standalone")){
+					standalone = true;
+				} else if (args[0].equals("local")){
+					local = true;
+					standalone = false;
+				} else if (args[0].equals("infrastructure")){
+					infrastructure = true;
+					standalone = false;
+				} else if (args[0].equals("remote")){
+					remote = true;
+					standalone = false;
+				} else {
+					throw new IllegalArgumentException("Unknown argument: "+args[0]+" (should be local, remote or infrastructure)");
+				}
 			}
 		}
 
+		/* current supported options:
+		 * -debug
+		 */
+		for (String opt: args){
+			if (opt.startsWith("-")){
+				if (opt.equals("-debug")){
+					debug = true;
+				} else {
+					throw new IllegalArgumentException("Unknown option: "+opt);
+				}
+			}
+		}
+		
 		if (standalone){
 			try {
 				 if (debug){
@@ -128,20 +148,22 @@ public class CartagoEnvironment extends Environment {
 	private int checkProtocols(String[] args){
 		int np = 0;
 			for (int i = 1; i < args.length; i++){
-				String prot = args[i];
-				try {
-					//System.out.println("Protocol: "+prot);
-					prot = prot.replace('\'', '\"');
-					//System.out.println("Protocol: "+prot);
-					Literal l = Literal.parseLiteral(prot);
-					if (l.getFunctor().equals("protocol")){
-						String protocol = l.getTerm(0).toString();
-						CartagoService.installInfrastructureLayer(protocol);
-						logger.info("Installed protocol "+protocol);
-						np++;
+				if (!args[i].startsWith("-")){
+					String prot = args[i];
+					try {
+						//System.out.println("Protocol: "+prot);
+						prot = prot.replace('\'', '\"');
+						//System.out.println("Protocol: "+prot);
+						Literal l = Literal.parseLiteral(prot);
+						if (l.getFunctor().equals("protocol")){
+							String protocol = l.getTerm(0).toString();
+							CartagoService.installInfrastructureLayer(protocol);
+							logger.info("Installed protocol "+protocol);
+							np++;
+						}
+					} catch (Exception ex){
+						ex.printStackTrace();
 					}
-				} catch (Exception ex){
-					ex.printStackTrace();
 				}
 			}
 		return np;
@@ -150,45 +172,47 @@ public class CartagoEnvironment extends Environment {
 	private int checkServices(String[] args){
 		int ns = 0;
 		for (int i = 1; i < args.length; i++){
-			String prot = args[i];
-			try {
-				//System.out.println("Service: "+prot);
-				prot = prot.replace('\'', '\"');
-				//System.out.println("Service: "+prot);
-				Literal l = Literal.parseLiteral(prot);
-				if (l.getFunctor().equals("service")){
-					String serviceType = l.getTerm(0).toString();
-					String address = null;
-					if (l.getArity() > 1){
-						address = l.getTerm(1).toString();
-						if (address.startsWith("\"")){
-							address = address.substring(1);
+			if (!args[i].startsWith("-")){
+				String prot = args[i];
+				try {
+					//System.out.println("Service: "+prot);
+					prot = prot.replace('\'', '\"');
+					//System.out.println("Service: "+prot);
+					Literal l = Literal.parseLiteral(prot);
+					if (l.getFunctor().equals("service")){
+						String serviceType = l.getTerm(0).toString();
+						String address = null;
+						if (l.getArity() > 1){
+							address = l.getTerm(1).toString();
+							if (address.startsWith("\"")){
+								address = address.substring(1);
+							}
+							if (address.endsWith("\"")){
+								address = address.substring(0,address.length()-1);
+							}
 						}
-						if (address.endsWith("\"")){
-							address = address.substring(0,address.length()-1);
+	
+						/*
+						 * Install the infrastructure layer for the protocol if not yet installed
+						 * before installing the service
+						 */
+						
+						if(!CartagoService.isInfrastructureLayerInstalled(serviceType)){
+							CartagoService.installInfrastructureLayer(serviceType);
 						}
+						
+						if (address == null){
+							CartagoService.startInfrastructureService(serviceType);
+							logger.info("Installed service "+serviceType);
+						} else {
+							CartagoService.startInfrastructureService(serviceType,address);
+							logger.info("Installed service "+serviceType+" at "+address);
+						}
+						ns++;
 					}
-
-					/*
-					 * Install the infrastructure layer for the protocol if not yet installed
-					 * before installing the service
-					 */
-					
-					if(!CartagoService.isInfrastructureLayerInstalled(serviceType)){
-						CartagoService.installInfrastructureLayer(serviceType);
-					}
-					
-					if (address == null){
-						CartagoService.startInfrastructureService(serviceType);
-						logger.info("Installed service "+serviceType);
-					} else {
-						CartagoService.startInfrastructureService(serviceType,address);
-						logger.info("Installed service "+serviceType+" at "+address);
-					}
-					ns++;
+				} catch (Exception ex){
+					ex.printStackTrace();
 				}
-			} catch (Exception ex){
-				ex.printStackTrace();
 			}
 		}
 		return ns;

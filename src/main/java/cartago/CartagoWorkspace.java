@@ -28,7 +28,7 @@ import cartago.security.AgentCredential;
  * @author aricci
  * 
  */
-public class CartagoWorkspace  {
+public class CartagoWorkspace {
 	
 	private WorkspaceKernel wspKernel;
 	private boolean securityManagerEnabled;
@@ -38,9 +38,9 @@ public class CartagoWorkspace  {
 	 * 
 	 * @param name logic name of the environment
 	 */
-	public CartagoWorkspace(WorkspaceId id){
+	public CartagoWorkspace(WorkspaceId id, CartagoNode node){
 		securityManagerEnabled = false;
-		wspKernel = new WorkspaceKernel(id,null);
+		wspKernel = new WorkspaceKernel(id,node,null);
 	}
 
 	
@@ -49,13 +49,17 @@ public class CartagoWorkspace  {
 	 * 
 	 * @param name logic name of the environment
 	 */
-	public CartagoWorkspace(WorkspaceId id, ICartagoLogger logger){
+	public CartagoWorkspace(WorkspaceId id, CartagoNode node, ICartagoLogger logger){
 		securityManagerEnabled = false;
-		wspKernel = new WorkspaceKernel(id,logger);
+		wspKernel = new WorkspaceKernel(id,node,logger);
 	}
 	
 	public WorkspaceId getId(){
 		return wspKernel.getId();
+	}
+	
+	public CartagoNode getNode(){
+		return wspKernel.getNode();
 	}
 			
 	/**
@@ -68,6 +72,10 @@ public class CartagoWorkspace  {
 		return wspKernel.joinWorkspace(cred, agentCallback);
 	}
 
+	public void quitAgent(AgentId agentId) throws CartagoException {
+		wspKernel.quitAgent(agentId);
+	}
+	
 	/**
 	 * Exec an inter-artifact op
 	 * 

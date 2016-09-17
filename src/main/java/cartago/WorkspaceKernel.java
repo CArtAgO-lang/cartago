@@ -81,14 +81,16 @@ public class WorkspaceKernel  {
 	private AbstractWSPRuleEngine wspRuleEngine;
 	
 	private AbstractWorkspaceTopology topology;
+	private CartagoNode node;
 	
 	/**
 	 * Create a workspace.  
 	 * 
 	 * 
 	 */
-	WorkspaceKernel(WorkspaceId id, ICartagoLogger logger){		
+	WorkspaceKernel(WorkspaceId id, CartagoNode node, ICartagoLogger logger){		
 		this.id=id;
+		this.node = node;
 		wspRuleEngine = null;
 		isShutdown = false;
 		eventRegistry = new EventRegistry();
@@ -149,6 +151,10 @@ public class WorkspaceKernel  {
 	 */
 	public WorkspaceId getId(){
 		return id;
+	}
+	
+	public CartagoNode getNode(){
+		return node;
 	}
 
 	ICartagoContext getWSPManager(){

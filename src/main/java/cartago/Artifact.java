@@ -884,7 +884,7 @@ public abstract class Artifact {
 					PendingOp pop = opCallback.createPendingOp();
 					AgentId userId = this.getCurrentOpAgentId();
 					Op op = new Op(opName, params);
-					CartagoNode.getInstance().execInterArtifactOp(opCallback, pop.getActionId(),
+					env.getNode().execInterArtifactOp(opCallback, pop.getActionId(),
 									userId, this.getId(), aid, op,
 									Integer.MAX_VALUE, null);
 					popList.add(pop);
@@ -947,7 +947,7 @@ public abstract class Artifact {
 			PendingOp pop = opCallback.createPendingOp();
 			AgentId userId = this.getCurrentOpAgentId();
 			Op op = new Op(opName, params);
-			CartagoNode.getInstance().execInterArtifactOp(opCallback, pop.getActionId(), userId,
+			env.getNode().execInterArtifactOp(opCallback, pop.getActionId(), userId,
 							this.getId(), aid, op, Integer.MAX_VALUE, null);
 			try {
 				this.commitObsStateChanges();

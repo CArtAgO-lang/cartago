@@ -9,7 +9,7 @@ public class AgentBodyArtifact extends Artifact {
 	
 	@OPERATION void init(AgentBody body){
 		this.body = body;
-		defineObsProperty("joined_wsp",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
+		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
 	
 	
@@ -52,10 +52,11 @@ public class AgentBodyArtifact extends Artifact {
 	/* called directly by the kernel */
 	
 	void addFocusedArtifact(String wspName, String artName, ArtifactId id){
-		defineObsProperty("focused_art",wspName,artName,id);
+		defineObsProperty("focusing",wspName,artName,id);
 	}
+	
 	void removeFocusedArtifact(String wspName, String artName, ArtifactId id){
-		this.removeObsPropertyByTemplate(wspName, artName,null);
+		this.removeObsPropertyByTemplate("focusing", wspName, artName,null);
 	}
 	
 }
