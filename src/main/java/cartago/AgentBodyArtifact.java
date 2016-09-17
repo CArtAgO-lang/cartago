@@ -52,11 +52,11 @@ public class AgentBodyArtifact extends Artifact {
 	/* called directly by the kernel */
 	
 	void addFocusedArtifact(String wspName, String artName, ArtifactId id){
-		defineObsProperty("focusing",wspName,artName,id);
+		defineObsProperty("focused",wspName,artName,id);
 	}
 	
 	void removeFocusedArtifact(String wspName, String artName, ArtifactId id){
-		this.removeObsPropertyByTemplate("focusing", wspName, artName,null);
+		this.removeObsPropertyByTemplate("focused", wspName, artName,null);
 	}
 	
 }
