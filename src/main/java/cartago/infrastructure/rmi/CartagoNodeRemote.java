@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.*;
 import cartago.*;
-import cartago.security.AgentCredential;
 
 
 /**

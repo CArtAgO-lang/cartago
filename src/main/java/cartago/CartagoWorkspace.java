@@ -19,7 +19,6 @@ package cartago;
 
 import cartago.security.IWorkspaceSecurityManager;
 import cartago.security.SecurityException;
-import cartago.security.AgentCredential;
 
 
 /**

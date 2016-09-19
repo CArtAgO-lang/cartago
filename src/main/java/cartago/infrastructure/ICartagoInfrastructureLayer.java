@@ -18,7 +18,6 @@
 package cartago.infrastructure;
 
 import cartago.*;
-import cartago.security.AgentCredential;
 
 /**
  * CArtAgO Infrastructure Layer interface.

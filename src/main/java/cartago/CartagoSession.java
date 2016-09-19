@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.*;
 import cartago.events.*;
-import cartago.security.AgentCredential;
 import cartago.util.agent.ArtifactObsProperty;
 
 /**

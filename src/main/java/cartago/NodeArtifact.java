@@ -17,9 +17,6 @@
  */
 package cartago;
 
-import cartago.security.AgentCredential;
-import cartago.security.AgentIdCredential;
-
 /**
  * Artifact providing functionalities 
  * to manage/join workspaces and the node.
@@ -47,7 +44,7 @@ public class NodeArtifact extends Artifact {
 			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
-				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 				WorkspaceId wspId = ctx.getWorkspaceId();
 				res.set(wspId);
 				thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -99,7 +96,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -121,7 +118,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinRemoteWorkspace(String wspName, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.security.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);

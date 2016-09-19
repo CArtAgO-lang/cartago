@@ -21,6 +21,7 @@ import java.net.URL;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactConfig;
 import cartago.ArtifactId;
@@ -33,7 +34,6 @@ import cartago.Manual;
 import cartago.Op;
 import cartago.OpId;
 import cartago.WorkspaceId;
-import cartago.security.AgentCredential;
 
 
 

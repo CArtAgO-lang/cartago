@@ -7,7 +7,7 @@ public class TestFailedAction {
 	
 	public static void main(String[] args) throws Exception {		
 		CartagoService.startNode();
-		CartagoBasicContext ctx = new CartagoBasicContext("agent-0");
+		CartagoContext ctx = new CartagoContext(new AgentIdCredential("agent-0"));
 		
 		ArtifactId id = ctx.makeArtifact("test", "examples.ArtifactWithFailure");
 		try {

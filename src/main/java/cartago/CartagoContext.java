@@ -1,8 +1,12 @@
-package cartago.util.agent;
+package cartago;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import cartago.*;
 import cartago.events.*;
-import cartago.security.*;
+import cartago.util.agent.*;
+import cartago.util.agent.ObsPropMap;
 
 /**
  * Basic utility class  to interact with CArtAgO from Java
@@ -13,9 +17,8 @@ import cartago.security.*;
  * @author aricci, the_dark
  *
  */
-public class CartagoBasicContext {
+public class CartagoContext {
 
-	public String name;
 	private ICartagoSession session;
 	private CartagoListener agentCallback;
 
@@ -23,6 +26,9 @@ public class CartagoBasicContext {
 	private ObsEventQueue obsEventQueue; 
 
 	private ObsPropMap obsPropMap;
+
+	private static AgentCredential credential;
+	private static String agentRole;
 
 	private final static IEventFilter firstEventFilter = new IEventFilter(){
 		public boolean select(ArtifactObsEvent ev){
@@ -35,15 +41,16 @@ public class CartagoBasicContext {
 	 * 
 	 * @param name agent name
 	 */
-	public CartagoBasicContext(String name){
+	public CartagoContext(AgentCredential cred){
 		super();
-		this.name = name;
 		agentCallback = new CartagoListener();
 		actionFeedbackQueue = new ActionFeedbackQueue();
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
+		credential = cred;
+		agentRole = "";
 		try {
-			session = CartagoService.startSession(CartagoNode.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoService.startSession(CartagoNode.MAIN_WSP_NAME, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -55,15 +62,16 @@ public class CartagoBasicContext {
 	 * @param name agent name
 	 * @param workspaceName workspace name
 	 */
-	public CartagoBasicContext(String name, String workspaceName){
+	public CartagoContext(AgentCredential cred, String workspaceName){
 		super();
-		this.name = name;
 		agentCallback = new CartagoListener();
 		actionFeedbackQueue = new ActionFeedbackQueue();
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
+		credential = cred;
+		agentRole = "";
 		try {
-			session = CartagoService.startSession(workspaceName, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoService.startSession(workspaceName, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -76,18 +84,23 @@ public class CartagoBasicContext {
 	 * @param workspaceName workspace name
 	 * @param workspaceHost workspace host
 	 */
-	public CartagoBasicContext(String name, String workspaceName, String workspaceHost) {
+	public CartagoContext(AgentCredential cred, String workspaceName, String workspaceHost) {
 		super();
-		this.name = name;
 		agentCallback = new CartagoListener();
 		actionFeedbackQueue = new ActionFeedbackQueue();
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
+		credential = cred;
+		agentRole = "";
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
+			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
+	}
+	
+	CartagoSession getCartagoSession(){
+		return (CartagoSession) session;
 	}
 	
 	/**
@@ -96,7 +109,7 @@ public class CartagoBasicContext {
 	 * @param name
 	 * @return
 	 */
-	public ArtifactObsProperty getObsProperty(String name){
+	public cartago.util.agent.ArtifactObsProperty getObsProperty(String name){
 		return obsPropMap.getByName(name);
 	}
 	
@@ -510,13 +523,104 @@ public class CartagoBasicContext {
 	}
 
 	public void log(String msg){
-		System.out.println("["+name+"] "+msg);
+		System.out.println("["+credential.getId()+"] "+msg);
 	}
 
 	public String getName() {
-		return name;
+		return credential.getId();
 	}
 
+
+	/**
+	 * Join a workspace
+	 * 
+	 * @param wspName wsp name
+	 * @param cred agent credential
+	 */
+	public WorkspaceId joinWorkspace(String wspName) throws CartagoException {
+		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
+		try{
+			doAction(new Op("joinWorkspace", wspName, credential, res));
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	/**
+	 * Join a remote workspace
+	 * 
+	 * @param wspName wsp name
+	 * @param address address
+	 * @param roleName role
+	 * @param cred agent credentials
+	 * @return
+	 * @throws CartagoException
+	 */
+	public WorkspaceId joinRemoteWorkspace(String wspName, String address)  throws CartagoException {
+		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
+		try{
+			doAction(new Op("joinRemoteWorkspace", address, wspName, agentRole, credential, res), -1);
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+
+	/**
+	 * Make a new artifact instance
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(wid, new Op("makeArtifact", artifactName, templateName, new Object[0], res), -1);
+		} catch (Exception ex){
+			ex.printStackTrace();
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	
+	/**
+	 * Make a new artifact instance
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName, Object[] params) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(wid, new Op("makeArtifact", artifactName, templateName, params, res), -1);
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	public List<WorkspaceId> getJoinedWorkspaces() throws CartagoException {
+		return session.getJoinedWorkspaces();
+	}
+
+	// Utility methods
+
+	public WorkspaceId getJoinedWspId(String wspName) throws CartagoException {
+		
+		for (WorkspaceId id: session.getJoinedWorkspaces()) {
+			if (id.getName().equals(wspName)) {
+				return id;
+			}
+		}
+		throw new CartagoException("Workspace not joined.");
+	}
 
 	class CartagoListener implements ICartagoListener {
 
@@ -564,4 +668,5 @@ public class CartagoBasicContext {
 		}
 	}
 
+	
 }

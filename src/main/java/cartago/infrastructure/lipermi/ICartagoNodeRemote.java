@@ -1,5 +1,6 @@
 package cartago.infrastructure.lipermi;
 
+import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
 import cartago.CartagoException;
@@ -7,7 +8,6 @@ import cartago.IAlignmentTest;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpId;
-import cartago.security.AgentCredential;
 
 
 /**

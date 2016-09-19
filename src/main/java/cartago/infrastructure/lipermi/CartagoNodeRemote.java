@@ -9,6 +9,7 @@ import lipermi.handler.CallHandler;
 import lipermi.net.Server;
 
 import cartago.AgentBody;
+import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
 import cartago.CARTAGO_VERSION;
@@ -21,7 +22,6 @@ import cartago.ICartagoContext;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpId;
-import cartago.security.AgentCredential;
 
 /**
  * Class representing a CArtAgO node service, serving remote requests

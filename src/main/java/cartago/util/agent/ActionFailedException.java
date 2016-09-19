@@ -1,10 +1,9 @@
 package cartago.util.agent;
 
 import cartago.*;
-import cartago.CartagoException;
 
 /**
- * Exception raised when an action fail (doAction sync)
+ * Exception raised when an action fail in CArtAgO Java API (doAction sync)
  * 
  * @author aricci
  *

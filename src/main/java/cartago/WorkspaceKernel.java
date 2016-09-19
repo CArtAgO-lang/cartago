@@ -39,7 +39,6 @@ import cartago.events.*;
 import cartago.security.IWorkspaceSecurityManager;
 import cartago.security.NullSecurityManager;
 import cartago.security.SecurityException;
-import cartago.security.AgentCredential;
 
 /**
  * This class represents the core machinery of a workspace.

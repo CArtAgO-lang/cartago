@@ -4,7 +4,7 @@ import cartago.*;
 import cartago.events.*;
 
 /**
- * Future to access info about the action feedback
+ * Future to access info about the action feedback in Java API
  * 
  * @author aricci
  *

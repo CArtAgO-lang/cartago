@@ -237,11 +237,11 @@ public class CartagoEnvironment extends Environment {
 	 */
 	public ICartagoSession startSession(String agName, CAgentArch arch) throws Exception {
 		if (wspAddress == null){ 
-			ICartagoSession context = CartagoService.startSession(wspName,new cartago.security.AgentIdCredential(agName),arch);
+			ICartagoSession context = CartagoService.startSession(wspName,new cartago.AgentIdCredential(agName),arch);
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {
-			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.security.AgentIdCredential(agName),arch);
+			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
 			return context;
 		}
 	}

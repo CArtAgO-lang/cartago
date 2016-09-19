@@ -17,7 +17,6 @@
  */
 package cartago;
 
-import cartago.security.AgentCredential;
 import cartago.util.agent.ArtifactObsProperty;
 
 /**

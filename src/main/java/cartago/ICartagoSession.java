@@ -19,7 +19,6 @@ package cartago;
 
 import java.util.List;
 
-import cartago.security.AgentCredential;
 import cartago.util.agent.ArtifactObsProperty;
 
 /**
@@ -144,57 +143,6 @@ public interface ICartagoSession {
 	 */
 	CartagoEvent fetchNextPercept();
 	
-	// utility actions
-	
-	
-	/**
-	 * Gets the id of a joined wsp
-	 * 
-	 * @param wspName
-	 * @return
-	 * @throws CartagoException if the specified workspace was not joined
-	 */
-	WorkspaceId getJoinedWspId(String wspName) throws CartagoException;
 
-		/**
-	 * Joins a workspace
-	 * 
-	 * @param wspName wsp name
-	 * @return
-	 * @throws CartagoException
-	 */
-	WorkspaceId joinWorkspace(String wspName) throws CartagoException;
-	
-	/**
-	 * Joins a remote workspace
-	 * @param wspName wsp name
-	 * @param address wsp address
-	 * @param roleName
-	 * @return
-	 * @throws CartagoException
-	 */
-	WorkspaceId joinRemoteWorkspace(String wspName, String address)  throws CartagoException;
-	
-	/**
-	 * Creates a new artifact
-	 * 
-	 * @param artifactName
-	 * @param templateName
-	 * @return
-	 * @throws CartagoException
-	 */
-	ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName) throws CartagoException;
-	
-	/**
-	 * Creates a new artifact
-	 * 
-	 * @param artifactName
-	 * @param templateName
-	 * @param params
-	 * @return
-	 * @throws CartagoException
-	 */
-	ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName, Object[] params) throws CartagoException;
-	
 	
 }

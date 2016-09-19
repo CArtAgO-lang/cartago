@@ -5,6 +5,12 @@ import java.util.LinkedList;
 
 import cartago.events.CartagoActionEvent;
 
+/**
+ * Used in CArtAgo Java API
+ * 
+ * @author aricci
+ *
+ */
 public class ActionFeedbackQueue {
 
 	LinkedList<CartagoActionEvent> list;

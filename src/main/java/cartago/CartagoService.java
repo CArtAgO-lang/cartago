@@ -25,7 +25,8 @@ import java.util.Map;
 
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
-import cartago.security.AgentCredential;
+import cartago.tools.inspector.Inspector;
+import cartago.util.agent.ActionFeedbackQueue;
 
 
 /**
@@ -42,6 +43,7 @@ public class CartagoService {
 	/* set of available infrastructure layers */
 	private static Map<String,ICartagoInfrastructureLayer> infraLayers = new HashMap<String,ICartagoInfrastructureLayer>();
 	private static String defaultInfraLayer = "rmi";
+	private static HashMap<String,Inspector> debuggers = new HashMap<String,Inspector>();
 	
 	/* set of information about linked nodes - for linkability with remote artifacts */
 	private static List<LinkedNodeInfo> linkedNodes = new LinkedList<LinkedNodeInfo>();
@@ -55,9 +57,7 @@ public class CartagoService {
 	 * @throws CartagoException
 	 */
 	public static synchronized void startNode() throws CartagoException {
-		if (instance != null){
-			throw new CartagoNodeNotActiveException();
-		} else {
+		if (instance == null){
 			instance = new CartagoNode();
 		}
 	}
@@ -273,6 +273,65 @@ public class CartagoService {
 		session.setInitialContext(wspId, startContext);
 		return session;
 	}
+
+	/**
+	 * Start a CArtAgO session in a local workspace, returning a context
+	 * 
+	 * @param wspName workspace to join
+	 * @param cred agent credential
+	 * @param eventListener listener to perceive workspace events
+	 * @return
+	 * @throws CartagoException
+	 */
+	public static synchronized CartagoContext startSession(String wspName, AgentCredential cred) throws CartagoException {
+		if (instance != null){
+			if (wspName==null){
+				wspName = CartagoNode.MAIN_WSP_NAME;
+			}
+			CartagoWorkspace wsp = instance.getWorkspace(wspName);
+			if (wsp == null){
+				throw new CartagoException("Unknown workspace "+wspName);
+			} else {			
+				CartagoContext context = new CartagoContext(cred);
+				ICartagoContext startContext = wsp.join(cred,context.getCartagoSession());
+				WorkspaceId wspId = startContext.getWorkspaceId();
+				context.getCartagoSession().setInitialContext(wspId, startContext);
+				return context;
+			}
+		} else {
+			throw new CartagoNodeNotActiveException();
+		}
+	}
+
+	/**
+	 * Start a working session in a remote workspace, returning a context
+	 * 
+	 * @param wspName workspace name
+	 * @param wspAddress workspace address 
+	 * @param protocol infrastructure protocol ("default" for default one)
+	 * @param cred agent  credential
+	 * @param eventListener listener to workspace events to be perceived by the agent
+	 * @return a context for working inside the workspace
+	 */
+	public static synchronized CartagoContext startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
+		if (wspName==null){
+			wspName = "default";
+		}
+		
+		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
+
+		//If the infrastructure protocol is not installed yet (agent joining a remote workspace
+		//without installing a CArtAgO node ex. CArtAgO-WS agents..) we install it
+		if(!infraLayers.containsKey(protocol)) { 
+			installInfrastructureLayer(protocol);
+		}
+		CartagoContext context = new CartagoContext(cred);
+		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, context.getCartagoSession());
+		WorkspaceId wspId = startContext.getWorkspaceId();
+		context.getCartagoSession().setInitialContext(wspId, startContext);
+		return context;
+	}
+	
 	
 	//
 	
@@ -399,6 +458,46 @@ public class CartagoService {
 		}
 	}
 
+	/**
+	 * Enable debugging of a CArtAgO Workspace 
+	 * 
+	 * @param wspName
+	 * @throws CartagoException
+	 */
+	public static synchronized void enableDebug(String wspName) throws CartagoException {
+		if (instance != null){
+			 Inspector insp = debuggers.get(wspName);
+			 if (insp == null){
+				 CartagoWorkspace wsp = instance.getWorkspace(wspName);
+				 insp = new Inspector();
+				 insp.start();
+				 wsp.registerLogger(insp.getLogger());
+				 debuggers.put(wspName, insp);
+			 }
+		} else {
+			throw new CartagoNodeNotActiveException();
+		}
+	}
+	
+	/**
+	 * Disable debugging of a CArtAgO Workspace 
+	 * 
+	 * @param wspName
+	 * @throws CartagoException
+	 */
+	public static synchronized void disableDebug(String wspName) throws CartagoException {
+		if (instance != null){
+			 Inspector insp = debuggers.remove(wspName);
+			 if (insp != null){
+				 CartagoWorkspace wsp = instance.getWorkspace(wspName);
+				 wsp.unregisterLogger(insp.getLogger());
+			 }
+		} else {
+			throw new CartagoNodeNotActiveException();
+		}
+	}
+	
+	
 	/**
 	 * Register a new logger for a remote CArtAgO Workspace 
 	 * 

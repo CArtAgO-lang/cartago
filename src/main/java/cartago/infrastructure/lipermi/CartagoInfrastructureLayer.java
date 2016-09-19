@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import lipermi.exception.LipeRMIException;
 import lipermi.handler.CallHandler;
 import lipermi.net.Client;
-
+import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
 import cartago.CartagoException;
@@ -20,7 +20,6 @@ import cartago.Op;
 import cartago.OpId;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
-import cartago.security.AgentCredential;
 
 /**
  * 

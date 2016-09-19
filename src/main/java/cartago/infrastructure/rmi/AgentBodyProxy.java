@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.rmi.*;
 
+import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactConfig;
 import cartago.ArtifactId;
@@ -37,7 +38,6 @@ import cartago.OperationException;
 import cartago.OperationUnavailableException;
 import cartago.WorkspaceId;
 import cartago.security.SecurityException;
-import cartago.security.AgentCredential;
 
 
 /**
