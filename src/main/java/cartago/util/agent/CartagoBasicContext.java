@@ -43,7 +43,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startSession(CartagoNode.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoService.startSession(CartagoService.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

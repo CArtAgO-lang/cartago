@@ -37,6 +37,7 @@ import cartago.util.agent.ActionFeedbackQueue;
  */
 public class CartagoService {
 
+	public static String MAIN_WSP_NAME = "main";
 	/* singleton CArtAgO node */
 	private static CartagoNode instance;
 
@@ -56,10 +57,11 @@ public class CartagoService {
 	 * 
 	 * @throws CartagoException
 	 */
-	public static synchronized void startNode() throws CartagoException {
+	public static synchronized NodeId startNode() throws CartagoException {
 		if (instance == null){
 			instance = new CartagoNode();
 		}
+		return instance.getId();
 	}
 
 	/**
@@ -67,12 +69,13 @@ public class CartagoService {
 	 * 
 	 * @throws CartagoException
 	 */
-	public static synchronized void startNode(ICartagoLogger logger) throws CartagoException {
+	public static synchronized NodeId startNode(ICartagoLogger logger) throws CartagoException {
 		if (instance != null){
 			throw new CartagoNodeNotActiveException();
 		} else {
 			instance = new CartagoNode(logger);
 		}
+		return instance.getId();
 	}
 	
 	/**
@@ -229,7 +232,7 @@ public class CartagoService {
 	public static synchronized ICartagoSession startSession(String wspName, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 		if (instance != null){
 			if (wspName==null){
-				wspName = CartagoNode.MAIN_WSP_NAME;
+				wspName = CartagoService.MAIN_WSP_NAME;
 			}
 			CartagoWorkspace wsp = instance.getWorkspace(wspName);
 			if (wsp == null){
@@ -286,16 +289,15 @@ public class CartagoService {
 	public static synchronized CartagoContext startSession(String wspName, AgentCredential cred) throws CartagoException {
 		if (instance != null){
 			if (wspName==null){
-				wspName = CartagoNode.MAIN_WSP_NAME;
+				wspName = CartagoService.MAIN_WSP_NAME;
 			}
 			CartagoWorkspace wsp = instance.getWorkspace(wspName);
 			if (wsp == null){
 				throw new CartagoException("Unknown workspace "+wspName);
 			} else {			
-				CartagoContext context = new CartagoContext(cred);
-				ICartagoContext startContext = wsp.join(cred,context.getCartagoSession());
-				WorkspaceId wspId = startContext.getWorkspaceId();
-				context.getCartagoSession().setInitialContext(wspId, startContext);
+				CartagoContext context = new CartagoContext(cred,wspName);
+				// WorkspaceId wspId = context.getJoinedWspId(wspName);
+				// context.getCartagoSession().setInitialContext(wspId, context.getCartagoSession().get());
 				return context;
 			}
 		} else {
@@ -303,6 +305,19 @@ public class CartagoService {
 		}
 	}
 
+	/**
+	 * Start a CArtAgO session in the main workspace, returning a context
+	 * 
+	 * @param wspName workspace to join
+	 * @param cred agent credential
+	 * @param eventListener listener to perceive workspace events
+	 * @return
+	 * @throws CartagoException
+	 */
+	public static synchronized CartagoContext startSession(AgentCredential cred) throws CartagoException {
+		return startSession(CartagoService.MAIN_WSP_NAME,cred);
+	}
+	
 	/**
 	 * Start a working session in a remote workspace, returning a context
 	 * 
@@ -332,7 +347,7 @@ public class CartagoService {
 		return context;
 	}
 	
-	
+
 	//
 	
 	/**
@@ -418,7 +433,7 @@ public class CartagoService {
 	public static synchronized void addArtifactFactory(String wspName, ArtifactFactory factory) throws CartagoException {
 		if (instance != null){
 			if (wspName==null){
-				wspName = CartagoNode.MAIN_WSP_NAME;
+				wspName = CartagoService.MAIN_WSP_NAME;
 			}
 			instance.getWorkspace(wspName).getKernel().addArtifactFactory(factory);
 		} else {
@@ -435,7 +450,7 @@ public class CartagoService {
 	public static synchronized void removeArtifactFactory(String wspName, String name) throws CartagoException {
 		if (instance != null){
 			if (wspName==null){
-				wspName = CartagoNode.MAIN_WSP_NAME;
+				wspName = CartagoService.MAIN_WSP_NAME;
 			}
 			instance.getWorkspace(wspName).getKernel().removeArtifactFactory(name);
 		} else {

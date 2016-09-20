@@ -34,20 +34,19 @@ public class CartagoNode {
 	
 	private HashMap<String,CartagoWorkspace> wsps;
 	private NodeId nodeId;
-	public static String MAIN_WSP_NAME = "main";
 	
 	CartagoNode() throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create main workspace		
-		createWorkspace(MAIN_WSP_NAME);		
+		createWorkspace(CartagoService.MAIN_WSP_NAME);		
 	}	
 
 	CartagoNode(ICartagoLogger logger) throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
-		createWorkspace(MAIN_WSP_NAME ,logger);		
+		createWorkspace(CartagoService.MAIN_WSP_NAME ,logger);		
 	}	
 
 	/* experimental support to topology */
@@ -56,7 +55,7 @@ public class CartagoNode {
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
-		createWorkspace(MAIN_WSP_NAME,topology);		
+		createWorkspace(CartagoService.MAIN_WSP_NAME,topology);		
 	}	
 	
 	/**

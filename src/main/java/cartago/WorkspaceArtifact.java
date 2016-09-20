@@ -18,6 +18,7 @@
 package cartago;
 
 import cartago.security.SecurityException;
+import cartago.tools.inspector.Inspector;
 import cartago.security.*;
 import java.util.*;
 
@@ -32,7 +33,8 @@ import java.util.*;
 public class WorkspaceArtifact extends Artifact {
 
 	private WorkspaceKernel wspKernel;
-
+	private Inspector debug;
+	
 	@OPERATION void init(WorkspaceKernel env){
 		this.wspKernel = env;
 	}
@@ -123,6 +125,28 @@ public class WorkspaceArtifact extends Artifact {
 		return wspKernel.getArtifact(artName) != null;
 	}
 
+	/**
+	 * Enable debugging
+	 * 
+	 */
+	@OPERATION void enableDebug(){
+		 if (debug == null){
+			 Inspector insp = new Inspector();
+			 insp.start();
+			 wspKernel.getLoggerManager().registerLogger(insp.getLogger());
+		 }
+	}
+	
+	/**
+	 * Disable debugging
+	 * 
+	 */
+	@OPERATION void disableDebug(){
+		 if (debug != null){
+			 wspKernel.getLoggerManager().unregisterLogger(debug.getLogger());
+		 }
+	}
+	
 	/**
 	 * Stop observing an artifact
 	 * 

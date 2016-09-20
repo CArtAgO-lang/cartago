@@ -50,7 +50,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = CartagoService.startSession(CartagoNode.MAIN_WSP_NAME, credential, agentCallback);
+			session = (CartagoSession) CartagoService.startSession(CartagoService.MAIN_WSP_NAME, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

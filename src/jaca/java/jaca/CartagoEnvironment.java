@@ -36,7 +36,7 @@ public class CartagoEnvironment extends Environment {
 
 	public void init(String[] args) {
 		logger.setLevel(Level.WARNING);
-		wspName = cartago.CartagoNode.MAIN_WSP_NAME;
+		wspName = cartago.CartagoService.MAIN_WSP_NAME;
 		
 		infrastructure = false;
 		local = false;

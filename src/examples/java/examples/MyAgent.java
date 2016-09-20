@@ -25,7 +25,7 @@ public class MyAgent extends Agent {
 				log("failed");
 			}
 			
-			final ArtifactId counter = makeArtifact(artName,"test.Counter");
+			final ArtifactId counter = lookupArtifact(artName);
 			focus(counter);
 			//focus(counter, new cartago.events.SignalFilter(new String[]{"tick"}));			
 			doAction(new Op("inc"));
