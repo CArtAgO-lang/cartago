@@ -47,6 +47,17 @@ public class Agent extends Thread {
 		return ctx.getName();
 	}
 
+	/**
+	 * Gets the id of a joined workspace
+	 * 
+	 * @param name
+	 * @return
+	 * @throws CartagoException
+	 */
+	protected WorkspaceId getJoinedWorkspaceId(String name) throws CartagoException {
+		return ctx.getJoinedWspId(name);
+	}
+
 	protected ActionFeedback doActionAsync(Op op) throws CartagoException {
 		return ctx.doActionAsync(op);
 	}
@@ -109,6 +120,10 @@ public class Agent extends Thread {
 		return ctx.joinRemoteWorkspace(wspName, address, roleName, cred);
 	}
 
+	protected ArtifactId lookupArtifact(WorkspaceId id, String artifactName) throws CartagoException {
+		return ctx.lookupArtifact(id, artifactName);
+	}
+
 	protected ArtifactId lookupArtifact(String artifactName) throws CartagoException {
 		return ctx.lookupArtifact(artifactName);
 	}
@@ -125,6 +140,26 @@ public class Agent extends Thread {
 		return aid;
 	}
 	
+	protected ArtifactId discoverArtifact(WorkspaceId id, String artifactName) throws CartagoException {
+		ArtifactId aid = null;
+		while (aid == null) {
+			try {
+				aid = lookupArtifact(id,artifactName);
+			} catch (Exception ex){
+				waitFor(100);
+			}
+		}
+		return aid;
+	}
+	
+	
+	protected ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName) throws CartagoException {
+		return ctx.makeArtifact(id,artifactName, templateName);
+	}
+
+	protected ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName, Object[] params) throws CartagoException {
+		return ctx.makeArtifact(id,artifactName, templateName, params);
+	}
 	
 	protected ArtifactId makeArtifact(String artifactName, String templateName) throws CartagoException {
 		return ctx.makeArtifact(artifactName, templateName);

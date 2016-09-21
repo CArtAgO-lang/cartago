@@ -90,6 +90,16 @@ public class CartagoBasicContext {
 		}
 	}
 	
+	public WorkspaceId getJoinedWspId(String wspName) throws CartagoException {
+		
+		for (WorkspaceId id: session.getJoinedWorkspaces()) {
+			if (id.getName().equals(wspName)) {
+				return id;
+			}
+		}
+		throw new CartagoException("Workspace not joined.");
+	}
+
 	/**
 	 * Get the value of a property
 	 * 
@@ -400,6 +410,23 @@ public class CartagoBasicContext {
 	}
 
 	/**
+	 * Get the artifact id given its name and workskspace 
+	 * 
+	 * @param artifactName
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId lookupArtifact(WorkspaceId id, String artifactName) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(id, new Op("lookupArtifact", artifactName, res));
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	/**
 	 * Get the artifact id given its name
 	 * 
 	 * @param artifactName
@@ -447,6 +474,43 @@ public class CartagoBasicContext {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
 			doAction(new Op("makeArtifact", artifactName, templateName, params, res));
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+	
+	/**
+	 * Make a new artifact instance in a specific workspace
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(id, new Op("makeArtifact", artifactName, templateName, new Object[0], res));
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+
+	
+	/**
+	 * Make a new artifact instance
+	 * 
+	 * @param artifactName logic name
+	 * @param templateName type
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName, Object[] params) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(id, new Op("makeArtifact", artifactName, templateName, params, res));
 		} catch (Exception ex){
 			throw new CartagoException();
 		}

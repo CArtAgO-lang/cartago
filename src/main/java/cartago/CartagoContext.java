@@ -430,6 +430,24 @@ public class CartagoContext {
 	}
 
 	/**
+	 * Get the artifact id given its name
+	 * 
+	 * @param artifactName name of the artifact
+	 * @param wid workspace where to look at
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ArtifactId lookupArtifact(WorkspaceId wid, String artifactName) throws CartagoException {
+		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
+		try{
+			doAction(wid,new Op("lookupArtifact", artifactName, res));
+		} catch (Exception ex){
+			throw new CartagoException();
+		}
+		return res.get();
+	}
+	
+	/**
 	 * Make a new artifact instance
 	 * 
 	 * @param artifactName logic name
@@ -465,6 +483,7 @@ public class CartagoContext {
 		}
 		return res.get();
 	}
+
 
 	/**
 	 * Dispose an existing artifact
@@ -569,10 +588,11 @@ public class CartagoContext {
 
 
 	/**
-	 * Make a new artifact instance
+	 * Make a new artifact instance in a specific workspace
 	 * 
 	 * @param artifactName logic name
 	 * @param templateName type
+	 * @param wid where to create the artifact
 	 * @return
 	 * @throws CartagoException
 	 */
@@ -589,10 +609,11 @@ public class CartagoContext {
 
 	
 	/**
-	 * Make a new artifact instance
+	 * Make a new artifact instance 
 	 * 
 	 * @param artifactName logic name
 	 * @param templateName type
+	 * @param wid where to create the artifact
 	 * @return
 	 * @throws CartagoException
 	 */
