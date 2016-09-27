@@ -183,9 +183,13 @@ public class WorkspaceKernel  {
 		}
 		synchronized (joinedAgents){
 			AgentBody context = joinedAgents.get(cred.getGlobalId());
+			if (context!=null){
+				return context;
+			}
+			/*
 			if (context != null){
 				throw new SecurityException("Agent "+cred.getGlobalId()+" already joined "+this.getId());
-			}
+			}*/
 			ctxIds++;
 			AgentId userId = new AgentId(cred.getId(), cred.getGlobalId(), ctxIds, roleName,id);				
 			boolean joinOK = true;
@@ -603,6 +607,61 @@ public class WorkspaceKernel  {
 	public boolean execOp(long actionId, AgentId userId, ICartagoCallback ctx, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
 		return execOp(actionId, userId, ctx, null, null, op, timeout, test);
 	}
+
+	public ArtifactId getArtifactIdFromOp(AgentId userId, Op op) {
+		synchronized(opMap){
+			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
+			if (list == null){
+				// try with var args
+				String opsign = Artifact.getOpKey(op.getName(), -1);
+				//log("use - try with varags: "+opsign+" -- "+op);
+				list = opMap.get(opsign);
+				if (list == null){
+					return null;
+				}
+			}
+			// if only one artifact has that operation, no problems...
+			if (list.size() == 1){
+				return list.get(0).getArtifact().getId();
+			} else {
+				// first we check for artifacts created by the agent
+				for (ArtifactDescriptor desc: list){
+					if (desc.getAgentCreator().equals(userId)){
+						return desc.getArtifact().getId();
+					}
+				}
+				for (ArtifactDescriptor desc: list){
+					if (desc.isObservedBy(userId)){
+						return desc.getArtifact().getId();
+					}
+				}
+				return list.get(0).getArtifact().getId();
+			}
+		}
+	}
+
+	public ArtifactId getArtifactIdFromOp(AgentId userId, String artName, Op op) {
+		synchronized(opMap){
+			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
+			if (list == null){
+				// try with var args
+				String opsign = Artifact.getOpKey(op.getName(), -1);
+				//log("use - try with varags: "+opsign+" -- "+op);
+				list = opMap.get(opsign);
+				if (list == null){
+					return null;
+				}
+			}
+			// first we check for artifacts created by the agent
+			for (ArtifactDescriptor desc: list){
+				if (desc.getArtifact().getId().getName().equals(artName)){
+					return desc.getArtifact().getId();
+				}
+			}
+			return null;
+		}
+	}
+	
 	
 	private boolean execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
 		if (isShutdown){

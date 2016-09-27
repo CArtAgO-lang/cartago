@@ -57,11 +57,10 @@ public interface IAgentBodyRemote extends Remote {
 	 * 
 	 */
 	void doAction(long actionId, ArtifactId id, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
+	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
 
-	boolean doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
-
-	boolean doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
-
+	ArtifactId getArtifactIdFromOp(Op op) throws  RemoteException, CartagoException;
+	ArtifactId getArtifactIdFromOp(String name, Op op) throws  RemoteException, CartagoException;
 
 	/**
 	 * Get workspace id

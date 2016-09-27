@@ -1,0 +1,9 @@
+MAS test {
+
+    environment: jaca.CartagoEnvironment
+
+    agents:  
+   	agent1 agentArchClass jaca.CAgentArch;
+
+	aslSourcePath: "src/test/jaca/test";
+}

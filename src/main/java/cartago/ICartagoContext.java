@@ -49,21 +49,26 @@ public interface ICartagoContext {
 	 * @param timeout operation timeout - -1 if not specified
 	 * @return true if an artifact with the specified name and operation is found
 	 */
-	boolean doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException;
-
-	/**
-	 * Use an artifact by requesting the execution of the specified operation.
-	 * 
-	 * @param actionId identifier of the use action - used by the callback
-	 * @param name target artifact
-	 * @param op operation to execute
-	 * @param test alignment test - null if not specified
-	 * @param timeout operation timeout - -1 if not specified
-	 * @return true if an artifact with the specified operation is found
-	 */
-	boolean doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException;
+	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException;
 		
 	
+	/**
+	 * Returns the identifier of an artifact implementing the operation (null if none)
+	 * 
+	 * @param op
+	 * @return
+	 */
+	public ArtifactId getArtifactIdFromOp(Op op) throws CartagoException;;
+
+	/**
+	 * Returns the identifier of an artifact implementing the operation (null if none)
+	 * 
+	 * @param name artifact name
+	 * @param op
+	 * @return
+	 */
+	public ArtifactId getArtifactIdFromOp(String name, Op op) throws CartagoException;;
+
 	/**
 	 * Get workspace id
 	 * 

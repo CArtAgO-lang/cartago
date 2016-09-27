@@ -27,12 +27,6 @@ public class AgentBodyProxy implements ICartagoContext {
 		mClient = client;
 	}
 	
-	@Override
-	public boolean doAction(long actionId, Op op, IAlignmentTest test, long timeout)
-			throws CartagoException {
-		
-		return mCtx.doAction(actionId, op, test, timeout);
-	}
 
 	@Override
 	public void doAction(long actionId, ArtifactId id, Op op,
@@ -42,10 +36,10 @@ public class AgentBodyProxy implements ICartagoContext {
 	}
 
 	@Override
-	public boolean doAction(long actionId, String name, Op op,
+	public void doAction(long actionId, String name, Op op,
 			IAlignmentTest test, long timeout) throws CartagoException {
 		
-		return mCtx.doAction(actionId, name, op, test, timeout);
+		mCtx.doAction(actionId, name, op, test, timeout);
 	}
 
 	@Override
@@ -68,6 +62,18 @@ public class AgentBodyProxy implements ICartagoContext {
 		} catch (IOException e) {
 			throw new CartagoException();
 		}
+	}
+
+
+	@Override
+	public ArtifactId getArtifactIdFromOp(Op op) {
+		return mCtx.getArtifactIdFromOp(op);
+	}
+
+
+	@Override
+	public ArtifactId getArtifactIdFromOp(String name, Op op) {
+		return mCtx.getArtifactIdFromOp(name,op);
 	}
 	
 

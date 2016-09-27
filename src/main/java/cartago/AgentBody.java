@@ -72,20 +72,28 @@ public class AgentBody implements ICartagoContext {
 		wspKernel.execOp(actionId, id, agentCallback, aid, op, timeout, test);
 	}
 
-	public boolean doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		return wspKernel.execOp(actionId, id, agentCallback, name, op, timeout, test);
+		wspKernel.execOp(actionId, id, agentCallback, name, op, timeout, test);
 	}
 	
-	public boolean doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		return wspKernel.execOp(actionId, id, agentCallback, op, timeout, test);
+		wspKernel.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
 	
+	public ArtifactId getArtifactIdFromOp(Op op){
+		return wspKernel.getArtifactIdFromOp(id, op);
+	}
+
+	public ArtifactId getArtifactIdFromOp(String name, Op op){
+		return wspKernel.getArtifactIdFromOp(id, name, op);
+	}
+
 	// called by the kernel
 	
 	public void addFocusedArtifacts(ArtifactDescriptor des){

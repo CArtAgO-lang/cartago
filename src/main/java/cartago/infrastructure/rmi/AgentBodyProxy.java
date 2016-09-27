@@ -85,22 +85,11 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 
 	}
 	
-	public boolean doAction(long agentCallbackId, String id, Op op, IAlignmentTest test,
+	public void doAction(long agentCallbackId, String id, Op op, IAlignmentTest test,
 			long timeout) throws CartagoException {
 		try {
 			// return ctx.use(((AbstractAgentCallback)actx).getProxy(), id, op, test, timeout);			
-			return ctx.doAction(agentCallbackId, id, op, test, timeout);			
-		} catch (RemoteException ex) {
-			throw new CartagoException(ex.getMessage());
-		}
-
-	}
-
-	public boolean doAction(long agentCallbackId, Op op, IAlignmentTest test,
-			long timeout) throws CartagoException {
-		try {
-			// return ctx.use(((AbstractAgentCallback)actx).getProxy(), id, op, test, timeout);			
-			return ctx.doAction(agentCallbackId, op, test, timeout);			
+			ctx.doAction(agentCallbackId, id, op, test, timeout);			
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
 		}
@@ -114,5 +103,24 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
 		}
+	}
+
+	@Override
+	public ArtifactId getArtifactIdFromOp(Op op) throws CartagoException {
+		try {
+			return ctx.getArtifactIdFromOp(op);			
+		} catch (RemoteException ex) {
+			throw new CartagoException(ex.getMessage());
+		}	
+	}
+
+	@Override
+	public ArtifactId getArtifactIdFromOp(String name, Op op) throws CartagoException {
+		// TODO Auto-generated method stub
+		try {
+			return ctx.getArtifactIdFromOp(name,op);			
+		} catch (RemoteException ex) {
+			throw new CartagoException(ex.getMessage());
+		}	
 	}
 }

@@ -279,10 +279,11 @@
      makeArtifact("a0","c4jtest.MyArtifactA",[],Id2);
      println("looking up...");
      lookupArtifact("a0",Id3);
-     println("hello",Id3);
+     println("hello ",Id3);
      createWorkspace("w1");
-     println("joining...");
+     println("joining w1...");
      joinWorkspace("w1",WspID2);
+     println("computing...");
      compute(5,X,Y);
      println(X).
 
