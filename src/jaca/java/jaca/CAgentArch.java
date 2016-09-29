@@ -220,6 +220,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	public List<Literal> perceive(){
 	    super.perceive();
+	    if (envSession == null) // the init isn't finished yet...
+	    	return null;
+	    
 		try {
 			CartagoEvent evt = envSession.fetchNextPercept();
 			
@@ -784,7 +787,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		getArchInfraTier().wake();
 		return true; // true means that we want the event to be enqueued in the percept queue
 	}
-
+	
 	/**
 	 * Convert an observable event into a literal
 	 */
