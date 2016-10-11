@@ -1,22 +1,35 @@
 package jaca;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import cartago.AgentBodyArtifact;
+import cartago.AgentId;
+import cartago.ArtifactDescriptor;
 import cartago.ArtifactId;
 import cartago.ArtifactObsProperty;
 import cartago.CartagoEvent;
+import cartago.CartagoException;
+import cartago.CartagoNode;
+import cartago.CartagoService;
 import cartago.IAlignmentTest;
+import cartago.ICartagoCallback;
 import cartago.ICartagoSession;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
 import cartago.Op;
+import cartago.OpDescriptor;
 import cartago.Tuple;
 import cartago.WorkspaceId;
+import cartago.WorkspaceKernel;
 import cartago.events.ActionFailedEvent;
 import cartago.events.ActionSucceededEvent;
 import cartago.events.ArtifactObsEvent;
@@ -28,12 +41,12 @@ import cartago.events.ObsArtListChangedEvent;
 import cartago.events.StopFocusSucceededEvent;
 import jason.architecture.AgArch;
 import jason.asSemantics.ActionExec;
-import jason.asSemantics.Agent;
 import jason.asSemantics.Event;
 import jason.asSemantics.Intention;
 import jason.asSemantics.TransitionSystem;
 import jason.asSemantics.Unifier;
 import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Atom;
 import jason.asSyntax.ListTerm;
 import jason.asSyntax.Literal;
 import jason.asSyntax.PredicateIndicator;
@@ -47,8 +60,14 @@ import jason.bb.BeliefBase;
 
 public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
-	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type",ASSyntax.createString("obs_prop"));
-	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type",ASSyntax.createString("obs_ev"));	
+	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_prop"));
+	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
+
+	private HashMap<ArtifactId, HashSet<Atom>> mappings = new HashMap<ArtifactId, HashSet<Atom>>(); // added by GUSORH
+	static private final List<String> DEF_OPS = Arrays.asList("focus", "stopFocus", "makeArtifact", 
+			"println", "print", "focusWhenAvailable", "lookupArtifact", "lookupArtifactByType", 
+			"joinWorkspace", "createWorkspace",
+			"quitWorkspace", "disposeArtifact"); // gusorh: (the list is not complete) default set of operations
 
 	protected ICartagoSession envSession;
 
@@ -59,13 +78,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	protected JavaLibrary lib;
 
 	protected Logger logger;
-	
-	//private boolean firstManualFetched;
+
+	// private boolean firstManualFetched;
 
 	// short cuts
 	protected jason.bb.BeliefBase belBase;
 	protected jason.asSemantics.Agent agent;
-	
+
 	List<WorkspaceId> allJoinedWsp = new ArrayList<WorkspaceId>(); // used in stopAg to quit this workspaces
 
 	public CAgentArch() {
@@ -74,59 +93,38 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 		logger = Logger.getLogger("CAgentArch");
 		lib = new JavaLibrary();
-		//logger.setLevel(java.util.logging.Level.WARNING);
-		//firstManualFetched = false;
-	
 	}
 
 	public ICartagoSession getSession() {
-	    return envSession;
+		return envSession;
 	}
-	
+
 	/**
-	 * Creates the agent class defined by <i>agClass</i>, default is
-	 * jason.asSemantics.Agent. The agent class will parse the source code,
-	 * create the transition system (TS), ...
-	 */	
+	 * Creates the agent class defined by <i>agClass</i>, default is jason.asSemantics.Agent. The agent class will parse the source code, create the transition system (TS), ...
+	 */
 	@Override
 	public void init() throws Exception {
-        initBridge();
+		initBridge();
 	}
-	
-	protected void initBridge(){
+
+	protected void initBridge() {
 		String agentName = getTS().getUserAgArch().getAgName();
 		try {
 			this.agent = getTS().getAg();
 			this.belBase = agent.getBB();
-			
-			envSession = CartagoEnvironment.getInstance().startSession(agentName, this);
-			
-			// fetchDefaultManuals(context);
-			allJoinedWsp.addAll(envSession.getJoinedWorkspaces());
-			//loadBasicPlans();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			logger.warning("[CARTAGO] WARNING: No default workspace found for "	+ agentName);
-		}
-	}
 
-	protected void loadBasicPlans() {
-		//
-		String sensePlan1 = "@sense_plan1[atomic]				\n"
-			+ "+!sense(P) : P.					\n";
-		String sensePlan2 = "@sense_plan2[atomic]				\n"
-			+ "+!sense(P) : not P	<- .wait({+P}).	\n";
-		try {
-			agent.getPL().add(ASSyntax.parsePlan(sensePlan1));
-			agent.getPL().add(ASSyntax.parsePlan(sensePlan2));
+			envSession = CartagoEnvironment.getInstance().startSession(agentName, this);
+
+			allJoinedWsp.addAll(envSession.getJoinedWorkspaces());
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			logger.warning("[CARTAGO] WARNING: No default workspace found for " + agentName);
 		}
 	}
 
 	@Override
-	public void act(ActionExec actionExec) { //, List<ActionExec> feedback) {
-	    //logger.info("NEW ACTION TODO: "+actionExec.getActionTerm()+" agent: "+this.getAgName());
+	public void act(ActionExec actionExec) {
+		// logger.info("NEW ACTION  "+actionExec.getActionTerm()+" agent: "+this.getAgName());
 		Structure action = actionExec.getActionTerm();
 
 		ArtifactId aid = null;
@@ -135,554 +133,322 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		String wspName = null;
 		try {
 			boolean failed = false;
-			ListTerm lt =  action.getAnnots();
-			if (lt != null){
+			ListTerm lt = action.getAnnots();
+			if (lt != null) {
 				Iterator<Term> it = lt.iterator();
-				while (it.hasNext()){
+				while (it.hasNext()) {
 					Term annot = it.next();
-					if (annot.isStructure()){
-						Structure st = (Structure)annot;
-						if (st.getFunctor().equals("art") || st.getFunctor().equals("artifact_name")){
-						    if (st.getTerm(0).isString())
-						        artName = ((StringTerm)(st.getTerm(0))).getString();
-						    else
-						        artName = st.getTerm(0).toString();
-						} else if (st.getFunctor().equals("aid") || st.getFunctor().equals("artifact_id")){
+					if (annot.isStructure()) {
+						Structure st = (Structure) annot;
+						if (st.getFunctor().equals("art") || st.getFunctor().equals("artifact_name")) {
+							if (st.getTerm(0).isString())
+								artName = ((StringTerm) (st.getTerm(0))).getString();
+							else
+								artName = st.getTerm(0).toString();
+						} else if (st.getFunctor().equals("aid") || st.getFunctor().equals("artifact_id")) {
 							Object obj = getObject(st.getTerm(0));
-							if (obj != null && obj instanceof ArtifactId){
+							if (obj != null && obj instanceof ArtifactId) {
 								aid = (ArtifactId) obj;
 							}
-						} else if (st.getFunctor().equals("wid")){
+						} else if (st.getFunctor().equals("wid")) {
 							Object obj = getObject(st.getTerm(0));
-							if (obj != null && obj instanceof WorkspaceId){
+							if (obj != null && obj instanceof WorkspaceId) {
 								wspId = (WorkspaceId) obj;
 							}
-						} else if (st.getFunctor().equals("wsp")){
+						} else if (st.getFunctor().equals("wsp")) {
 							if (st.getTerm(0).isString())
-						        wspName = ((StringTerm)(st.getTerm(0))).getString();
-						    else
-						        wspName = st.getTerm(0).toString();
+								wspName = ((StringTerm) (st.getTerm(0))).getString();
+							else
+								wspName = st.getTerm(0).toString();
 						} else {
-							logger.warning("Use failed: unknown annotation "+annot);
-							Term reason = Literal.parseLiteral("action_failed("+action+",unknown_annotation)");
-							String msg = "Use  error - unknown annotation "+annot;
-							notifyActionFailure(actionExec,reason,msg);
+							logger.warning("Use failed: unknown annotation " + annot);
+							Term reason = Literal.parseLiteral("action_failed(" + action + ",unknown_annotation)");
+							String msg = "Use  error - unknown annotation " + annot;
+							notifyActionFailure(actionExec, reason, msg);
 							failed = true;
 							break;
 						}
 					}
 				}
 			}
-			
-			if (!failed){
+
+			if (!failed) {
 				// parse op
-				Op op = parseOp(action);	
+				Op op = parseOp(action);
 				IAlignmentTest test = null;
 				long timeout = Long.MAX_VALUE;
-				long actId;
-				if (aid != null){
-					actId = envSession.doAction(aid,op,test,timeout);
-				} else if (wspId != null){
-					if (artName != null){
-						actId = envSession.doAction(wspId,artName,op,test,timeout);
+				long actId   = Long.MIN_VALUE;
+				if (aid != null) {
+					actId = envSession.doAction(aid, op, test, timeout);
+				} else if (wspId != null) {
+					if (artName != null) {
+						actId = envSession.doAction(wspId, artName, op, test, timeout);
 					} else {
-						actId = envSession.doAction(wspId,op,test,timeout);
+						actId = envSession.doAction(wspId, op, test, timeout);
 					}
-				} else if (wspName != null){
-					if (artName != null){
-						actId = envSession.doAction(wspName,op,artName,test,timeout);
+				} else if (wspName != null) {
+					if (artName != null) {
+						actId = envSession.doAction(wspName, op, artName, test, timeout);
 					} else {
-						actId = envSession.doAction(wspName,op,test,timeout);
+						actId = envSession.doAction(wspName, op, test, timeout);
 					}
 
 				} else {
-					if (artName != null){
-						//logger.warning("executing "+op+" on "+artName);
-						actId = envSession.doAction(op, artName,test,timeout);
+					if (artName != null) {
+						// logger.warning("executing "+op+" on "+artName);
+						actId = envSession.doAction(op, artName, test, timeout);
 					} else {
-						actId = envSession.doAction(op,test,timeout);
+						// begin gusorh{
+						if ("makeArtifact".equals(op.getName()) || "focusWhenAvailable".equals(op.getName())) { // artifact name is an atomic term, parse to string
+							Object[] values = op.getParamValues();
+							if (action.getTerm(0).isAtom())
+								values[0] = "" + action.getTerm(0);
+							op = new Op(op.getName(), values);
+						}
+						if (DEF_OPS.contains(op.getName())) { // predefined CArtAgO operation
+							op = new DefOp(op, action.getNS()); // added by GUSORH
+							actId = envSession.doAction(op, test, timeout); // default operations go to workspace
+						} else { 
+							// User defined operation
+							outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) // iterates artifacts focused using nsp associated with the action
+								for (OpDescriptor o : CartagoService.getController(aid1.getWorkspaceId().getName()).getArtifactInfo(aid1.getName()).getOperations())
+									if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
+										actId = envSession.doAction(aid1, op, test, timeout); //
+										break outer; // action executes a corresponding op in only one artifact
+									}
+							if (actId == Long.MIN_VALUE) {
+								// try as before namespaces
+								actId = envSession.doAction(op,test,timeout);
+							}
+						}
 					}
 				}
-				
-				PendingAction pa = new PendingAction(actId, action, (ActionExec)actionExec);
-				pendingActions.put(actId, pa);
-				//getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
+
+				if (actId != Long.MIN_VALUE) {
+					PendingAction pa = new PendingAction(actId, action, (ActionExec) actionExec);
+					pendingActions.put(actId, pa);
+					// getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
+				} else {
+					logger.warning("No artifact in namespace " + action.getNS() + " implements operation " + op);
+					Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",generic_error)");
+					Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
+					String msg = "Action failed: " + actionExec.getActionTerm();
+					notifyActionFailure(actionExec, reason, msg);
+				}
+				// end gusorh
+
 			}
-		} catch (Exception ex){
-			//ex.printStackTrace();
-			logger.warning("Op "+action+" on artifact "+aid+"(artifact_name= "+artName+") by "+this.getAgName()+" failed - op: "+action);
-			Term reasonTerm = Literal.parseLiteral("action_failed("+action+",generic_error)");
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			logger.warning("Op " + action + " on artifact " + aid + "(artifact_name= " + artName + ") by " + this.getAgName() + " failed - op: " + action);
+			Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",generic_error)");
 			Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
-			String msg = "Action failed: "+actionExec.getActionTerm();
-			notifyActionFailure(actionExec,reason,msg);
+			String msg = "Action failed: " + actionExec.getActionTerm();
+			notifyActionFailure(actionExec, reason, msg);
 		}
 	}
 
-	public List<Literal> perceive(){
-	    super.perceive();
-	    if (envSession == null) // the init isn't finished yet...
-	    	return null;
-	    
+	public List<Literal> perceive() {
+		super.perceive();
+		if (envSession == null) // the init isn't finished yet...
+			return null;
+
 		try {
 			CartagoEvent evt = envSession.fetchNextPercept();
-			
-			if (evt != null){
-				Literal l = null;
 
-				if (evt instanceof ActionSucceededEvent){
-					ActionSucceededEvent ev = (ActionSucceededEvent) evt;
-					
-					/* check for SPECIAL EVENTS */
-					if (ev.getActionId() == -1){
-						if (ev instanceof FocusSucceededEvent){
-							/* 
-							 * this happens when an agent joins a wsp 
-							 * and an agent body artifact is created and focused automatically
-			 				 *
-							 */
-							FocusSucceededEvent ev1 = (FocusSucceededEvent) ev;
-							addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-						} else if (ev instanceof StopFocusSucceededEvent){
-							StopFocusSucceededEvent ev1 = (StopFocusSucceededEvent) ev;
-							removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-						}
-					} 
-					
-					PendingAction action = pendingActions.remove(ev.getActionId());
-					// logger.info("Processing action succeeded: "+action.getAction());
-					if (action != null) {
-						Op op = ev.getOp();
-						notifyActionSuccess(op, action.getAction(), action.getActionExec());
-						if (ev instanceof FocusSucceededEvent){
-							FocusSucceededEvent ev1 = (FocusSucceededEvent) ev;
-							addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-						} else if (ev instanceof StopFocusSucceededEvent){
-							StopFocusSucceededEvent ev1 = (StopFocusSucceededEvent) ev;
-							removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-						} else if (ev instanceof JoinWSPSucceededEvent){
-							JoinWSPSucceededEvent ev1 = (JoinWSPSucceededEvent)	ev;
-							allJoinedWsp.add(ev1.getWorkspaceId());
-							//System.out.println("JOIN OK "+ev1.getWorkspaceId().getName());
-							
-							/*
-							 * THIS MUST BE DISCUSSED: do we switch the current wsp automatically to the new one?
-							 */
-							//this.setCurrentWsp(ev1.getWorkspaceId());
-						} else if (ev instanceof ConsultManualSucceededEvent) {
-							ConsultManualSucceededEvent ev1 = (ConsultManualSucceededEvent) ev;
-							this.consultManual(ev1.getManual());
-						}
-					}
-				
-				} else if (evt instanceof ActionFailedEvent){
-					ActionFailedEvent ev = (ActionFailedEvent)evt;
-					PendingAction action = pendingActions.remove(ev.getActionId());
-					if (action != null) {
-						try {
-							Term reason = null;
-							Tuple failureInfo = ev.getFailureDescr();
-							try {
-								if (failureInfo != null){
-									reason = lib.tupleToTerm(failureInfo);
-								}
-							} catch (Exception ex){
-								ex.printStackTrace();
-							}	
-							notifyActionFailure(action.getActionExec(), reason, ev.getFailureMsg());
-						} catch (Exception ex){
-							ex.printStackTrace();
-						}	
-					}
-				} else if (evt instanceof FocussedArtifactDisposedEvent){
-					//logger.info("FOCUSSED ARTIFACT DISPOSED...");
-					FocussedArtifactDisposedEvent ev = (FocussedArtifactDisposedEvent)evt;
-					removeObsPropertiesBel(ev.getArtifactId(), ev.getObsProperties());
-				} else if (evt instanceof ArtifactObsEvent){
-					ArtifactObsEvent ev = (ArtifactObsEvent)evt;
-					//logger.warning("NEW OBS EVENT: "+evt);
-
-					Tuple signal = ev.getSignal();
-					if (signal != null){
-						//System.out.println("signal: "+signal);
-						l = obsEventToLiteral(ev,lib);
-						if (l != null) {
-    						Trigger te = new Trigger(TEOperator.add, TEType.belief, l);
-    						getTS().updateEvents(new Event(te, Intention.EmptyInt));
-						}
-					}
-					
-					ArtifactObsProperty[] props = ev.getChangedProperties();
-					if (props!=null){
-						for (ArtifactObsProperty prop: props){
-							String propName = prop.getName();
-							String propId = prop.getFullId();
-							// logger.warning("UPDATE OBS PROP: "+propName+" "+prop);
-							// logger.warning("prop to change "+propName+" "+propId);
-							try {
-								/* finding the belief */
-								Iterator<Literal> it = this.getObsPropBeliefs(prop);
-								boolean found = false;
-								Literal lold = null;
-								ListTerm annots = null;
-								if (it != null){
-									while (!found && it.hasNext()){
-										lold = it.next();
-										// logger.warning("FOUND BELIEF TO UPDATE "+lold+" "+lold.getAnnots());
-										annots = lold.getAnnots("obs_prop_id");
-										if (! annots.isEmpty()){
-											for (Term annot: annots){
-												StringTerm st = (StringTerm)((((Structure)annot).getTerm(0)));
-												if (st.getString().equals(propId)){
-													//logger.warning("FOUND THE OBS ID "+st);
-													found = true;
-													break;
-												}
-											}
-										}
-									}
-								}
-								if (found) {
-									//Literal removedLit = lold.copy().forceFullLiteralImpl();
-									if (annots.size() == 1){ 
-										// it was the only one
-										//logger.warning("REMOVING BEL: "+lold);
-										if (!belBase.remove(lold)){
-											logger.warning("obs prop not found during bel update: "+propName+" "+ev.getArtifactId().getName());
-										}
-									} else {
-										// removedLit.clearAnnots();
-										//logger.warning("MULTIPLE OBS PROP IN THE SAME BELIEF "+lold+" "+lold.getAnnots());
-										ArtifactId source = ev.getArtifactId();
-										//long propId = ev.getProperty().getId();
-										Iterator<Term> it2 = lold.getAnnots().iterator();
-										while (it2.hasNext()){
-											Term t = it2.next();
-											if (t.isStructure()){
-												Structure st = (Structure)t;
-												//logger.warning("CHECKING ANNOT "+st);
-												if (st.getFunctor().equals("obs_prop_id")){
-													StringTerm sst = (StringTerm)((((Structure)st).getTerm(0)));
-													if (sst.getString().equals(propId)){
-														it2.remove();
-														//logger.warning("--> REMOVING IT since it is "+propId);
-														//removedLit.addAnnot(t);
-													}
-												} else if (st.getArity() > 0){
-													Object artId = lib.termToObject(st.getTerm(0));
-													if (artId != null && artId.equals(source)){
-														//logger.warning("--> REMOVING ANNOT since it is of "+source);
-														it2.remove();
-														//removedLit.addAnnot(t);
-													}
-												}
-											}
-										}
-									}
-									/*
-									Trigger te = new Trigger(TEOperator.del, TEType.belief, removedLit);
-									getTS().updateEvents(new Event(te, Intention.EmptyInt));
-									*/
-								} else {
-									logger.warning("!! obs prop not found during bel update: "+propName+" "+ev.getArtifactId().getName()+" "+annots);
-								}
-
-								l = obsPropToLiteral(propId, ev.getArtifactId(), propName, prop.getValues(), lib);
-								if (belBase.add(l)) {
-									// logger.warning("AGENT: "+getTS().getUserAgArch().getAgName()+" UPDATED BELIEF: "+l);
-									Trigger te = new Trigger(TEOperator.add, TEType.belief, l.copy());
-									getTS().updateEvents(new Event(te, Intention.EmptyInt));
-									// logger.warning("AGENT: "+getTS().getUserAgArch().getAgName()+" NEW EVENT TRIGGERED.");
-								} else {
-									logger.warning("AGENT: "+getTS().getUserAgArch().getAgName()+" CANNOT UPDATE THE BELIEF: "+l);
-
-								}
-							} catch (Exception ex){
-								ex.printStackTrace();
-								logger.warning("EXCEPTION - processing update obs prop "+ev+" for agent "+getTS().getUserAgArch().getAgName());
-							}
-						}
-					}
-				
-					props = ev.getAddedProperties();
-					if (props!=null){
-						for (ArtifactObsProperty prop: props){
-							String propName = prop.getName();
-							String propId = prop.getFullId();
-							try {
-								Iterator<Literal> it = getObsPropBeliefs(prop);
-									//a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,prop.getValues().length));
-								boolean found = false;
-								if (it != null){
-									Literal lold = null;
-									while (!found && it.hasNext()){
-										lold = it.next();
-										ListTerm annots = lold.getAnnots("obs_prop_id");
-										if (! annots.isEmpty()){
-											for (Term annot: annots){
-												/*
-												Object artId = lib.termToObject(((Structure)annot).getTerm(0),lib);
-												if (artId != null && artId.equals(ev.getArtifactId())){
-													found = true;
-													break;
-												}
-												*/
-												StringTerm st = (StringTerm)((((Structure)annot).getTerm(0)));
-												if (st.getString().equals(propId)){
-													found = true;
-													break;
-												}
-											}
-										}
-									}
-								}
-								if (!found){
-									l = obsPropToLiteral(propId, ev.getArtifactId(), propName, prop.getValues(), lib);
-									if (belBase.add(l)){
-										Literal l1 = l.copy();
-										Trigger te = new Trigger(TEOperator.add, TEType.belief, l1);
-										getTS().updateEvents(new Event(te, Intention.EmptyInt));
-										//logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" NEW BELIEF FOR OBS PROP: "+l1);
-									}
-								}
-							} catch (Exception ex){
-								ex.printStackTrace();
-								logger.warning("EXCEPTION - processing event "+ev+" for agent "+getTS().getUserAgArch().getAgName());
-							}
-						}
-					}
-				
-					props = ev.getRemovedProperties();
-					if (props!=null){
-						//logger.info("OBS EV PROPS TO REMOVE "+props.length);
-						for (ArtifactObsProperty prop: props){
-							String propName = prop.getName();
-							String propId = prop.getFullId();
-							// logger.info("REMOVING "+propName+" "+propId);
-							
-							Iterator<Literal> it = getObsPropBeliefs(prop);
-							//a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,prop.getValues().length));
-							boolean found = false;
-							ListTerm annots = null;
-							Literal toBeRemoved = null;
-							if (it != null){
-								while (!found && it.hasNext()){
-									toBeRemoved = it.next();
-									annots = toBeRemoved.getAnnots("obs_prop_id");
-									if (! annots.isEmpty()){
-										for (Term annot: annots){
-											StringTerm st = (StringTerm)((((Structure)annot).getTerm(0)));
-											if (st.getString().equals(propId)){
-												found = true;
-												break;
-											}
-										}
-									}
-								}
-							}
-							if (found){
-								try {
-									boolean removed = true;
-									if (annots.size() == 1){ 
-										// it was the only one
-										removed = belBase.remove(toBeRemoved);
-									} else {
-										ArtifactId source = ev.getArtifactId();
-										Iterator<Term> it2 = toBeRemoved.getAnnots().iterator();
-										while (it2.hasNext()){
-											Term t = it2.next();
-											if (t.isStructure()){
-												Structure st = (Structure)t;
-												if (st.getFunctor().equals("obs_prop_id")){
-													/*
-													Object artId = lib.termToObject(st.getTerm(0),lib);
-													if (artId != null && artId.equals(source)){
-														it2.remove();
-													}*/
-													StringTerm sst = (StringTerm)((((Structure)st).getTerm(0)));
-													if (sst.getString().equals(propId)){
-														it2.remove();
-													}
-												} else if (st.getArity() > 0){
-													Object artId = lib.termToObject(((Structure)st).getTerm(0));
-													if (artId != null && artId.equals(source)){
-														it2.remove();
-													}
-												}  
-											}
-										}
-									}
-									if (removed){
-										Literal l1 = toBeRemoved.copy();
-										Trigger te = new Trigger(TEOperator.del, TEType.belief, l1);
-										getTS().updateEvents(new Event(te, Intention.EmptyInt));
-										// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" REMOVED BELIEF FOR OBS PROP: "+l1);
-									} else {
-										logger.warning("AGENT: "+getTS().getUserAgArch().getAgName()+" OBS PROP NOT FOUND when removing: "+propName);
-									}
-								} catch (Exception ex){
-									logger.warning("EXCEPTION - processing remove obs prop "+ev+" for agent "+getTS().getUserAgArch().getAgName());
-								}
-							}
-						}
-					}
-				} /* else if (evt instanceof QuitWSPSucceededEvent){
-					//QuitWSPSucceededEvent ev1 = (QuitWSPSucceededEvent)	ev;
-					//System.out.println("Leaving from " + ev1.getWorkspaceId().getName() + " to " + envSession.getCurrentWorkspace().getName());
-					// this.setCurrentWsp(envSession.getCurrentWorkspace());
-				} */ 
-				else if (evt instanceof ObsArtListChangedEvent){
+			while (evt != null) {
+				if (evt instanceof ActionSucceededEvent) {
+					perceiveActionSucceeded((ActionSucceededEvent) evt);
+				} else if (evt instanceof ActionFailedEvent) {
+					perceiveActionFailed((ActionFailedEvent) evt);
+				} else if (evt instanceof FocussedArtifactDisposedEvent) {
+					perceiveDispose((FocussedArtifactDisposedEvent) evt);
+				} else if (evt instanceof ArtifactObsEvent) {
+					ArtifactObsEvent ev = (ArtifactObsEvent) evt;
+					perceiveSignal(ev);
+					perceivedChangedOP(ev);
+					perceiveAddedOP(ev);
+					perceiveRemovedOP(ev);
+				} else if (evt instanceof ObsArtListChangedEvent) {
 					/* experimental */
-					ObsArtListChangedEvent ev = (ObsArtListChangedEvent)evt;
+					ObsArtListChangedEvent ev = (ObsArtListChangedEvent) evt;
 					List<ObservableArtifactInfo> newFocused = ev.getNewFocused();
-					for (ObservableArtifactInfo info: newFocused){
-						//System.out.println("topology info: new observable: "+info.getTargetArtifact());
-						addObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties());
+					for (ObservableArtifactInfo info : newFocused) {
+						// System.out.println("topology info: new observable: "+info.getTargetArtifact());
+						addObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS); // gusorh: I don't know when this is executed, but it goes to default (I guess is more complicated than this)
 					}
 					List<ObservableArtifactInfo> lostFocus = ev.getNoMoreFocused();
-					for (ObservableArtifactInfo info: lostFocus){
-						//System.out.println("topology info: no more observable: "+info.getTargetArtifact());
-						this.removeObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties());
+					for (ObservableArtifactInfo info : lostFocus) {
+						// System.out.println("topology info: no more observable: "+info.getTargetArtifact());
+						this.removeObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS); // gusorh:
 					}
 				}
-			}		
-		} catch (Exception ex){
+				evt = envSession.fetchNextPercept();
+			}
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.severe("Exception in fetching events from the context.");
 		}
-		/*
-		 * THE METHOD MUST RETURN NULL:
-		 * since the percept semantics is different (event vs. state),
-		 * all the the percepts from the env must be managed here, not by the BUF
-		 */
+		// THE METHOD MUST RETURN NULL: since the percept semantics is different (event vs. state), all the the percepts from the env must be managed here, not by the BUF
 		return null;
 	}
 
-	
-	protected Iterator<Literal> getObsPropBeliefs(ArtifactObsProperty prop){
-		return  belBase.getCandidateBeliefs(new PredicateIndicator(prop.getName(),prop.getValues().length));
-	}
-	
-	/*
-	private String getPropUniqueId(ArtifactId source, ArtifactObsProperty prop){
-		return "obs_id_"+source.getId()+"_"+prop.getId();		
-	}*/
-			
-	protected void addObsPropertiesBel(ArtifactId source, List<ArtifactObsProperty> props){
-		Literal l = null;
-		Agent a = agent;
-		for (ArtifactObsProperty p: props){
-			//String propName = p.getName();
-			String propId = p.getFullId();
-			try {
-				Iterator<Literal> it = getObsPropBeliefs(p); //a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,p.getValues().length));
-				boolean found = false;
-				if (it != null){
-					Literal lold = null;
-					while (!found && it.hasNext()){
-						lold = it.next();
-						ListTerm annots = lold.getAnnots("obs_prop_id");
-						if (! annots.isEmpty()){
-							for (Term annot: annots){
-								StringTerm st = (StringTerm)((((Structure)annot).getTerm(0)));
-								if (st.getString().equals(propId)){
-									found = true;
-									break;
-								}
-								/*
-								Object artId = lib.termToObject(((Structure)annot).getTerm(0),lib);
-								if (artId != null && artId.equals(source)){
-									found = true;
-									break;
-								}
-								*/
-							}
-						}
-					}
-				}
-				if (!found){
-					l = obsPropToLiteral(propId, source, p.getName(), p.getValues(), lib);
-					if (a.getBB().add(l)){
-						Literal l1 = l.copy();
-						Trigger te = new Trigger(TEOperator.add, TEType.belief, l1);
-						getTS().updateEvents(new Event(te, Intention.EmptyInt));
-						//logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" NEW BELIEF FOR OBS PROP: "+l1);
-					}
-				}
-			} catch (Exception ex){
-				//ex.printStackTrace();
-				logger.warning("EXCEPTION - processing new obs prop "+p+" artifact "+source+" for agent "+getTS().getUserAgArch().getAgName());
+	private void perceiveAddedOP(ArtifactObsEvent ev) {
+		ArtifactObsProperty[] props = ev.getAddedProperties();
+		if (props != null) {
+			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: artifac_body goes to default
+				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
+				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
+			}
+			for (Atom nsp : mappings.get(ev.getArtifactId())) { // gusorh: for all name spaces this OP is mapped to:
+				addObsPropertiesBel(ev.getArtifactId(), props, nsp);
 			}
 		}
 	}
 
-	protected void removeObsPropertiesBel(ArtifactId source, List<ArtifactObsProperty> props){
-		Agent a = agent;
-		// if (props != null){
-			for (ArtifactObsProperty p: props){
-				String propName = p.getName();
-				String propId = p.getFullId();
-				// logger.info("REMOVING "+propName+" "+propId);
-				try {
-					Iterator<Literal> it =this.getObsPropBeliefs(p);  // a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,p.getValues().length));
-					Literal toBeRemoved = null;
-					ListTerm annots = null;
-					if (it != null){
-			 			Literal lold = null;
-						while (toBeRemoved == null && it.hasNext()){
-							lold = it.next();
-							annots = lold.getAnnots("obs_prop_id");
-							if (! annots.isEmpty()){
-								for (Term annot: annots){
-									StringTerm st = (StringTerm)((((Structure)annot).getTerm(0)));
-									if (st.getString().equals(propId)){
-										toBeRemoved = lold;
-										break;
-									}
-								}
-							}
-						}
-					}
-					if (toBeRemoved!=null){
-						Literal removedLit = toBeRemoved.copy().forceFullLiteralImpl();
-						if (annots.size() == 1){ 
-							// it was the only one
-							a.getBB().remove(toBeRemoved);
-						} else {
-							Iterator<Term> it2 = toBeRemoved.getAnnots().iterator();
-							removedLit.clearAnnots();
-							while (it2.hasNext()){
-								Term t = it2.next();
-								if (t.isStructure()){
-									Structure st = (Structure)t;
-									if (st.getFunctor().equals("obs_prop_id")){
-										StringTerm sst = (StringTerm)((((Structure)st).getTerm(0)));
-										if (sst.getString().equals(propId)){
-											it2.remove();
-											removedLit.addAnnot(t);
-										}
-									} else if (st.getArity() > 0){
-										Object artId = lib.termToObject(((Structure)st).getTerm(0));
-										if (artId != null && artId.equals(source)){
-											it2.remove();
-											removedLit.addAnnot(t);
-										}
-									} 
-								}
-							}
-						}
-						Trigger te = new Trigger(TEOperator.del, TEType.belief, removedLit);
-						getTS().updateEvents(new Event(te, Intention.EmptyInt));
-						// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" REMOVED BELIEF FOR OBS PROP: "+removedLit+" "+removedLit.getAnnots());
-					}
-				} catch (Exception ex){
-					//ex.printStackTrace();
-					logger.warning("EXCEPTION - processing remove obs prop "+p+" for agent "+getTS().getUserAgArch().getAgName());
+	private void perceiveRemovedOP(ArtifactObsEvent ev) {
+		for (Atom nsp : mappings.get(ev.getArtifactId())) { // for all namespaces, remove there the OP
+			removeObsPropertiesBel(ev.getArtifactId(), ev.getRemovedProperties(), nsp);
+		}
+	}
+
+	private void perceivedChangedOP(ArtifactObsEvent ev) {
+		ArtifactObsProperty[] props = ev.getChangedProperties();
+		if (props != null) {
+			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: any obs_prop when any mapping exists should be in default
+				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
+				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
+			}
+
+			for (Atom nsp : mappings.get(ev.getArtifactId())) { // Added by GUSORH
+				for (ArtifactObsProperty prop: props) {
+					removeObsPropertiesBel(ev.getArtifactId(), prop, nsp);
+					addObsPropertiesBel(ev.getArtifactId(), prop, nsp);	
 				}
 			}
-		// } 
-	}	
-	
+		}
+	}
 
+	private void perceiveSignal(ArtifactObsEvent ev) {
+		Tuple signal = ev.getSignal();
+		if (signal != null) {
+			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: any obs_prop when any mapping exists should be in default
+				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
+				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
+			}
+			// System.out.println("signal: "+signal);
+			for (Atom nsp : mappings.get(ev.getArtifactId())) { // added by GUSORH
+				Literal l = obsEventToLiteral(nsp, ev);
+				if (l != null) {
+					Trigger te = new Trigger(TEOperator.add, TEType.belief, l);
+					getTS().updateEvents(new Event(te, Intention.EmptyInt));
+				}
+			} // gusorh
+		}
+	}
+
+	private void perceiveDispose(FocussedArtifactDisposedEvent ev) {
+		// removeObsPropertiesBel(ev.getArtifactId(), ev.getObsProperties());
+		// BEGIN ADDED BY GUSORH {
+		for (Atom nsp : mappings.get(ev.getArtifactId()))
+			removeObsPropertiesBel(ev.getArtifactId(), ev.getObsProperties(), nsp);
+		mappings.remove(ev.getArtifactId());
+		// END
+	}
+
+	private void perceiveActionFailed(ActionFailedEvent ev) {
+		PendingAction action = pendingActions.remove(ev.getActionId());
+		if (action != null) {
+			try {
+				Term reason = null;
+				Tuple failureInfo = ev.getFailureDescr();
+				try {
+					if (failureInfo != null) {
+						reason = lib.tupleToTerm(failureInfo);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				notifyActionFailure(action.getActionExec(), reason, ev.getFailureMsg());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
+	private void perceiveActionSucceeded(ActionSucceededEvent ev) throws Exception, CartagoException, NoSuchFieldException, IllegalAccessException {
+		if (ev.getActionId() == -1) {
+			if (ev instanceof FocusSucceededEvent) {
+				// this happens when an agent joins a wsp and an agent body artifact is created and focused automatically
+				FocusSucceededEvent ev1 = (FocusSucceededEvent) ev;
+				addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), Literal.DefaultNS);
+			} else if (ev instanceof StopFocusSucceededEvent) {
+				StopFocusSucceededEvent ev1 = (StopFocusSucceededEvent) ev;
+				removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), Literal.DefaultNS);
+			}
+		}
+
+		PendingAction action = pendingActions.remove(ev.getActionId());
+		// logger.info("Processing action succeeded: "+action.getAction());
+		if (action != null) {
+			notifyActionSuccess(ev.getOp(), action.getAction(), action.getActionExec());
+			if (ev instanceof FocusSucceededEvent) {
+				perceiveFocusSucceeded((FocusSucceededEvent) ev);
+			} else if (ev instanceof StopFocusSucceededEvent) {
+				perceiveStopFocus((StopFocusSucceededEvent) ev);
+			} else if (ev instanceof JoinWSPSucceededEvent) {
+				allJoinedWsp.add(((JoinWSPSucceededEvent) ev).getWorkspaceId());
+			} else if (ev instanceof ConsultManualSucceededEvent) {
+				this.consultManual(((ConsultManualSucceededEvent) ev).getManual());
+			}
+		}
+	}
+
+	private void perceiveStopFocus(StopFocusSucceededEvent ev1) throws CartagoException, NoSuchFieldException, IllegalAccessException {
+		// removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
+		// begin gusorh {
+		Atom nsp = ((DefOp) ev1.getOp()).getNS();
+		removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), nsp);
+		mappings.get(ev1.getTargetArtifact()).remove(nsp);
+		// The Observer is added again
+		if (!mappings.get(ev1.getTargetArtifact()).isEmpty()) {
+			String wspName = ev1.getTargetArtifact().getWorkspaceId().getName();
+			for (AgentId ag : CartagoService.getController(wspName).getCurrentAgents()) // to get the agentId from agName
+				if (ag.getAgentName().equals(getAgName())) {
+					Field f = CartagoService.class.getDeclaredField("instance"); // 1
+					f.setAccessible(true); // 2
+					CartagoNode node = (CartagoNode) f.get(CartagoService.class); // 3
+					WorkspaceKernel kernel = node.getWorkspace(wspName).getKernel(); // 4
+					f = kernel.getClass().getDeclaredField("artifactMap"); // 5
+					f.setAccessible(true); // 6
+					ArtifactDescriptor des = ((HashMap<String, ArtifactDescriptor>) f.get(kernel)).get(ev1.getTargetArtifact().getName()); // 'des' is what i want!
+					des.addObserver(ag, null, (ICartagoCallback) envSession);
+					break;
+				}
+		} else
+			mappings.remove(ev1.getTargetArtifact());
+		// } end gusorh
+	}
+
+	private void perceiveFocusSucceeded(FocusSucceededEvent ev) {
+		// addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
+		// BEGIN ADDED BY GUSORH {
+		Atom nsp = Literal.DefaultNS;
+		if (ev.getOp() instanceof DefOp) { // JH
+			nsp = ((DefOp) ev.getOp()).getNS();
+			if (mappings.get(ev.getTargetArtifact()) == null)
+				mappings.put(ev.getTargetArtifact(), new HashSet<Atom>());
+			mappings.get(ev.getTargetArtifact()).add(nsp);
+		}
+		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
+		// } END
+	}
+
+	/*
+	protected Iterator<Literal> getObsPropBeliefs(ArtifactObsProperty prop) {
+		return belBase.getCandidateBeliefs(new PredicateIndicator(prop.getName(), prop.getValues().length));
+	}
+	*/
 	protected Op parseOp(Structure action) {
 		Term[] terms = action.getTermsArray();
 		Object[] opArgs = new Object[terms.length];
@@ -697,8 +463,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	protected boolean bind(Object obj, Term term, ActionExec act) {
 		try {
 			Term t = lib.objectToTerm(obj);
-	        Unifier un = act.getIntention().peek().getUnif();
-			//System.out.println("BINDING obj "+obj+" term "+t+" with "+term);
+			Unifier un = act.getIntention().peek().getUnif();
+			// System.out.println("BINDING obj "+obj+" term "+t+" with "+term);
 			return un.unifies(t, term);
 		} catch (Exception ex) {
 			return false;
@@ -708,58 +474,27 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	protected Object getObject(Term t) {
 		return lib.termToObject(t);
 	}
-	
-	public JavaLibrary getJavaLib(){
+
+	public JavaLibrary getJavaLib() {
 		return lib;
 	}
-	
-	/*
-	public void setCurrentWsp(WorkspaceId id) throws CartagoException {
-		try {
-			envSession.setCurrentWorkspace(id);
-			Agent a = agent;
-			Iterator<Literal> it = a.getBB().getCandidateBeliefs(new PredicateIndicator("current_wsp",3));
-			if (it != null){
-				a.getBB().remove(it.next());
-			}
-        	    	Literal struct = ASSyntax.createLiteral("current_wsp");
-        	    	struct.addTerm(lib.objectToTerm(id));
-        	    	struct.addTerm(ASSyntax.createAtom(id.getName()));
-        	    	struct.addTerm(ASSyntax.createString(id.getNodeId().getId()));
-        	    	a.addBel(struct);
-		} catch (Exception ex){
-			ex.printStackTrace();
-			throw new CartagoException();
-		}
-	}
-	*/
-	
-	/*
-	public WorkspaceId getCurrentWsp() throws CartagoException {
-		return envSession.getCurrentWorkspace();
-	}*/
-	
-	
-	// 
-	
-	protected void notifyActionSuccess(Op op, Structure action, ActionExec actionExec){
+
+	protected void notifyActionSuccess(Op op, Structure action, ActionExec actionExec) {
 		Object[] values = op.getParamValues();
-		for (int i = 0; i < action.getArity(); i++){
-			if (action.getTerm(i).isVar()){ // isVar means is a variable AND is not bound (see Jason impl)
+		for (int i = 0; i < action.getArity(); i++) {
+			if (action.getTerm(i).isVar()) { // isVar means is a variable AND is not bound (see Jason impl)
 				try {
-					boolean bound = bind(values[i],action.getTerm(i),actionExec);
-					if (!bound){
+					boolean bound = bind(values[i], action.getTerm(i), actionExec);
+					if (!bound) {
 						// env.logger.severe("INTERNAL ERROR: binding failed "+values[i]+" "+action.getTerm(i));
 						actionExec.setResult(false);
-	                    Literal reason = ASSyntax.createLiteral("bind_param_error",
-	                            action.getTerm(i),
-	                            ASSyntax.createString(values[i]));
-						actionExec.setFailureReason(reason, "Error binding parameters: "+action.getTerm(i)+" with "+values[i]);
-				        super.actionExecuted(actionExec);
+						Literal reason = ASSyntax.createLiteral("bind_param_error", action.getTerm(i), ASSyntax.createString(values[i]));
+						actionExec.setFailureReason(reason, "Error binding parameters: " + action.getTerm(i) + " with " + values[i]);
+						super.actionExecuted(actionExec);
 						return;
 					}
-				} catch (Exception ex){
-				    ex.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
 					return;
 				}
 			}
@@ -768,40 +503,38 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		super.actionExecuted(actionExec);
 	}
 
-	protected void notifyActionFailure(ActionExec actionExec, Term reason, String msg){
-		//logger.info("notified failure for "+actionExec.getActionTerm()+" - reason: "+reason);
-		//env.getEnvironmentInfraTier().actionExecuted(agName, action, false, actionExec); 
+	protected void notifyActionFailure(ActionExec actionExec, Term reason, String msg) {
+		// logger.info("notified failure for "+actionExec.getActionTerm()+" - reason: "+reason);
+		// env.getEnvironmentInfraTier().actionExecuted(agName, action, false, actionExec);
 		actionExec.setResult(false);
 		Literal descr = null;
-		if (reason != null){
-			descr  = ASSyntax.createLiteral("env_failure_reason", reason);
+		if (reason != null) {
+			descr = ASSyntax.createLiteral("env_failure_reason", reason);
 		}
 		actionExec.setFailureReason(descr, msg);
-		// System.out.println("SET ACTION FAILURE: "+descr+" - "+msg);
-        super.actionExecuted(actionExec);
+		super.actionExecuted(actionExec);
 	}
-		
-	public boolean notifyCartagoEvent(CartagoEvent ev){
-		//System.out.println("NOTIFIED "+ev.getId()+" "+ev.getClass().getCanonicalName());
-		//logger.info("Notified event "+ev);
+
+	public boolean notifyCartagoEvent(CartagoEvent ev) {
+		// System.out.println("NOTIFIED "+ev.getId()+" "+ev.getClass().getCanonicalName());
+		// logger.info("Notified event "+ev);
 		getArchInfraTier().wake();
 		return true; // true means that we want the event to be enqueued in the percept queue
 	}
-	
+
 	/**
 	 * Convert an observable event into a literal
 	 */
-	protected Literal obsEventToLiteral(ArtifactObsEvent p, JavaLibrary lib) {
+	protected Literal obsEventToLiteral(Atom ns, ArtifactObsEvent p) {
 		Tuple signal = p.getSignal();
-		Object[] contents = signal.getContents();
 		try {
-		    Literal struct = ASSyntax.createLiteral(signal.getLabel(), lib.objectArray2termArray(contents));		    
-	        struct.addAnnot(OBS_EV_PERCEPT);
-	        addSourceAnnots(p.getArtifactId(), lib, struct);
-	        //struct.addAnnot(ASSyntax.createStructure("time", id, ASSyntax.createNumber(p.getId())));
+			Literal struct = ASSyntax.createLiteral(ns, signal.getLabel(), lib.objectArray2termArray(signal.getContents()));
+			struct.addAnnot(OBS_EV_PERCEPT);
+			addSourceAnnots(p.getArtifactId(), struct);
+			// struct.addAnnot(ASSyntax.createStructure("time", id, ASSyntax.createNumber(p.getId())));
 			return struct;
-		} catch (Exception ex){
-		    logger.log(Level.SEVERE, "error creating literal for "+p.getSignal(), ex);
+		} catch (Exception ex) {
+			logger.log(Level.SEVERE, "error creating literal for " + p.getSignal(), ex);
 			return null;
 		}
 	}
@@ -809,115 +542,222 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	/**
 	 * Convert an observable property into a literal
 	 */
-	protected Literal obsPropToLiteral(String propId, ArtifactId source, String propName, Object[] args , JavaLibrary lib) throws Exception {
-        	Literal struct = ASSyntax.createLiteral(propName);
-        	for (Object obj: args){
-        		struct.addTerm(lib.objectToTerm(obj));
-        	}
-        struct.addAnnot(BeliefBase.TPercept);
-        struct.addAnnot(OBS_PROP_PERCEPT);
-        struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(propId)));
-        addSourceAnnots(source, lib, struct);
-		return struct; 
+	protected Literal obsPropToLiteral(Atom ns, ArtifactObsProperty prop, ArtifactId source) throws Exception {
+		Literal struct = ASSyntax.createLiteral(ns, prop.getName());
+		for (Object obj : prop.getValues()) {
+			struct.addTerm(lib.objectToTerm(obj));
+		}
+		struct.addAnnot(BeliefBase.TPercept);
+		struct.addAnnot(OBS_PROP_PERCEPT);
+		struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
+		addSourceAnnots(source, struct);
+		return struct;
 	}
-	
-    private void addSourceAnnots(ArtifactId source, JavaLibrary lib, Literal struct) throws Exception {
-        Term id = lib.objectToTerm(source);  
-        struct.addAnnot(ASSyntax.createStructure("source", id));
-        struct.addAnnot(ASSyntax.createStructure("artifact_id", id));
-        struct.addAnnot(ASSyntax.createStructure("artifact_name", id, ASSyntax.createAtom(source.getName())));
-        struct.addAnnot(ASSyntax.createStructure("artifact_type", id, ASSyntax.createString(source.getArtifactType())));
-        struct.addAnnot(ASSyntax.createStructure("workspace", id, ASSyntax.createAtom(source.getWorkspaceId().getName()), lib.objectToTerm(source.getWorkspaceId())));
-    }
-    
+
+	private void addSourceAnnots(ArtifactId source, Literal struct) throws Exception {
+		Term id = lib.objectToTerm(source);
+		//struct.addAnnot(ASSyntax.createStructure("source", id));
+		struct.addAnnot(ASSyntax.createStructure("artifact_id", id));
+		struct.addAnnot(ASSyntax.createStructure("artifact_name", id, ASSyntax.createAtom(source.getName())));
+		//struct.addAnnot(ASSyntax.createStructure("artifact_type", id, ASSyntax.createString(source.getArtifactType())));
+		struct.addAnnot(ASSyntax.createStructure("workspace", id, ASSyntax.createAtom(source.getWorkspaceId().getName()), lib.objectToTerm(source.getWorkspaceId())));
+	}
 
 	// manuals
-	
-	protected void consultManual(Manual man){
-	    // per JASDL: getJom e loadOntology
-		System.out.println(">> CONSULT MANUAL << "+man.getURI());
+
+	protected void consultManual(Manual man) {
+		// per JASDL: getJom e loadOntology
+		System.out.println(">> CONSULT MANUAL << " + man.getURI());
 	}
-	
-	/*
-	 * public void fetchManual(Manual manual, String artType) throws Exception {
-	 *   
-	 *   ManualBridge man = new ManualBridge(manual,artType); 
-	 *   String[] plans = man.getAsPlans(); Term source = new Atom("artifact"); 
-	 *   for (String pl:plans){ 
-	 *     //System.out.println("MAN PLAN \n"+pl); 
-	 *     Plan plan = ASSyntax.parsePlan(pl); 
-	 *     agent.getPL().add(plan, source, false);
-	 *   }
-	 * 
-  	 *   if (!firstManualFetched){ 
-  	 *     for (String pl: man.getCommonPlans()){ 
-  	 *       Plan plan = ASSyntax.parsePlan(pl); 
-  	 *       agent.getPL().add(plan, source, false); 
-  	 *     } 
-  	 *     firstManualFetched = true; } 
-  	 * }
-	 * 
-	 * public void forgetManual(String man) throws Exception { 
-	 *   Iterator<Plan> it = agent.getPL().getPlans().iterator(); 
-	 *   while (it.hasNext()){
-	 *     Plan pl = it.next(); 
-	 *     Pred label = pl.getLabel(); 
-	 *     if (label!=null){
-	 *       ListTerm lt = label.getAnnots("manual"); 
-	 *       if (lt!=null && !lt.isEmpty()){
-	 * 		    Structure tt = (Structure)lt.get(0); 
-	 * 			if (tt.getTerm(0).toString().equals(man)){ 
-	 * 				it.remove(); 
-	 *       	} 
-	 *     	  } 
-	 *      } 
-	 *    } 
-	 * }
-	 * 
-	 * public void fetchDefaultManuals(ICartagoContext context){
-	 * 
-	 *   try { 
-	 *     Manual man = context.getManual("wsp_manual"); 
-	 *     fetchManual(man, "");
-	 *   } catch (Exception ex){ 
-	 *     ex.printStackTrace();
-	 *     System.out.println("no basic manual"); 
-	 *   } 
-	 *   // 
-	 *   try { 
-	 *     Manual man = context.getArtifactManual("alice.cartago.util.Console"); 
-	 *     fetchManual(man,"alice.cartago.util.Console"); 
-	 *   } catch (Exception ex){ 
-	 *     ex.printStackTrace(); System.out.println("no blackboard manual"); 
-	 *   } //
-	 *   try { 
-	 *     Manual man = context.getManual("alice.cartago.util.SimpleTupleSpace");
-	 *     fetchManual(man, "alice.cartago.util.SimpleTupleSpace"); 
-	 *   } catch (Exception ex){ 
-	 *     ex.printStackTrace();
-	 *     System.out.println("no console manual"); 
-	 *   } 
-	 * }
-	 */
-	
-	
-	
-	public ICartagoSession getEnvSession(){
+
+	public ICartagoSession getEnvSession() {
 		return envSession;
 	}
 
 	public List<WorkspaceId> getAllJoinedWsps() {
-	    return allJoinedWsp;
+		return allJoinedWsp;
 	}
-	
+
 	public static CAgentArch getCartagoAgArch(TransitionSystem ts) {
-        AgArch arch = ts.getUserAgArch().getFirstAgArch();
-        while (arch != null) {
-            if (arch instanceof CAgentArch)
-                return (CAgentArch)arch;
-            arch = arch.getNextAgArch();
-        }
-	    return null;
+		AgArch arch = ts.getUserAgArch().getFirstAgArch();
+		while (arch != null) {
+			if (arch instanceof CAgentArch)
+				return (CAgentArch) arch;
+			arch = arch.getNextAgArch();
+		}
+		return null;
 	}
+
+	public void addObsPropertiesBel(ArtifactId source, List<ArtifactObsProperty> props, Atom nsp) {
+		for (ArtifactObsProperty prop : props) {
+			addObsPropertiesBel(source, prop, nsp);
+		}
+	}
+	public void addObsPropertiesBel(ArtifactId source, ArtifactObsProperty[] props, Atom nsp) {
+		if (props != null)
+			for (ArtifactObsProperty prop : props) 
+				addObsPropertiesBel(source, prop, nsp);
+	}	
 	
+	public void addObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {
+		try {
+			/* JH -- not necessary, BB.add handles that
+			// Iterator<Literal> it = a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,p.getValues().length)); //commented by GUSORH (Doesn't work getCandidateBeliefs method)
+			Iterator<Literal> it = a.getBB().iterator(); // added by GUSORH
+			boolean found = false;
+			if (it != null) {
+				Literal lold = null;
+				while (!found && it.hasNext()) {
+					lold = it.next();
+					if (lold.getNS().equals(nsp)) { // GUSORH
+						ListTerm annots = lold.getAnnots("obs_prop_id");
+						if (!annots.isEmpty()) {
+							for (Term annot : annots) {
+								StringTerm st = (StringTerm) ((((Structure) annot).getTerm(0)));
+								if (st.getString().equals(propId)) {
+									found = true;
+									break;
+								}
+							}
+						}
+					} // GUSORH
+				}
+			}
+			if (!found) {*/
+			
+			boolean skip = processSpecialOP(source, prop);
+
+			if (!skip) {
+				Literal l = obsPropToLiteral(nsp, prop, source);
+				if (belBase.add(l)) {
+					Trigger te = new Trigger(TEOperator.add, TEType.belief, l.copy());
+					getTS().updateEvents(new Event(te, Intention.EmptyInt));
+					// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" NEW BELIEF FOR OBS PROP: "+l1);
+				}
+			}
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			logger.warning("EXCEPTION - processing new obs prop " + prop + " artifact " + source + " for agent " + getTS().getUserAgArch().getAgName());
+		}
+	}
+
+	private boolean processSpecialOP(ArtifactId source, ArtifactObsProperty prop) throws Exception {
+		// JH translate string to atoms for focused/3
+		if ("focused".equals(prop.getName()) && source.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
+			if (prop.getValues()[0].toString().endsWith("-body")) {
+				return true;
+			} else {
+				prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
+				Literal art = ASSyntax.createLiteral(prop.getValues()[1].toString());
+				// discover type of the art
+				String type = CartagoService.getController(prop.getValues()[0].toString()).getArtifactInfo(prop.getValues()[1].toString()).getId().getArtifactType();
+				art.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(type)));
+				prop.getValues()[1] = art;
+			}
+		} else if ("joined".equals(prop.getName()) && source.getArtifactType().equals(cartago.AgentBodyArtifact.class.getName())) {
+			prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
+			prop.getValues()[1] = lib.objectToTerm(prop.getValues()[1]);
+		}
+		return false;
+	}
+
+	public void removeObsPropertiesBel(ArtifactId source, List<ArtifactObsProperty> props, Atom nsp) {
+		for (ArtifactObsProperty prop: props)
+			removeObsPropertiesBel(source, prop, nsp);
+	}
+	public void removeObsPropertiesBel(ArtifactId source, ArtifactObsProperty[] props, Atom nsp) {
+		if (props != null) 
+			for (ArtifactObsProperty prop: props) 			
+				removeObsPropertiesBel(source, prop, nsp);
+	}
+
+	public boolean removeObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {		
+		String propId = prop.getFullId();
+		// logger.info("REMOVING "+propName+" "+propId);
+		try {
+			processSpecialOP(source, prop);
+			Iterator<Literal> it = belBase.getCandidateBeliefs(new PredicateIndicator(nsp, prop.getName(),prop.getValues().length)); //commented by GUSORH (Doesn't work getCandidateBeliefs method)
+			//Iterator<Literal> it = belBase.iterator(); // added by GUSORH
+			Literal toBeRemoved = null;
+			ListTerm annots = null;
+			if (it != null) {
+				Literal lold = null;
+				while (toBeRemoved == null && it.hasNext()) {
+					lold = it.next();
+					if (lold.getNS().equals(nsp)) { // GUSORH
+						annots = lold.getAnnots("obs_prop_id");
+						if (!annots.isEmpty()) {
+							for (Term annot : annots) {
+								StringTerm st = (StringTerm) ((((Structure) annot).getTerm(0)));
+								if (st.getString().equals(propId)) {
+									toBeRemoved = lold;
+									break;
+								}
+							}
+						} // GUSORH
+					}
+				}
+			}
+			if (toBeRemoved != null) {
+				Literal removedLit = toBeRemoved.copy().forceFullLiteralImpl();
+				if (annots.size() == 1) {
+					// it was the only one
+					belBase.remove(toBeRemoved);
+				} else {
+					Iterator<Term> it2 = toBeRemoved.getAnnots().iterator();
+					removedLit.clearAnnots();
+					while (it2.hasNext()) {
+						Term t = it2.next();
+						if (t.isStructure()) {
+							Structure st = (Structure) t;
+							if (st.getFunctor().equals("obs_prop_id")) {
+								StringTerm sst = (StringTerm) ((((Structure) st).getTerm(0)));
+								if (sst.getString().equals(propId)) {
+									it2.remove();
+									removedLit.addAnnot(t);
+								}
+							} else if (st.getArity() > 0) {
+								Object artId = lib.termToObject(((Structure) st).getTerm(0));
+								if (artId != null && artId.equals(source)) {
+									it2.remove();
+									removedLit.addAnnot(t);
+								}
+							}
+						}
+					}
+				}
+				Trigger te = new Trigger(TEOperator.del, TEType.belief, removedLit);
+				getTS().updateEvents(new Event(te, Intention.EmptyInt));
+				// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" REMOVED BELIEF FOR OBS PROP: "+removedLit+" "+removedLit.getAnnots());
+				
+				return true;
+			}
+		} catch (Exception ex) {
+			logger.warning("EXCEPTION - processing remove obs prop " + prop + " for agent " + getTS().getUserAgArch().getAgName());
+		}
+		return false;
+	}
+
+	// inner class added by GUSORH
+	class DefOp extends Op {
+		private Atom NS;
+
+		public DefOp(Op op, Atom nsp) {
+			super(op.getName(), op.getParamValues());
+			NS = nsp;
+		}
+
+		public Atom getNS() {
+			return NS;
+		}
+	}
+
+	private List<ArtifactId> focusedArtifacts(Atom nid) {
+		List<ArtifactId> aids = new ArrayList<ArtifactId>();
+		for (ArtifactId aid : mappings.keySet())
+			if (mappings.get(aid).contains(nid))
+				aids.add(aid);
+
+		return aids;
+	}
 }
