@@ -63,11 +63,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_prop"));
 	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
-	private HashMap<ArtifactId, HashSet<Atom>> mappings = new HashMap<ArtifactId, HashSet<Atom>>(); // added by GUSORH
+	private HashMap<ArtifactId, HashSet<Atom>> mappings = new HashMap<ArtifactId, HashSet<Atom>>();
 	static private final List<String> DEF_OPS = Arrays.asList("focus", "stopFocus", "makeArtifact", 
 			"println", "print", "focusWhenAvailable", "lookupArtifact", "lookupArtifactByType", 
 			"joinWorkspace", "createWorkspace",
-			"quitWorkspace", "disposeArtifact"); // gusorh: (the list is not complete) default set of operations
+			"quitWorkspace", "disposeArtifact");
 
 	protected ICartagoSession envSession;
 
@@ -198,7 +198,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 						// logger.warning("executing "+op+" on "+artName);
 						actId = envSession.doAction(op, artName, test, timeout);
 					} else {
-						// begin gusorh{
 						if ("makeArtifact".equals(op.getName()) || "focusWhenAvailable".equals(op.getName())) { // artifact name is an atomic term, parse to string
 							Object[] values = op.getParamValues();
 							if (action.getTerm(0).isAtom())
@@ -206,7 +205,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 							op = new Op(op.getName(), values);
 						}
 						if (DEF_OPS.contains(op.getName())) { // predefined CArtAgO operation
-							op = new DefOp(op, action.getNS()); // added by GUSORH
+							op = new DefOp(op, action.getNS());
 							actId = envSession.doAction(op, test, timeout); // default operations go to workspace
 						} else { 
 							// User defined operation
@@ -235,8 +234,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					String msg = "Action failed: " + actionExec.getActionTerm();
 					notifyActionFailure(actionExec, reason, msg);
 				}
-				// end gusorh
-
 			}
 		} catch (Exception ex) {
 			// ex.printStackTrace();
@@ -275,12 +272,12 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					List<ObservableArtifactInfo> newFocused = ev.getNewFocused();
 					for (ObservableArtifactInfo info : newFocused) {
 						// System.out.println("topology info: new observable: "+info.getTargetArtifact());
-						addObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS); // gusorh: I don't know when this is executed, but it goes to default (I guess is more complicated than this)
+						addObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS);
 					}
 					List<ObservableArtifactInfo> lostFocus = ev.getNoMoreFocused();
 					for (ObservableArtifactInfo info : lostFocus) {
 						// System.out.println("topology info: no more observable: "+info.getTargetArtifact());
-						this.removeObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS); // gusorh:
+						this.removeObsPropertiesBel(info.getTargetArtifact(), info.getObsProperties(), Literal.DefaultNS);
 					}
 				}
 				evt = envSession.fetchNextPercept();
@@ -296,18 +293,18 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	private void perceiveAddedOP(ArtifactObsEvent ev) {
 		ArtifactObsProperty[] props = ev.getAddedProperties();
 		if (props != null) {
-			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: artifac_body goes to default
+			if (mappings.get(ev.getArtifactId()) == null) {
 				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
 				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
 			}
-			for (Atom nsp : mappings.get(ev.getArtifactId())) { // gusorh: for all name spaces this OP is mapped to:
+			for (Atom nsp : mappings.get(ev.getArtifactId())) { // for all name spaces this OP is mapped to:
 				addObsPropertiesBel(ev.getArtifactId(), props, nsp);
 			}
 		}
 	}
 
 	private void perceiveRemovedOP(ArtifactObsEvent ev) {
-		for (Atom nsp : mappings.get(ev.getArtifactId())) { // for all namespaces, remove there the OP
+		for (Atom nsp : mappings.get(ev.getArtifactId())) { // for all name spaces, remove there the OP
 			removeObsPropertiesBel(ev.getArtifactId(), ev.getRemovedProperties(), nsp);
 		}
 	}
@@ -315,12 +312,12 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	private void perceivedChangedOP(ArtifactObsEvent ev) {
 		ArtifactObsProperty[] props = ev.getChangedProperties();
 		if (props != null) {
-			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: any obs_prop when any mapping exists should be in default
+			if (mappings.get(ev.getArtifactId()) == null) { // any obs_prop when any mapping exists should be in default
 				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
 				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
 			}
 
-			for (Atom nsp : mappings.get(ev.getArtifactId())) { // Added by GUSORH
+			for (Atom nsp : mappings.get(ev.getArtifactId())) {
 				for (ArtifactObsProperty prop: props) {
 					removeObsPropertiesBel(ev.getArtifactId(), prop, nsp);
 					addObsPropertiesBel(ev.getArtifactId(), prop, nsp);	
@@ -332,28 +329,26 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	private void perceiveSignal(ArtifactObsEvent ev) {
 		Tuple signal = ev.getSignal();
 		if (signal != null) {
-			if (mappings.get(ev.getArtifactId()) == null) { // gusorh: any obs_prop when any mapping exists should be in default
+			if (mappings.get(ev.getArtifactId()) == null) { // any obs_prop when any mapping exists should be in default
 				mappings.put(ev.getArtifactId(), new HashSet<Atom>());
 				mappings.get(ev.getArtifactId()).add(Literal.DefaultNS);
 			}
 			// System.out.println("signal: "+signal);
-			for (Atom nsp : mappings.get(ev.getArtifactId())) { // added by GUSORH
+			for (Atom nsp : mappings.get(ev.getArtifactId())) {
 				Literal l = obsEventToLiteral(nsp, ev);
 				if (l != null) {
 					Trigger te = new Trigger(TEOperator.add, TEType.belief, l);
 					getTS().updateEvents(new Event(te, Intention.EmptyInt));
 				}
-			} // gusorh
+			}
 		}
 	}
 
 	private void perceiveDispose(FocussedArtifactDisposedEvent ev) {
 		// removeObsPropertiesBel(ev.getArtifactId(), ev.getObsProperties());
-		// BEGIN ADDED BY GUSORH {
 		for (Atom nsp : mappings.get(ev.getArtifactId()))
 			removeObsPropertiesBel(ev.getArtifactId(), ev.getObsProperties(), nsp);
 		mappings.remove(ev.getArtifactId());
-		// END
 	}
 
 	private void perceiveActionFailed(ActionFailedEvent ev) {
@@ -406,7 +401,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	private void perceiveStopFocus(StopFocusSucceededEvent ev1) throws CartagoException, NoSuchFieldException, IllegalAccessException {
 		// removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-		// begin gusorh {
 		Atom nsp = ((DefOp) ev1.getOp()).getNS();
 		removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), nsp);
 		mappings.get(ev1.getTargetArtifact()).remove(nsp);
@@ -427,21 +421,18 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 				}
 		} else
 			mappings.remove(ev1.getTargetArtifact());
-		// } end gusorh
 	}
 
 	private void perceiveFocusSucceeded(FocusSucceededEvent ev) {
 		// addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-		// BEGIN ADDED BY GUSORH {
 		Atom nsp = Literal.DefaultNS;
-		if (ev.getOp() instanceof DefOp) { // JH
+		if (ev.getOp() instanceof DefOp) { 
 			nsp = ((DefOp) ev.getOp()).getNS();
 			if (mappings.get(ev.getTargetArtifact()) == null)
 				mappings.put(ev.getTargetArtifact(), new HashSet<Atom>());
 			mappings.get(ev.getTargetArtifact()).add(nsp);
 		}
 		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
-		// } END
 	}
 
 	/*
@@ -601,30 +592,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	
 	public void addObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {
 		try {
-			/* JH -- not necessary, BB.add handles that
-			// Iterator<Literal> it = a.getBB().getCandidateBeliefs(new PredicateIndicator(propName,p.getValues().length)); //commented by GUSORH (Doesn't work getCandidateBeliefs method)
-			Iterator<Literal> it = a.getBB().iterator(); // added by GUSORH
-			boolean found = false;
-			if (it != null) {
-				Literal lold = null;
-				while (!found && it.hasNext()) {
-					lold = it.next();
-					if (lold.getNS().equals(nsp)) { // GUSORH
-						ListTerm annots = lold.getAnnots("obs_prop_id");
-						if (!annots.isEmpty()) {
-							for (Term annot : annots) {
-								StringTerm st = (StringTerm) ((((Structure) annot).getTerm(0)));
-								if (st.getString().equals(propId)) {
-									found = true;
-									break;
-								}
-							}
-						}
-					} // GUSORH
-				}
-			}
-			if (!found) {*/
-			
 			boolean skip = processSpecialOP(source, prop);
 
 			if (!skip) {
@@ -642,7 +609,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	}
 
 	private boolean processSpecialOP(ArtifactId source, ArtifactObsProperty prop) throws Exception {
-		// JH translate string to atoms for focused/3
+		// translate string to atoms for focused/3
 		if ("focused".equals(prop.getName()) && source.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
 			if (prop.getValues()[0].toString().endsWith("-body")) {
 				return true;
@@ -676,15 +643,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		// logger.info("REMOVING "+propName+" "+propId);
 		try {
 			processSpecialOP(source, prop);
-			Iterator<Literal> it = belBase.getCandidateBeliefs(new PredicateIndicator(nsp, prop.getName(),prop.getValues().length)); //commented by GUSORH (Doesn't work getCandidateBeliefs method)
-			//Iterator<Literal> it = belBase.iterator(); // added by GUSORH
+			Iterator<Literal> it = belBase.getCandidateBeliefs(new PredicateIndicator(nsp, prop.getName(),prop.getValues().length));
 			Literal toBeRemoved = null;
 			ListTerm annots = null;
 			if (it != null) {
 				Literal lold = null;
 				while (toBeRemoved == null && it.hasNext()) {
 					lold = it.next();
-					if (lold.getNS().equals(nsp)) { // GUSORH
+					if (lold.getNS().equals(nsp)) {
 						annots = lold.getAnnots("obs_prop_id");
 						if (!annots.isEmpty()) {
 							for (Term annot : annots) {
@@ -694,7 +660,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									break;
 								}
 							}
-						} // GUSORH
+						}
 					}
 				}
 			}
@@ -738,7 +704,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		return false;
 	}
 
-	// inner class added by GUSORH
 	class DefOp extends Op {
 		private Atom NS;
 
