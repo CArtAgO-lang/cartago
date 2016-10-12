@@ -49,7 +49,7 @@ import jason.asSyntax.ASSyntax;
 import jason.asSyntax.Atom;
 import jason.asSyntax.ListTerm;
 import jason.asSyntax.Literal;
-import jason.asSyntax.PredicateIndicator;
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.StringTerm;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
@@ -533,14 +533,15 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	/**
 	 * Convert an observable property into a literal
 	 */
-	protected Literal obsPropToLiteral(Atom ns, ArtifactObsProperty prop, ArtifactId source) throws Exception {
-		Literal struct = ASSyntax.createLiteral(ns, prop.getName());
+	protected JaCaLiteral obsPropToLiteral(Atom ns, ArtifactObsProperty prop, ArtifactId source) throws Exception {
+		//Literal struct = ASSyntax.createLiteral(ns, prop.getName());
+		JaCaLiteral struct = new JaCaLiteral(ns, prop.getName(), prop.getFullId());
 		for (Object obj : prop.getValues()) {
 			struct.addTerm(lib.objectToTerm(obj));
 		}
 		struct.addAnnot(BeliefBase.TPercept);
 		struct.addAnnot(OBS_PROP_PERCEPT);
-		struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
+		//struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
 		addSourceAnnots(source, struct);
 		return struct;
 	}
@@ -552,6 +553,44 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		struct.addAnnot(ASSyntax.createStructure("artifact_name", id, ASSyntax.createAtom(source.getName())));
 		//struct.addAnnot(ASSyntax.createStructure("artifact_type", id, ASSyntax.createString(source.getArtifactType())));
 		struct.addAnnot(ASSyntax.createStructure("workspace", id, ASSyntax.createAtom(source.getWorkspaceId().getName()), lib.objectToTerm(source.getWorkspaceId())));
+	}
+	
+	class JaCaLiteral extends LiteralImpl {
+		String obsPropId; // = new HashSet<String>();
+		public JaCaLiteral(Atom ns, String f, String opi) {
+			super(ns, Literal.LPos, f);
+			//this.obsPropIds.add(opi);
+			obsPropId = opi;
+		}
+		public JaCaLiteral(JaCaLiteral jl) {
+			super(jl.getNS(), Literal.LPos, jl);
+			//this.obsPropIds.addAll(jl.obsPropIds);
+			obsPropId = jl.obsPropId;
+		}
+		@Override
+		public Literal copy() {
+			return new JaCaLiteral(this);
+		}
+		boolean hasPropId(String id) {
+			return obsPropId.equals(id);
+		}
+		
+		@Override
+		public boolean equalsAsStructure(Object p) {
+			//if (super.equalsAsStructure(p)) {
+				if (p instanceof JaCaLiteral) {
+					//System.out.println("*** "+obsPropId + " > "+((JaCaLiteral)p).obsPropId + " : "+this+"="+p);
+					//return this.obsPropIds.containsAll( ((JaCaLiteral)p).obsPropIds );
+					return this.obsPropId.equals( ((JaCaLiteral)p).obsPropId );
+				} 
+			//}
+			return false;
+		}
+		
+		@Override
+		public int hashCode() {
+			return obsPropId.hashCode();
+		}
 	}
 
 	// manuals
@@ -595,7 +634,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			boolean skip = processSpecialOP(source, prop);
 
 			if (!skip) {
-				Literal l = obsPropToLiteral(nsp, prop, source);
+				JaCaLiteral l = obsPropToLiteral(nsp, prop, source);
 				if (belBase.add(l)) {
 					Trigger te = new Trigger(TEOperator.add, TEType.belief, l.copy());
 					getTS().updateEvents(new Event(te, Intention.EmptyInt));
@@ -614,6 +653,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			if (prop.getValues()[0].toString().endsWith("-body")) {
 				return true;
 			} else {
+				// add artifact_type annot in the art name
 				prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
 				Literal art = ASSyntax.createLiteral(prop.getValues()[1].toString());
 				// discover type of the art
@@ -639,66 +679,18 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	}
 
 	public boolean removeObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {		
-		String propId = prop.getFullId();
-		// logger.info("REMOVING "+propName+" "+propId);
 		try {
 			processSpecialOP(source, prop);
-			Iterator<Literal> it = belBase.getCandidateBeliefs(new PredicateIndicator(nsp, prop.getName(),prop.getValues().length));
-			Literal toBeRemoved = null;
-			ListTerm annots = null;
-			if (it != null) {
-				Literal lold = null;
-				while (toBeRemoved == null && it.hasNext()) {
-					lold = it.next();
-					if (lold.getNS().equals(nsp)) {
-						annots = lold.getAnnots("obs_prop_id");
-						if (!annots.isEmpty()) {
-							for (Term annot : annots) {
-								StringTerm st = (StringTerm) ((((Structure) annot).getTerm(0)));
-								if (st.getString().equals(propId)) {
-									toBeRemoved = lold;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-			if (toBeRemoved != null) {
-				Literal removedLit = toBeRemoved.copy().forceFullLiteralImpl();
-				if (annots.size() == 1) {
-					// it was the only one
-					belBase.remove(toBeRemoved);
-				} else {
-					Iterator<Term> it2 = toBeRemoved.getAnnots().iterator();
-					removedLit.clearAnnots();
-					while (it2.hasNext()) {
-						Term t = it2.next();
-						if (t.isStructure()) {
-							Structure st = (Structure) t;
-							if (st.getFunctor().equals("obs_prop_id")) {
-								StringTerm sst = (StringTerm) ((((Structure) st).getTerm(0)));
-								if (sst.getString().equals(propId)) {
-									it2.remove();
-									removedLit.addAnnot(t);
-								}
-							} else if (st.getArity() > 0) {
-								Object artId = lib.termToObject(((Structure) st).getTerm(0));
-								if (artId != null && artId.equals(source)) {
-									it2.remove();
-									removedLit.addAnnot(t);
-								}
-							}
-						}
-					}
-				}
-				Trigger te = new Trigger(TEOperator.del, TEType.belief, removedLit);
+			Literal removedLit = obsPropToLiteral(nsp, prop, source);
+			Literal asInBB     = belBase.contains(removedLit);
+			if (belBase.remove(removedLit)) {
+				Trigger te = new Trigger(TEOperator.del, TEType.belief, asInBB);
 				getTS().updateEvents(new Event(te, Intention.EmptyInt));
 				// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" REMOVED BELIEF FOR OBS PROP: "+removedLit+" "+removedLit.getAnnots());
-				
-				return true;
 			}
+			return true;
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			logger.warning("EXCEPTION - processing remove obs prop " + prop + " for agent " + getTS().getUserAgArch().getAgName());
 		}
 		return false;
