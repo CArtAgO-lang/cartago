@@ -491,7 +491,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	protected void notifyActionFailure(ActionExec actionExec, Term reason, String msg) {
 		// logger.info("notified failure for "+actionExec.getActionTerm()+" - reason: "+reason);
-		// env.getEnvironmentInfraTier().actionExecuted(agName, action, false, actionExec);
 		actionExec.setResult(false);
 		Literal descr = null;
 		if (reason != null) {
@@ -550,10 +549,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	}
 	
 	class JaCaLiteral extends LiteralImpl {
-		String obsPropId; // = new HashSet<String>();
+		String obsPropId;
 		public JaCaLiteral(Atom ns, String f, String opi) {
 			super(ns, Literal.LPos, f);
-			//this.obsPropIds.add(opi);
 			obsPropId = opi;
 		}
 		public JaCaLiteral(JaCaLiteral jl) {
