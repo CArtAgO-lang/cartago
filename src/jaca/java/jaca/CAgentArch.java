@@ -435,11 +435,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
 	}
 
-	/*
-	protected Iterator<Literal> getObsPropBeliefs(ArtifactObsProperty prop) {
-		return belBase.getCandidateBeliefs(new PredicateIndicator(prop.getName(), prop.getValues().length));
-	}
-	*/
 	protected Op parseOp(Structure action) {
 		Term[] terms = action.getTermsArray();
 		Object[] opArgs = new Object[terms.length];
@@ -534,7 +529,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	 * Convert an observable property into a literal
 	 */
 	protected JaCaLiteral obsPropToLiteral(Atom ns, ArtifactObsProperty prop, ArtifactId source) throws Exception {
-		//Literal struct = ASSyntax.createLiteral(ns, prop.getName());
 		JaCaLiteral struct = new JaCaLiteral(ns, prop.getName(), prop.getFullId());
 		for (Object obj : prop.getValues()) {
 			struct.addTerm(lib.objectToTerm(obj));
@@ -564,7 +558,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		}
 		public JaCaLiteral(JaCaLiteral jl) {
 			super(jl.getNS(), Literal.LPos, jl);
-			//this.obsPropIds.addAll(jl.obsPropIds);
 			obsPropId = jl.obsPropId;
 		}
 		@Override
@@ -577,14 +570,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		
 		@Override
 		public boolean equalsAsStructure(Object p) {
-			//if (super.equalsAsStructure(p)) {
-				if (p instanceof JaCaLiteral) {
-					//System.out.println("*** "+obsPropId + " > "+((JaCaLiteral)p).obsPropId + " : "+this+"="+p);
-					//return this.obsPropIds.containsAll( ((JaCaLiteral)p).obsPropIds );
-					return this.obsPropId.equals( ((JaCaLiteral)p).obsPropId );
-				} 
-			//}
-			return false;
+			return p instanceof JaCaLiteral && this.obsPropId.equals( ((JaCaLiteral)p).obsPropId);
 		}
 		
 		@Override
