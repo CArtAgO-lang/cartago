@@ -64,10 +64,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
 	private HashMap<ArtifactId, HashSet<Atom>> mappings = new HashMap<ArtifactId, HashSet<Atom>>();
-	static private final List<String> DEF_OPS = Arrays.asList("focus", "stopFocus", "makeArtifact", 
-			"println", "print", "focusWhenAvailable", "lookupArtifact", "lookupArtifactByType", 
-			"joinWorkspace", "createWorkspace",
-			"quitWorkspace", "disposeArtifact");
+	static private final List<String> DEF_OPS = Arrays.asList( 
+		      "makeArtifact","removeArtifactFactory","addArtifactFactory","lookupArtifactByType","lookupArtifact","focusWhenAvailable",
+		      "disposeArtifact","quitWorkspace","linkArtifacts","stopFocus","getCurrentArtifacts","focus","init","getRoleList","setSecurityManager",
+		      "addRole","removeRole","addRolePolicy","removeRolePolicy","setDefaultRolePolicy","out","in","inp","rd","rdp","joinRemoteWorkspace",
+		      "getNodeId","enableLinkingWithNode","shutdownNode","crash","joinWorkspace","createWorkspace","print","println");
 
 	protected ICartagoSession envSession;
 
