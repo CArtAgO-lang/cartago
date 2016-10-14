@@ -434,6 +434,21 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			mappings.get(ev.getTargetArtifact()).add(nsp);
 		}
 		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
+		
+		// add focused/3 from body-art to its nsp
+		try {
+			Literal l = ASSyntax.createLiteral(nsp, "focused", 
+					new Atom(ev.getTargetArtifact().getWorkspaceId().getName()),
+					new LiteralImpl(ev.getTargetArtifact().getName()),
+					lib.objectToTerm(ev.getTargetArtifact()));
+			l.addAnnot(BeliefBase.TPercept);
+			// add artifact_type annot in the art name
+			((Literal)l.getTerm(1)).addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(ev.getTargetArtifact().getArtifactType())));
+
+			agent.addBel(l);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	protected Op parseOp(Structure action) {
@@ -616,41 +631,45 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	
 	public void addObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {
 		try {
-			boolean skip = processSpecialOP(source, prop);
+			nsp = processSpecialOP(source, prop, nsp);
 
-			if (!skip) {
+			if (nsp != null) {
 				JaCaLiteral l = obsPropToLiteral(nsp, prop, source);
-				if (belBase.add(l)) {
+				if (belBase.add(l)) { // NB: we are bypassing BRF using this!
 					Trigger te = new Trigger(TEOperator.add, TEType.belief, l.copy());
 					getTS().updateEvents(new Event(te, Intention.EmptyInt));
 					// logger.info("AGENT: "+getTS().getUserAgArch().getAgName()+" NEW BELIEF FOR OBS PROP: "+l1);
 				}
 			}
 		} catch (Exception ex) {
-			// ex.printStackTrace();
+			ex.printStackTrace();
 			logger.warning("EXCEPTION - processing new obs prop " + prop + " artifact " + source + " for agent " + getTS().getUserAgArch().getAgName());
 		}
 	}
 
-	private boolean processSpecialOP(ArtifactId source, ArtifactObsProperty prop) throws Exception {
-		// translate string to atoms for focused/3
-		if ("focused".equals(prop.getName()) && source.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
-			if (prop.getValues()[0].toString().endsWith("-body")) {
-				return true;
-			} else {
-				// add artifact_type annot in the art name
-				prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
-				Literal art = ASSyntax.createLiteral(prop.getValues()[1].toString());
-				// discover type of the art
-				String type = CartagoService.getController(prop.getValues()[0].toString()).getArtifactInfo(prop.getValues()[1].toString()).getId().getArtifactType();
-				art.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(type)));
-				prop.getValues()[1] = art;
+	private Atom processSpecialOP(ArtifactId source, ArtifactObsProperty prop, Atom nsp) throws Exception {
+		if (source.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
+			// translate string to atoms for focused/3
+			if ("focused".equals(prop.getName())) {
+				// focused in handled by processFocusSucceeded
+				return null;
+				/*if (prop.getValue(1).toString().endsWith("-body")) {
+					return null;
+				} else {
+					// add artifact_type annot in the art name
+					prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
+					Literal art = ASSyntax.createLiteral(prop.getValues()[1].toString());
+					// discover type of the art
+					String type = CartagoService.getController(prop.getValues()[0].toString()).getArtifactInfo(prop.getValues()[1].toString()).getId().getArtifactType();
+					art.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(type)));
+					prop.getValues()[1] = art;
+				}*/
+			} else if ("joined".equals(prop.getName())) {
+				prop.getValues()[0] = new Atom(prop.getValue(0).toString());
+				prop.getValues()[1] = lib.objectToTerm(prop.getValue(1));
 			}
-		} else if ("joined".equals(prop.getName()) && source.getArtifactType().equals(cartago.AgentBodyArtifact.class.getName())) {
-			prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
-			prop.getValues()[1] = lib.objectToTerm(prop.getValues()[1]);
 		}
-		return false;
+		return nsp;
 	}
 
 	public void removeObsPropertiesBel(ArtifactId source, List<ArtifactObsProperty> props, Atom nsp) {
@@ -665,7 +684,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	public boolean removeObsPropertiesBel(ArtifactId source, ArtifactObsProperty prop, Atom nsp) {		
 		try {
-			processSpecialOP(source, prop);
+			nsp = processSpecialOP(source, prop, nsp);
+			if (nsp == null)
+				return false;
 			Literal removedLit = obsPropToLiteral(nsp, prop, source);
 			Literal asInBB     = belBase.contains(removedLit);
 			if (belBase.remove(removedLit)) {
