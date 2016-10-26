@@ -1002,7 +1002,7 @@ public class JavaLibrary {
 				if (obj != null){
 					return obj;
 				} else {
-					return t2.getFunctor();
+					return t2.toString();
 				}
 			}
 	    } else if (t.isNumeric()){

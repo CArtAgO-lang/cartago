@@ -6,8 +6,8 @@ import jason.asSyntax.Atom;
 public class NameSpaceOp extends Op {
 	private Atom NS;
 
-	public NameSpaceOp(Op op, Atom nsp) {
-		super(op.getName(), op.getParamValues());
+	public NameSpaceOp(String opName, Object[] args, Atom nsp) {
+		super(opName, args);
 		NS = nsp;
 	}
 

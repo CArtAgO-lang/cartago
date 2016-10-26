@@ -444,7 +444,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		try {
 			Literal l = ASSyntax.createLiteral(nsp, "focused", 
 					new Atom(ev.getTargetArtifact().getWorkspaceId().getName()),
-					new LiteralImpl(ev.getTargetArtifact().getName()),
+					ASSyntax.parseLiteral(ev.getTargetArtifact().getName()), // use parsing to consider the name space in the art name
 					lib.objectToTerm(ev.getTargetArtifact()));
 			l.addAnnot(BeliefBase.TPercept);
 			// add artifact_type annot in the art name
@@ -457,19 +457,18 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	}
 
 	protected Op parseOp(Structure action) {
-		Term[] terms = action.getTermsArray();
-		Object[] opArgs = new Object[terms.length];
-		for (int i = 0; i < terms.length; i++) {
-			opArgs[i] = lib.termToObject(terms[i]);
+		Object[] opArgs = new Object[action.getArity()];
+		for (int i = 0; i < opArgs.length; i++) {
+			opArgs[i] = lib.termToObject(action.getTerm(i));
 		}
 		
 		// some "filters" 
-		if ("makeArtifact".equals(action.getFunctor()) || "focusWhenAvailable".equals(action.getFunctor())) { // artifact name is an atomic term, parse to string
+		/*if ("makeArtifact".equals(action.getFunctor()) || "focusWhenAvailable".equals(action.getFunctor())) { // artifact name is an atomic term, parse to string
 			if (action.getTerm(0).isAtom())
 				opArgs[0] = "" + action.getTerm(0); // consider the name space in the art name
-		}
+		}*/
 		
-		return new NameSpaceOp(new Op(action.getFunctor(), opArgs),action.getNS());
+		return new NameSpaceOp(action.getFunctor(), opArgs, action.getNS());
 	}
 
 	protected boolean bind(Object obj, Term term, ActionExec act) {
@@ -677,7 +676,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					prop.getValues()[1] = art;
 				}*/
 			} else if ("joined".equals(prop.getName())) {
-				prop.getValues()[0] = new Atom(prop.getValue(0).toString());
+				prop.getValues()[0] = ASSyntax.parseTerm(prop.getValue(0).toString()); // to consider the use of namespaces in the art id
 				prop.getValues()[1] = lib.objectToTerm(prop.getValue(1));
 			}
 		}
