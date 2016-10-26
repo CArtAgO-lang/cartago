@@ -22,6 +22,7 @@ import cartago.CartagoNode;
 import cartago.CartagoService;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
+import cartago.ICartagoController;
 import cartago.ICartagoSession;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
@@ -196,28 +197,32 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 				} else {
 					if (artName != null) {
-						// logger.warning("executing "+op+" on "+artName);
 						actId = envSession.doAction(op, artName, test, timeout);
 					} else {
-						if ("makeArtifact".equals(op.getName()) || "focusWhenAvailable".equals(op.getName())) { // artifact name is an atomic term, parse to string
-							Object[] values = op.getParamValues();
-							if (action.getTerm(0).isAtom())
-								values[0] = "" + action.getTerm(0);
-							op = new Op(op.getName(), values);
-						}
 						if (DEF_OPS.contains(op.getName())) { // predefined CArtAgO operation
-							op = new DefOp(op, action.getNS());
 							actId = envSession.doAction(op, test, timeout); // default operations go to workspace
 						} else { 
 							// User defined operation
-							outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) // iterates artifacts focused using nsp associated with the action
-								for (OpDescriptor o : CartagoService.getController(aid1.getWorkspaceId().getName()).getArtifactInfo(aid1.getName()).getOperations())
-									if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
-										actId = envSession.doAction(aid1, op, test, timeout); //
-										break outer; // action executes a corresponding op in only one artifact
+							outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
+								ICartagoController c;
+								try {
+									c = CartagoService.getController(aid1.getWorkspaceId().getName());
+								} catch (CartagoException e) {
+									// can be ignored (?)
+									c = null;
+								}
+								if (c != null) {
+									for (OpDescriptor o : c.getArtifactInfo(aid1.getName()).getOperations()) {
+										if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
+											actId = envSession.doAction(aid1, op, test, timeout); //
+											break outer; // action executes a corresponding op in only one artifact
+										}
 									}
+								}
+							}
+							// TODO: decide wheter to try this (in all wkspaces!)
 							if (actId == Long.MIN_VALUE) {
-								// try as before namespaces
+								// try as before name spaces
 								actId = envSession.doAction(op,test,timeout);
 							}
 						}
@@ -229,19 +234,19 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					pendingActions.put(actId, pa);
 					// getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
 				} else {
-					logger.warning("No artifact in namespace " + action.getNS() + " implements operation " + op);
-					Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",generic_error)");
+					String msg = "Action failed: " + actionExec.getActionTerm()+". No artifact in namespace " + action.getNS() + " implements operation " + op;
+					logger.warning(msg);
+					Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",no_art("+action.getNS()+",\""+op+"\"))");
 					Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
-					String msg = "Action failed: " + actionExec.getActionTerm();
 					notifyActionFailure(actionExec, reason, msg);
 				}
 			}
 		} catch (Exception ex) {
-			// ex.printStackTrace();
+			ex.printStackTrace();
 			logger.warning("Op " + action + " on artifact " + aid + "(artifact_name= " + artName + ") by " + this.getAgName() + " failed - op: " + action);
 			Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",generic_error)");
 			Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
-			String msg = "Action failed: " + actionExec.getActionTerm();
+			String msg = "Action failed: " + actionExec.getActionTerm() + ". "+ex.getMessage();
 			notifyActionFailure(actionExec, reason, msg);
 		}
 	}
@@ -402,7 +407,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	private void perceiveStopFocus(StopFocusSucceededEvent ev1) throws CartagoException, NoSuchFieldException, IllegalAccessException {
 		// removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
-		Atom nsp = ((DefOp) ev1.getOp()).getNS();
+		Atom nsp = ((NameSpaceOp) ev1.getOp()).getNS();
 		removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), nsp);
 		mappings.get(ev1.getTargetArtifact()).remove(nsp);
 		// The Observer is added again
@@ -427,8 +432,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	private void perceiveFocusSucceeded(FocusSucceededEvent ev) {
 		// addObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
 		Atom nsp = Literal.DefaultNS;
-		if (ev.getOp() instanceof DefOp) { 
-			nsp = ((DefOp) ev.getOp()).getNS();
+		if (ev.getOp() instanceof NameSpaceOp) { 
+			nsp = ((NameSpaceOp) ev.getOp()).getNS();
 			if (mappings.get(ev.getTargetArtifact()) == null)
 				mappings.put(ev.getTargetArtifact(), new HashSet<Atom>());
 			mappings.get(ev.getTargetArtifact()).add(nsp);
@@ -456,10 +461,15 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		Object[] opArgs = new Object[terms.length];
 		for (int i = 0; i < terms.length; i++) {
 			opArgs[i] = lib.termToObject(terms[i]);
-			// System.out.println("Linking term "+terms[i]+" to "+opArgs[i]);
 		}
-		Op op = new Op(action.getFunctor(), opArgs);
-		return op;
+		
+		// some "filters" // TODO: is this necessary? see termToObject
+		/*if ("makeArtifact".equals(action.getFunctor()) || "focusWhenAvailable".equals(action.getFunctor())) { // artifact name is an atomic term, parse to string
+			if (action.getTerm(0).isAtom())
+				opArgs[0] = "" + action.getTerm(0);
+		}*/
+		
+		return new NameSpaceOp(new Op(action.getFunctor(), opArgs),action.getNS());
 	}
 
 	protected boolean bind(Object obj, Term term, ActionExec act) {
@@ -700,19 +710,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			logger.warning("EXCEPTION - processing remove obs prop " + prop + " for agent " + getTS().getUserAgArch().getAgName());
 		}
 		return false;
-	}
-
-	class DefOp extends Op {
-		private Atom NS;
-
-		public DefOp(Op op, Atom nsp) {
-			super(op.getName(), op.getParamValues());
-			NS = nsp;
-		}
-
-		public Atom getNS() {
-			return NS;
-		}
 	}
 
 	private List<ArtifactId> focusedArtifacts(Atom nid) {
