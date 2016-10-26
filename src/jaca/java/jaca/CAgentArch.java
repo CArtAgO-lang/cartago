@@ -554,6 +554,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	 * Convert an observable property into a literal
 	 */
 	protected JaCaLiteral obsPropToLiteral(Atom ns, ArtifactObsProperty prop, ArtifactId source) throws Exception {
+		if (Character.isUpperCase(prop.getName().charAt(0)))
+			logger.warning("Observable Property "+prop.getName()+" starts with upper case and will cause problems when perceived by the agentes.");
 		JaCaLiteral struct = new JaCaLiteral(ns, prop.getName(), prop.getFullId());
 		for (Object obj : prop.getValues()) {
 			struct.addTerm(lib.objectToTerm(obj));
