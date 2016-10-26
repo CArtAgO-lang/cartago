@@ -463,11 +463,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			opArgs[i] = lib.termToObject(terms[i]);
 		}
 		
-		// some "filters" // TODO: is this necessary? see termToObject
-		/*if ("makeArtifact".equals(action.getFunctor()) || "focusWhenAvailable".equals(action.getFunctor())) { // artifact name is an atomic term, parse to string
+		// some "filters" 
+		if ("makeArtifact".equals(action.getFunctor()) || "focusWhenAvailable".equals(action.getFunctor())) { // artifact name is an atomic term, parse to string
 			if (action.getTerm(0).isAtom())
-				opArgs[0] = "" + action.getTerm(0);
-		}*/
+				opArgs[0] = "" + action.getTerm(0); // consider the name space in the art name
+		}
 		
 		return new NameSpaceOp(new Op(action.getFunctor(), opArgs),action.getNS());
 	}
