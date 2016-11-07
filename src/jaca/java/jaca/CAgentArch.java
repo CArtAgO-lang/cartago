@@ -570,7 +570,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		Term id = lib.objectToTerm(source);
 		//struct.addAnnot(ASSyntax.createStructure("source", id));
 		struct.addAnnot(ASSyntax.createStructure("artifact_id", id));
-		struct.addAnnot(ASSyntax.createStructure("artifact_name", id, ASSyntax.createAtom(source.getName())));
+		struct.addAnnot(ASSyntax.createStructure("artifact_name", id, ASSyntax.parseTerm(source.getName())));
 		//struct.addAnnot(ASSyntax.createStructure("artifact_type", id, ASSyntax.createString(source.getArtifactType())));
 		struct.addAnnot(ASSyntax.createStructure("workspace", id, ASSyntax.createAtom(source.getWorkspaceId().getName()), lib.objectToTerm(source.getWorkspaceId())));
 	}
