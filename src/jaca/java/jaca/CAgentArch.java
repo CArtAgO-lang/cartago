@@ -57,6 +57,7 @@ import jason.asSyntax.Term;
 import jason.asSyntax.Trigger;
 import jason.asSyntax.Trigger.TEOperator;
 import jason.asSyntax.Trigger.TEType;
+import jason.asSyntax.parser.ParseException;
 import jason.bb.BeliefBase;
 
 public class CAgentArch extends AgArch implements cartago.ICartagoListener {
@@ -441,14 +442,22 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
 		
 		// add focused/3 from body-art to its nsp
+		Literal artName = null;
 		try {
+			// use parsing to consider the name space in the art name
+			artName = new LiteralImpl(ASSyntax.parseLiteral(ev.getTargetArtifact().getName())); // create a new literal to avoid the parsing it as atom or internal.action			
+		} catch (ParseException e) {
+			artName = new LiteralImpl(ev.getTargetArtifact().getName());
+		}
+		try {
+			// add artifact_type annot in the art name
+			artName.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(ev.getTargetArtifact().getArtifactType())));
+			
 			Literal l = ASSyntax.createLiteral(nsp, "focused", 
 					new Atom(ev.getTargetArtifact().getWorkspaceId().getName()),
-					ASSyntax.parseLiteral(ev.getTargetArtifact().getName()), // use parsing to consider the name space in the art name
+					artName, 
 					lib.objectToTerm(ev.getTargetArtifact()));
 			l.addAnnot(BeliefBase.TPercept);
-			// add artifact_type annot in the art name
-			((Literal)l.getTerm(1)).addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(ev.getTargetArtifact().getArtifactType())));
 
 			agent.addBel(l);
 		} catch (Exception e) {
