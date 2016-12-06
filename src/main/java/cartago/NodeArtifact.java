@@ -17,6 +17,9 @@
  */
 package cartago;
 
+import cartago.topology.TopologyException;
+import cartago.topology.WorkspaceTree;
+
 /**
  * Artifact providing functionalities 
  * to manage/join workspaces and the node.
@@ -32,13 +35,44 @@ public class NodeArtifact extends Artifact {
 		thisWsp = env;
 	}
 
+
+	/**
+	 * Join workspace local or remote
+	 * 
+	 * @param wspPath workspace path 
+	 * @param res output parameter: workspace id
+	 */
+	@OPERATION void joinWorkspace(String wspPath, OpFeedbackParam<WorkspaceId> res) {
+	    //determine if local or remote  
+	    CartagoNode cnode = thisWsp.getNode();
+	    WorkspaceTree tree = cnode.getTree();
+
+	    WorkspaceId wId = thisWsp.getId();
+	    try
+		{
+		    String artifactWorkspacePath = tree.getIdPath(wId);
+		    String simpleName = wspPath;
+		    if(wspPath.contains("/"))
+			simpleName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		    if(tree.inSameCartagoNode(wspPath, artifactWorkspacePath))
+			joinLocalWorkspace(simpleName, res);
+		    else
+			joinRemoteWorkspace(simpleName, tree.getIdAddress(wId), res);
+		}
+	    catch(TopologyException ex)
+		{
+		    
+		}
+	}
+
+    
 	/**
 	 * Join a local workspace
 	 * 
 	 * @param wspName workspace name
 	 * @param res output parameter: workspace id
 	 */
-	@OPERATION void joinWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
+	void joinLocalWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
@@ -65,7 +99,7 @@ public class NodeArtifact extends Artifact {
 	 * @param cred agent credentials
 	 * @param res output parameter: workspace id
 	 */
-	@OPERATION void joinWorkspace(String wspName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
+	void joinLocalWorkspace(String wspName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
@@ -93,7 +127,7 @@ public class NodeArtifact extends Artifact {
 	 * @param address address
 	 * @param res output param: workspace id
 	 */
-	@OPERATION void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
@@ -115,7 +149,7 @@ public class NodeArtifact extends Artifact {
 	 * @param infraServiceType infrastructure service type - "default" to use default one
 	 * @param res output param: workspace id
 	 */
-	@OPERATION void joinRemoteWorkspace(String wspName, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(String wspName, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
@@ -140,7 +174,7 @@ public class NodeArtifact extends Artifact {
 	 * @param cred agent credential
 	 * @param res output param: workspace id 
 	 */
-	@OPERATION void joinRemoteWorkspace(String wspName, String address, String infraServiceType, String roleName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(String wspName, String address, String infraServiceType, String roleName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, cred, opFrame.getAgentListener());

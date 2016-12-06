@@ -261,7 +261,7 @@ public class CartagoService {
 	 */
 	public static synchronized ICartagoSession startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 		if (wspName==null){
-			wspName = "default";
+		    wspName = "default"; //Xavier: I think it shoud be main
 		}
 		
 		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
@@ -330,7 +330,7 @@ public class CartagoService {
 	 */
 	public static synchronized CartagoContext startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
 		if (wspName==null){
-			wspName = "default";
+		    wspName = "default"; //Xavier: main?
 		}
 		
 		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
@@ -353,9 +353,8 @@ public class CartagoService {
 	/**
 	 * Join a remote workspace - called by CArtAgO node.
 	 * 
-	 * @param address IP address of the node
 	 * @param wspName workspace name
-	 * @param address address of the workspace
+	 * @param IP address of the workspace
 	 * @param protocol infrastructure protocol used to contact the node ("default" for default one)
 	 * @param cred agent credentials - (es: cartago.security.UserIdCredential(String agentName))
 	 * @param eventListener listener for events to be perceived by the agent 
