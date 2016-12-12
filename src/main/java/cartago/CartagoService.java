@@ -28,6 +28,7 @@ import cartago.infrastructure.ICartagoInfrastructureLayer;
 import cartago.tools.inspector.Inspector;
 import cartago.util.agent.ActionFeedbackQueue;
 
+import cartago.topology.WorkspaceTree;
 
 /**
  * Entry point for working with CArtAgO.
@@ -41,6 +42,8 @@ public class CartagoService {
 	/* singleton CArtAgO node */
 	private static CartagoNode instance;
 
+    // toknow if the infrastructure layer should be used
+        private static boolean local = true;
 	/* set of available infrastructure layers */
 	private static Map<String,ICartagoInfrastructureLayer> infraLayers = new HashMap<String,ICartagoInfrastructureLayer>();
 	private static String defaultInfraLayer = "rmi";
@@ -48,7 +51,13 @@ public class CartagoService {
 	
 	/* set of information about linked nodes - for linkability with remote artifacts */
 	private static List<LinkedNodeInfo> linkedNodes = new LinkedList<LinkedNodeInfo>();
-			
+
+
+    public static synchronized void mount(String mountPoint)
+    {
+	//code goes here
+    }
+    
 	public static String getVersion() {
 		return CARTAGO_VERSION.getID();
 	}
@@ -57,9 +66,18 @@ public class CartagoService {
 	 * 
 	 * @throws CartagoException
 	 */
-	public static synchronized NodeId startNode() throws CartagoException {
+    public static synchronized NodeId startNode(String wspPath, WorkspaceTree tree) throws CartagoException {
 		if (instance == null){
-			instance = new CartagoNode();
+		    instance = new CartagoNode(wspPath, tree);
+		}
+		return instance.getId();
+	}
+
+
+
+        public static synchronized NodeId startNode() throws CartagoException {
+		if (instance == null){
+		    instance = new CartagoNode();
 		}
 		return instance.getId();
 	}
@@ -151,6 +169,7 @@ public class CartagoService {
 	 * @throws CartagoException if the installation fails
 	 */
 	public static synchronized void installInfrastructureLayer(String type) throws CartagoException {
+	       CartagoService.local = false;
 		if (type.equals("default")){
 			type = defaultInfraLayer;
 		}
@@ -179,7 +198,14 @@ public class CartagoService {
 	}
 	
 	// service management
-	
+
+    //this is only excecuted
+    public static synchronized void startInfrastructureCentralNode()
+    {
+	//code goes here
+    }
+
+    
 	/**
 	 * Start a CArtAgO infrastructure service, to allow remote agents to work on this node using the specified protocol.
 	 * 
@@ -587,7 +613,8 @@ public class CartagoService {
 	public static void main(String[] args){
 		try {
 			System.out.println("CArtAgO Infrastructure v."+CARTAGO_VERSION.getID()+ " - DISI, University of Bologna, Italy.");
-			CartagoService.startNode();
+			WorkspaceTree tree = new WorkspaceTree();
+			CartagoService.startNode("main", tree);
 			CartagoService.installInfrastructureLayer("default");
 			if (hasOption(args,"-infra")){
 				String address = getParam(args,"-address");
@@ -620,6 +647,11 @@ public class CartagoService {
 		}
 		return null;
 	}
+
+    public static boolean isLocal()
+    {
+	return CartagoService.local;
+    }
 	
 
 	/**

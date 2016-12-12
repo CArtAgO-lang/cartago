@@ -61,7 +61,7 @@ public class NodeArtifact extends Artifact {
 		}
 	    catch(TopologyException ex)
 		{
-		    
+		    ex.printStackTrace();
 		}
 	}
 

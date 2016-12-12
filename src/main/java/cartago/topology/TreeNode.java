@@ -25,6 +25,7 @@ Class that represents a node for the tree topology
 
 import java.util.HashMap;
 import cartago.WorkspaceId;
+import cartago.NodeId;
 
 public class TreeNode implements java.io.Serializable
 {
@@ -33,12 +34,14 @@ public class TreeNode implements java.io.Serializable
     private TreeNode parent;
     private HashMap<String, TreeNode> children;
     private String address;
+    private NodeId nId;
 
-    public TreeNode(WorkspaceId wspId, String address)
+    public TreeNode(WorkspaceId wspId, NodeId nId,  String address)
     {
 	this.name = wspId.getName();
 	this.address = address;
 	this.wspId = wspId;
+	this.nId = nId;
 	this.parent = null;
 	this.children = new HashMap<String, TreeNode>();
     }
@@ -63,6 +66,11 @@ public class TreeNode implements java.io.Serializable
 	return this.parent;
     }
 
+    public NodeId getNodeId()
+    {
+	return this.nId;
+    }
+
     public HashMap<String, TreeNode> getChildren()
     {
 	return this.children;
@@ -82,6 +90,11 @@ public class TreeNode implements java.io.Serializable
     public void setParent(TreeNode parent)
     {
 	this.parent = parent;
+    }
+
+    public void setAddress(String address)
+    {
+	this.address = address;
     }
 	
 }

@@ -21,6 +21,7 @@ import java.util.*;
 
 import cartago.tools.inspector.Inspector;
 import cartago.topology.WorkspaceTree;
+import cartago.topology.TopologyException;
 
 
 /**
@@ -36,6 +37,8 @@ public class CartagoNode {
 	private HashMap<String,CartagoWorkspace> wsps;
 	private NodeId nodeId;
 
+    private CartagoWorkspace mainWorkspace = null;
+
         private WorkspaceTree tree = null;
 	
 	CartagoNode() throws CartagoException {
@@ -49,13 +52,21 @@ public class CartagoNode {
 
     
     //version with new topology support
-    CartagoNode(String wspName, WorkspaceTree tree) throws CartagoException {
+    CartagoNode(String wspPath, WorkspaceTree tree) throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
-		// creates a main workspace with a specified name		               
-		createWorkspace(wspName);
+		// creates a main workspace with a specified name and add it to tree
+	   
 		this.tree = tree;
-	}	
+
+		String simpleName = wspPath;
+		if(wspPath.contains("/"))
+		    simpleName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		//this workspace should be mounted later
+		this.mainWorkspace = createWorkspace(simpleName);	      				  				
+	}
+
+        
 
 	CartagoNode(ICartagoLogger logger) throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
@@ -190,5 +201,10 @@ public class CartagoNode {
     public WorkspaceTree getTree()
     {
 	return this.tree;
+    }
+
+    public void setTree(WorkspaceTree tree)
+    {
+	this.tree = tree;
     }
 }

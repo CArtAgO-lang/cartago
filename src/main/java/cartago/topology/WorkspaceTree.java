@@ -19,26 +19,63 @@
 package cartago.topology;
 
 /**
-Class that represents a tree that maintains the workspace topology
+   Class that represents a tree that maintains the workspace topology
 
 */
 
 import java.util.HashMap;
 import cartago.WorkspaceId;
 import cartago.CartagoNode;
+import cartago.NodeId;
 import cartago.CartagoWorkspace;
 import cartago.CartagoException;
+import java.util.Collection;
+import java.util.ArrayList;
 
 public class WorkspaceTree implements java.io.Serializable
 {
     private TreeNode root;
-    private HashMap<WorkspaceId, TreeNode> mapIds; //to easly retrive TreeNodes from workspaceIds
+    private HashMap<WorkspaceId, TreeNode> mapIds; //to easly retrive TreeNodes from workspaceIds   
+    private HashMap<NodeId, String> mapNodes; //to know which address corresponds to a node
 
-    public WorkspaceTree(WorkspaceId wspId, String address)
+    
+    //remote version
+    public void mountRoot(CartagoNode context, String rootWspAddress) throws TopologyException
     {
-	this.root = new TreeNode(wspId, address);
+	if(this.root != null)
+	    throw new TopologyException("cannot mount root, already present");
+	
+	try
+	    {
+		mapIds = new  HashMap<WorkspaceId, TreeNode>();
+		
+		CartagoWorkspace wsp = context.createWorkspace("main");
+		this.root = new TreeNode(wsp.getId(), context.getId(), rootWspAddress);
+		mapIds.put(wsp.getId(), this.root);
+	    }
+	catch(CartagoException ex)
+	    {
+		ex.printStackTrace();
+	    }
+    }
+
+    //local version
+    public void mountRoot(WorkspaceId wsid, String rootWspAddress) throws TopologyException
+    {
+	if(this.root != null)
+	    throw new TopologyException("cannot mount root, already present");
+	
 	mapIds = new  HashMap<WorkspaceId, TreeNode>();
-	mapIds.put(wspId, this.root);
+	this.root = new TreeNode(wsid, null, "localhost");
+	mapIds.put(wsid, this.root);
+	    
+    }
+
+    public WorkspaceTree()
+    {
+	this.root = null;
+	mapIds =  new  HashMap<WorkspaceId, TreeNode>();
+	mapNodes = new  HashMap<NodeId, String>();
     }
     
     //checks if two workspaces are on the same CartagoNode
@@ -52,6 +89,16 @@ public class WorkspaceTree implements java.io.Serializable
 	return n1.getWspId().getNodeId().equals(n2.getWspId().getNodeId());
     }
 
+    //returns address to locate node from a tree path
+    public String getNodeAddressFromPath(String path) throws TopologyException
+    {
+	TreeNode tn = getNodeFromPath(path);
+	if(tn == null)
+	    throw new TopologyException("Invalid path");
+	NodeId nId = tn.getNodeId();
+	return mapNodes.get(nId);
+	
+    }
     //returns null if wrong path
     private TreeNode getNodeFromPath(String path)
     {
@@ -98,44 +145,54 @@ public class WorkspaceTree implements java.io.Serializable
 	    }
 	return path.substring(0, path.lastIndexOf("/"));
     }
+
+
+
     
-    public void mount(String path, CartagoNode context) throws TopologyException
+    public void mount(String path, WorkspaceId wsid) throws TopologyException
     {
 	String parentPath = pathToParent(path);
 	if(root != null && parentPath.equals(""))
 	    throw new TopologyException("Cannot mount on root path");
 
-	try{
-	
-	if(parentPath.equals("")) //create root, temporal imp
+	    
+	if(parentPath.equals("")) //crea
 	    {	   
-		CartagoWorkspace wsp = context.createWorkspace("main");
-		this.root = new TreeNode(wsp.getId(), "localhost");
-		mapIds.put(wsp.getId(), this.root);
+		throw new TopologyException("Cannot mount on root");
 	    }
 	else
 	    {
 		TreeNode parent = getNodeFromPath(parentPath);
 		String newName = path.substring(path.lastIndexOf("/")+1);
 
-		CartagoWorkspace wsp = context.createWorkspace(newName);
-		TreeNode newNode = new TreeNode(wsp.getId(), parent.getAddress());
+		TreeNode newNode = new TreeNode(wsid, parent.getNodeId(), "localhost"); //
+
+		//more code to create a conection with the node corresponding to address so the workspace is created there
 
 		parent.addChild(newNode);
-		mapIds.put(wsp.getId(), newNode);
+
 	    }
+    }
+
+	public String getIdAddress(WorkspaceId id)
+	{
+	    TreeNode node = this.mapIds.get(id);
+	    return node.getAddress();
 	}
-	catch(CartagoException ex)
-	    {
-		ex.printStackTrace();
-	    }
-    }
 
-    public String getIdAddress(WorkspaceId id)
+	public void setAddressRoot(String address)
+	{
+	    this.root.setAddress(address);
+	}
+
+    public Collection<String> getNodesAddresses()
     {
-	TreeNode node = this.mapIds.get(id);
-	return node.getAddress();
+	ArrayList<String> res = new ArrayList<String>();
+
+	for(NodeId aux : mapNodes.keySet())
+	    {
+		res.add(mapNodes.get(aux));
+	    }
+	return res;
     }
-
-
 }

@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.*;
 import cartago.*;
-
+import cartago.topology.WorkspaceTree;
 
 /**
  * Class representing a CArtAgO node service, serving remote requests
@@ -93,6 +93,17 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 		return proxy;		
 	}
 
+    public CartagoWorkspace createWorkspace(String wspName) throws CartagoException
+    {
+	
+	return this.node.createWorkspace(wspName);
+    }
+
+    public void setTree(WorkspaceTree tree)
+    {
+	this.node.setTree(tree);
+    }
+
 	public void quit(String wspName, AgentId id) throws RemoteException, CartagoException {
 		CartagoWorkspace wsp = node.getWorkspace(wspName);		
 		wsp.quitAgent(id);
@@ -134,6 +145,9 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 	public NodeId getNodeId() throws CartagoException, RemoteException {
 		return node.getId();
 	}
+
+
+	
 	
 
 }

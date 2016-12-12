@@ -21,6 +21,7 @@ import java.rmi.*;
 
 import cartago.*;
 import cartago.security.*;
+import cartago.topology.WorkspaceTree;
 
 
 /**
@@ -42,4 +43,10 @@ public interface ICartagoNodeRemote extends Remote {
 	String getVersion() throws CartagoException, RemoteException;
 	
 	NodeId getNodeId() throws CartagoException, RemoteException;
+
+    //added by xavier
+    CartagoWorkspace createWorkspace(String wspName) throws CartagoException;
+
+    void setTree(WorkspaceTree tree);
+    
 }

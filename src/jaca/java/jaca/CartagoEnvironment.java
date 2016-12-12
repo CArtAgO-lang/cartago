@@ -11,6 +11,7 @@ import jaca.CartagoEnvironment;
 import cartago.CartagoException;
 import cartago.CartagoService;
 import cartago.ICartagoSession;
+import cartago.topology.WorkspaceTree;
 import cartago.tools.inspector.Inspector;
 
 /**
@@ -31,12 +32,14 @@ public class CartagoEnvironment extends Environment {
     private boolean standalone; // default case, install a node
     private boolean debug;
 	private String serviceType;
-	
+    private WorkspaceTree tree;
+    
 	static Logger logger = Logger.getLogger(CartagoEnvironment.class.getName());
 
 	public void init(String[] args) {
 		logger.setLevel(Level.WARNING);
 		wspName = cartago.CartagoService.MAIN_WSP_NAME;
+		tree = new WorkspaceTree(); //create topology tree
 		
 		infrastructure = false;
 		local = false;
@@ -84,12 +87,13 @@ public class CartagoEnvironment extends Environment {
 		
 		if (standalone){
 			try {
-				 if (debug){
+			    //create main
+			    // if (debug){
 					 Inspector insp = new Inspector();
 					 insp.start();
 					 CartagoService.startNode(insp.getLogger());
-				 }
-				 CartagoService.startNode();
+					 //	 }
+
 				
 				CartagoService.installInfrastructureLayer("default");
 				checkProtocols(args);
@@ -100,7 +104,8 @@ public class CartagoEnvironment extends Environment {
 			}
 		} else if (infrastructure){
 			try {
-				CartagoService.startNode();
+			    
+			        CartagoService.startNode();
 				checkProtocols(args);
 				int nserv = checkServices(args);
 				/*
@@ -129,6 +134,7 @@ public class CartagoEnvironment extends Environment {
 			try {
 				CartagoService.installInfrastructureLayer("default");
 				checkProtocols(args);
+
 				logger.info("CArtAgO Environment - remote setup succeeded - Joining a remote workspace: "+wspName+"@"+wspAddress);
 			} catch (Exception ex){
 				logger.severe("CArtAgO Environment - remote setup failed.");
@@ -138,6 +144,7 @@ public class CartagoEnvironment extends Environment {
 			if (args.length > 1){
 				wspName = args[1];
 			}
+
 			logger.info("CArtAgO Environment - local setup succeeded - Joining a local workspace: "+wspName);
 		}		
 		instance = this;
@@ -241,6 +248,8 @@ public class CartagoEnvironment extends Environment {
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {
+		    //sets the ip address accordingly
+		    tree.setAddressRoot(wspAddress);
 			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
 			return context;
 		}
