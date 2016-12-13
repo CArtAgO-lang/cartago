@@ -22,7 +22,9 @@ package cartago.infrastructure.topology;
 import cartago.topology.WorkspaceTree;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.topology.TopologyException;
-
+import cartago.CartagoException;
+import cartago.WorkspaceId;
+import cartago.NodeId;
 
 /**
 Interface to implement  workspace tree management
@@ -34,5 +36,18 @@ Interface to implement  workspace tree management
 
 public interface ICartagoInfrastructureTopologyLayer
 {
-    public WorkspaceTree mount(String wspPath) throws TopologyException, CartagoInfrastructureLayerException;
+    public void mount(String wspPath) throws TopologyException, CartagoInfrastructureLayerException;
+
+    public void startTopologyService(String address, WorkspaceId wId, NodeId nId) throws CartagoInfrastructureLayerException;
+
+    public boolean isTopologyServiceRunning();
+
+    public void shutdownService();
+
+    public void setCentralNodeAddress(String centralNodeAddress);
+
+    public String getCentralNodeAddress();
+
+    //different to mount as the the workspace is spawned in another node from the parent
+    public void mountNode(String path, String address) throws TopologyException, CartagoInfrastructureLayerException;
 }

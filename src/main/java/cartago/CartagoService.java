@@ -29,6 +29,9 @@ import cartago.tools.inspector.Inspector;
 import cartago.util.agent.ActionFeedbackQueue;
 
 import cartago.topology.WorkspaceTree;
+import cartago.topology.TopologyException;
+import cartago.infrastructure.topology.ICartagoInfrastructureTopologyLayer;
+
 
 /**
  * Entry point for working with CArtAgO.
@@ -41,7 +44,7 @@ public class CartagoService {
 	public static String MAIN_WSP_NAME = "main";
 	/* singleton CArtAgO node */
 	private static CartagoNode instance;
-
+        private static  ICartagoInfrastructureTopologyLayer topologyService;
     // toknow if the infrastructure layer should be used
         private static boolean local = true;
 	/* set of available infrastructure layers */
@@ -53,9 +56,21 @@ public class CartagoService {
 	private static List<LinkedNodeInfo> linkedNodes = new LinkedList<LinkedNodeInfo>();
 
 
-    public static synchronized void mount(String mountPoint)
+    public static synchronized void mount(String mountPoint) throws CartagoException
     {
-	//code goes here
+	if(CartagoService.topologyService == null)
+	    {
+		throw new CartagoException("Infrastructure topology layer not installed");
+	    }
+	try
+	    {
+		CartagoService.topologyService.mount(mountPoint);
+	    }
+	catch(TopologyException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoException("Mount failed");
+	    }
     }
     
 	public static String getVersion() {
@@ -66,9 +81,9 @@ public class CartagoService {
 	 * 
 	 * @throws CartagoException
 	 */
-    public static synchronized NodeId startNode(String wspPath, WorkspaceTree tree) throws CartagoException {
+    public static synchronized NodeId startNode(String wspPath) throws CartagoException {
 		if (instance == null){
-		    instance = new CartagoNode(wspPath, tree);
+		    instance = new CartagoNode(wspPath);
 		}
 		return instance.getId();
 	}
@@ -162,6 +177,40 @@ public class CartagoService {
 	
 	// infrastructure layer management
 
+
+    //it is not an actual infrastructure layer as it depends on an infrastructureLayer that should be already installed. This should be installed in every node
+    public static synchronized void installTopologyLayer(String type, String centralNodeAddress) throws CartagoException
+    {
+	if (type.equals("default"))
+	    {
+		type = defaultInfraLayer;
+	    }
+
+	ICartagoInfrastructureTopologyLayer service;
+	ICartagoInfrastructureLayer supportingService = infraLayers.get(type);
+	if (CartagoService.topologyService == null && supportingService  != null)
+	    {
+		try
+		    {
+			Class<ICartagoInfrastructureTopologyLayer> serviceClass = (Class<ICartagoInfrastructureTopologyLayer>) Class.forName("cartago.infrastructure."+type+".topology.CartagoInfrastructureTopologyLayer");
+			service = serviceClass.newInstance();
+			CartagoService.topologyService = service;
+			service.setCentralNodeAddress(centralNodeAddress);
+		    }
+		catch (Exception ex)
+		    {
+			ex.printStackTrace();
+			throw new CartagoException("Invalid infrastructure layer: "+type);
+		    }
+	    }
+	else
+	    {
+		throw new CartagoException("Infrastructure layer "+type+"/topology cannot be installed");
+	    }
+    }	
+
+
+    
 	/**
 	 * Install a CArtAgO infrastructure layer, to enable interaction with remote nodes.
 	 * 
@@ -199,10 +248,32 @@ public class CartagoService {
 	
 	// service management
 
-    //this is only excecuted
-    public static synchronized void startInfrastructureCentralNode()
+    //this is only excecuted by the central node
+    public static synchronized void startInfrastructureCentralNodeService(String type, String address) throws CartagoException
     {
-	//code goes here
+	if(CartagoService.topologyService == null)
+	    throw new CartagoException("Infrastructure layer "+type+".topology not installed");
+	
+	startInfrastructureService(type, address);
+
+	try
+	    {
+		if (type.equals("default"))
+		    type = defaultInfraLayer;
+		//CartagoService.topologyService.setCentralNodeAddress(address);
+		ICartagoInfrastructureLayer service = infraLayers.get(type);
+		WorkspaceId rootWspId = service.getMainWorkspace(address);
+		NodeId nId =  service.getNodeAt(address);
+		CartagoService.topologyService.startTopologyService(address, rootWspId, nId);
+		
+		
+	    }
+	catch(Exception ex)
+	    {
+		throw new CartagoException("Infrastructure layer service failure: "+type+".topology");
+	    }
+	
+	
     }
 
     
@@ -215,21 +286,53 @@ public class CartagoService {
 	 * @param address address of the service. 
 	 * @throws CartagoException if the start fails
 	 */
-	public static synchronized void startInfrastructureService(String type, String address) throws CartagoException {
+    public static synchronized void startInfrastructureService(String type, String address) throws CartagoException {
 		if (type.equals("default")){
 			type = defaultInfraLayer;
 		}
 		ICartagoInfrastructureLayer service = infraLayers.get(type);
-		if (service != null){
+		if (service != null){		    
 			try {
 				service.startService(instance,address);
+				
+				//check topology service and mount node
+				
+				
 			} catch (Exception ex){
 				throw new CartagoException("Infrastructure layer service failure: "+type);
 			}
 		} else {
 			throw new CartagoException("Infrastructure layer "+type+"not installed");
 		}
-	}	
+	}
+
+    //topology version
+    public static synchronized void startInfrastructureService(String type, String address, String defaultWspMountPath) throws CartagoException {
+	if (type.equals("default")){
+	    type = defaultInfraLayer;
+	}
+	ICartagoInfrastructureLayer service = infraLayers.get(type);
+	if (service != null){
+	    if(CartagoService.topologyService == null)
+		{
+		    throw new CartagoException("Infrastructure layer service failure: "+type+".topology");
+		}
+	    try {
+		service.startService(instance,address);
+
+		//the order of the mounting is important on deployment
+		CartagoService.topologyService.mountNode(defaultWspMountPath, address);
+				
+				
+	    } catch (Exception ex){
+		throw new CartagoException("Infrastructure layer service failure: "+type);
+	    }
+	} else {
+	    throw new CartagoException("Infrastructure layer "+type+"not installed");
+	}
+    }	
+
+    
 
 	/**
 	 * Start a CArtAgO infrastructure service, to allow remote agents to work on this node using the specified protocol.
@@ -613,8 +716,7 @@ public class CartagoService {
 	public static void main(String[] args){
 		try {
 			System.out.println("CArtAgO Infrastructure v."+CARTAGO_VERSION.getID()+ " - DISI, University of Bologna, Italy.");
-			WorkspaceTree tree = new WorkspaceTree();
-			CartagoService.startNode("main", tree);
+			CartagoService.startNode("main");
 			CartagoService.installInfrastructureLayer("default");
 			if (hasOption(args,"-infra")){
 				String address = getParam(args,"-address");

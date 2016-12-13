@@ -72,6 +72,16 @@ public interface ICartagoInfrastructureLayer {
 	 */
 	NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException;
 
+    /**
+	 * Get the identifier of the main workpace of a CArtAgo node running at the specified address, necessary to topology managment
+	 * 
+	 * @param address address of the node
+	 * @return
+	 * @throws CartagoInfrastructureLayerException
+	 * @throws CartagoException
+	 */
+        WorkspaceId getMainWorkspace(String address) throws CartagoInfrastructureLayerException, CartagoException;
+
 	/**
 	 * Shutdown the layer
 	 * 

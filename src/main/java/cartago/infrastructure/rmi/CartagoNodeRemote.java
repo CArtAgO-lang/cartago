@@ -146,6 +146,11 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 		return node.getId();
 	}
 
+      public WorkspaceId getMainWorkspaceId() throws CartagoException, RemoteException
+    {
+	return node.getMainWorkspace().getId();
+    }
+
 
 	
 	

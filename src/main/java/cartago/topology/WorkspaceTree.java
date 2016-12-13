@@ -39,34 +39,15 @@ public class WorkspaceTree implements java.io.Serializable
     private HashMap<NodeId, String> mapNodes; //to know which address corresponds to a node
 
     
-    //remote version
-    public void mountRoot(CartagoNode context, String rootWspAddress) throws TopologyException
-    {
-	if(this.root != null)
-	    throw new TopologyException("cannot mount root, already present");
-	
-	try
-	    {
-		mapIds = new  HashMap<WorkspaceId, TreeNode>();
-		
-		CartagoWorkspace wsp = context.createWorkspace("main");
-		this.root = new TreeNode(wsp.getId(), context.getId(), rootWspAddress);
-		mapIds.put(wsp.getId(), this.root);
-	    }
-	catch(CartagoException ex)
-	    {
-		ex.printStackTrace();
-	    }
-    }
 
-    //local version
-    public void mountRoot(WorkspaceId wsid, String rootWspAddress) throws TopologyException
+
+    public void mountRoot(NodeId nId, WorkspaceId wsid, String rootWspAddress) throws TopologyException
     {
 	if(this.root != null)
 	    throw new TopologyException("cannot mount root, already present");
 	
 	mapIds = new  HashMap<WorkspaceId, TreeNode>();
-	this.root = new TreeNode(wsid, null, "localhost");
+	this.root = new TreeNode(wsid, nId, rootWspAddress);
 	mapIds.put(wsid, this.root);
 	    
     }
@@ -147,14 +128,39 @@ public class WorkspaceTree implements java.io.Serializable
     }
 
 
+    //mounts the main workspace of a node
+    public void mountNode(String path, WorkspaceId wsid, NodeId nId, String address)  throws TopologyException
+    {
 
+	String parentPath = pathToParent(path);
+	if(root != null && parentPath.equals(""))
+	    throw new TopologyException("Cannot mount on root path");
+	
+	    
+	if(parentPath.equals(""))
+	    {	   
+		throw new TopologyException("Cannot mount on root");
+	    }
+	else
+	    {
+		TreeNode parent = getNodeFromPath(parentPath);
+		String newName = path.substring(path.lastIndexOf("/")+1);
+
+		TreeNode newNode = new TreeNode(wsid, nId, address); //
+
+		parent.addChild(newNode);
+
+		mapIds.put(wsid, newNode);
+	    }
+	    
+    }
     
     public void mount(String path, WorkspaceId wsid) throws TopologyException
     {
 	String parentPath = pathToParent(path);
 	if(root != null && parentPath.equals(""))
 	    throw new TopologyException("Cannot mount on root path");
-
+	
 	    
 	if(parentPath.equals("")) //crea
 	    {	   
@@ -165,11 +171,11 @@ public class WorkspaceTree implements java.io.Serializable
 		TreeNode parent = getNodeFromPath(parentPath);
 		String newName = path.substring(path.lastIndexOf("/")+1);
 
-		TreeNode newNode = new TreeNode(wsid, parent.getNodeId(), "localhost"); //
-
-		//more code to create a conection with the node corresponding to address so the workspace is created there
+		TreeNode newNode = new TreeNode(wsid, parent.getNodeId(), parent.getAddress()); 
 
 		parent.addChild(newNode);
+
+		mapIds.put(wsid, newNode);
 
 	    }
     }

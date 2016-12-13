@@ -20,6 +20,8 @@ import cartago.Op;
 import cartago.OpId;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
+import cartago.WorkspaceId;
+import cartago.CartagoException;
 
 /**
  * 
@@ -38,6 +40,12 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		mKeepAliveAgent = new KeepRemoteBodyAliveManagerAgent(mRemoteCtxs,500);
 		mKeepAliveAgent.start();
 	}
+
+    //dummy impl
+    public WorkspaceId getMainWorkspace(String address) throws CartagoInfrastructureLayerException, CartagoException
+    {
+	return null;
+    }
 	
 	@Override
 	public OpId execRemoteInterArtifactOp(ICartagoCallback callback,

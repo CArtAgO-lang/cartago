@@ -32,6 +32,7 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import cartago.WorkspaceId;
+import cartago.NodeId;
 
 public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTreeRemote
 {
@@ -51,10 +52,10 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
 	return this.tree.getNodeAddressFromPath(path);
     }
     
-    public void installTree(String address, int port) throws Exception
+    public void installTree(String fullAddress, WorkspaceId wId, NodeId nId) throws Exception
     {
+	this.tree.mountRoot(nId, wId, fullAddress);
 	//the registry shoud be already created for the node
-	fullAddress = address+":"+port;
 	Naming.bind("rmi://"+fullAddress+"/tree", this);
     }
     
@@ -66,6 +67,23 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
     public WorkspaceTree getTree()
     {
 	return this.tree;
+    }
+
+    public void shutdownService()
+    {
+	try
+	    {
+		Naming.unbind("rmi://"+this.fullAddress+"/tree");
+	    }
+	catch (Exception ex)
+	    {
+		ex.printStackTrace();
+	    }
+    }
+
+    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException
+    {
+	this.tree.mountNode(wspPath, wsId, nId, address);
     }
 
 }

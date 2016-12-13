@@ -52,12 +52,11 @@ public class CartagoNode {
 
     
     //version with new topology support
-    CartagoNode(String wspPath, WorkspaceTree tree) throws CartagoException {
+    CartagoNode(String wspPath) throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// creates a main workspace with a specified name and add it to tree
 	   
-		this.tree = tree;
 
 		String simpleName = wspPath;
 		if(wspPath.contains("/"))
@@ -66,7 +65,10 @@ public class CartagoNode {
 		this.mainWorkspace = createWorkspace(simpleName);	      				  				
 	}
 
-        
+    public CartagoWorkspace getMainWorkspace()
+    {
+	return this.mainWorkspace;
+    }
 
 	CartagoNode(ICartagoLogger logger) throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();

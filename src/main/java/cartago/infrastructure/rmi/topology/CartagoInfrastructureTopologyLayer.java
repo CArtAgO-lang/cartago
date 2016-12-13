@@ -34,16 +34,25 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.util.Collection;
+import cartago.infrastructure.rmi.topology.CartagoTreeRemote;
+import cartago.WorkspaceId;
+import cartago.NodeId;
 
 
 public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructureTopologyLayer
 {
 
     private String centralNodeAddress; //to know where is the central node
+    private CartagoTreeRemote service;
 
     public CartagoInfrastructureTopologyLayer(String centralNodeAddress)
     {
 	this.centralNodeAddress = centralNodeAddress;
+    }
+
+    public CartagoInfrastructureTopologyLayer()
+    {
+
     }
 
 
@@ -77,7 +86,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 	    }
     }
     
-    public synchronized WorkspaceTree mount(String wspPath) throws TopologyException, CartagoInfrastructureLayerException
+    public synchronized void mount(String wspPath) throws TopologyException, CartagoInfrastructureLayerException
     {
 	//get parent path
 	String pAux = wspPath;
@@ -101,7 +110,6 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 
 		syncTrees(tr.getTree());
 		
-		return tr.getTree();
 
 	    }
 	catch (RemoteException ex)
@@ -121,4 +129,86 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 	    }
 
     }
+
+    public void startTopologyService(String address, WorkspaceId wId, NodeId nId) throws CartagoInfrastructureLayerException
+    {
+	if(service != null)
+	    {
+		throw new CartagoInfrastructureLayerException();
+	    }
+	try
+	    {
+		WorkspaceTree tree = new WorkspaceTree();
+		service = new CartagoTreeRemote(tree);
+		service.installTree(address, wId, nId);
+	    }
+	catch (Exception ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+    }
+
+    public boolean isTopologyServiceRunning()
+    {
+	return this.service != null;
+    }
+
+    public void shutdownService() 
+    {
+	if(this.service != null)
+	    {
+		this.service.shutdownService();
+		this.service = null;
+	    }
+
+    }
+
+    public String getCentralNodeAddress()
+    {
+	return this.centralNodeAddress;
+    }
+
+    public void setCentralNodeAddress(String centralNodeAddress)
+    {
+	this.centralNodeAddress = centralNodeAddress;
+    }
+
+    //the node shoud be alredy be created 
+    public void mountNode(String wspPath, String address) throws TopologyException, CartagoInfrastructureLayerException
+    {
+	try
+	    {
+		CartagoTreeRemote tr = (CartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
+		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+address+"/cartago_node");
+		String newName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+
+		//workspace already created
+		//CartagoWorkspace wsp = env.createWorkspace(newName);
+
+		
+		tr.mountNode(wspPath, env.getMainWorkspaceId(), env.getNodeId(), address);
+
+		syncTrees(tr.getTree());
+		
+
+
+	    }
+	catch (RemoteException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+	catch (NotBoundException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+	catch (Exception ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+    }
+    
 }

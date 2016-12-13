@@ -94,6 +94,28 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
 
+    public WorkspaceId getMainWorkspace(String address) throws CartagoInfrastructureLayerException, CartagoException
+    {
+	try {
+	    String fullAddress = address;
+	    if (getPort(address)==-1){
+		fullAddress = address+":"+DEFAULT_PORT;
+	    }
+	    ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+fullAddress+"/cartago_node");
+	    return env.getMainWorkspaceId();		
+	} catch (RemoteException ex) {
+	    ex.printStackTrace();
+	    throw new CartagoInfrastructureLayerException();
+	} catch (NotBoundException ex) {
+	    ex.printStackTrace();
+	    throw new CartagoInfrastructureLayerException();
+	} catch (MalformedURLException ex){
+	    ex.printStackTrace();
+	    throw new CartagoInfrastructureLayerException();
+	}		
+    }
+								    
+    
 	public NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException {
 		try {
 			String fullAddress = address;

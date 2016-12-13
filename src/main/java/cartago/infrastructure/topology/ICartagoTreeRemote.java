@@ -23,6 +23,7 @@ import cartago.topology.WorkspaceTree;
 import cartago.topology.TopologyException;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.WorkspaceId;
+import cartago.NodeId;
 
 
 /**
@@ -36,4 +37,5 @@ Interface to implement a central remote workspace tree
 public interface ICartagoTreeRemote
 {
     public void mount(String wspPath, WorkspaceId wsId) throws TopologyException;
+    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException;
 }

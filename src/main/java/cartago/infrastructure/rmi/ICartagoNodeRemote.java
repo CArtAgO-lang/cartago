@@ -44,6 +44,7 @@ public interface ICartagoNodeRemote extends Remote {
 	
 	NodeId getNodeId() throws CartagoException, RemoteException;
 
+    WorkspaceId getMainWorkspaceId() throws CartagoException, RemoteException;
     //added by xavier
     CartagoWorkspace createWorkspace(String wspName) throws CartagoException;
 
