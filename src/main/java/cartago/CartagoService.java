@@ -56,6 +56,12 @@ public class CartagoService {
 	private static List<LinkedNodeInfo> linkedNodes = new LinkedList<LinkedNodeInfo>();
 
 
+    public static void printTree()
+    {
+	WorkspaceTree wt = CartagoService.instance.getTree();
+	wt.printTree();
+    }
+    
     public static synchronized void mount(String mountPoint) throws CartagoException
     {
 	if(CartagoService.topologyService == null)

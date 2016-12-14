@@ -49,8 +49,10 @@ public class WorkspaceTree implements java.io.Serializable
 	mapIds = new  HashMap<WorkspaceId, TreeNode>();
 	this.root = new TreeNode(wsid, nId, rootWspAddress);
 	mapIds.put(wsid, this.root);
+	mapNodes.put(nId, rootWspAddress);
 	    
     }
+    
 
     public WorkspaceTree()
     {
@@ -85,8 +87,9 @@ public class WorkspaceTree implements java.io.Serializable
     {
 	String[] parts = path.split("/");
 	TreeNode current = this.root;
-	for(String n : parts)
+	for(int i = 1; i < parts.length; i++) //first part is root
 	    {
+		String n = parts[i];
 		current = current.getChildren().get(n);
 		if(current == null)
 		    return null;
@@ -133,6 +136,9 @@ public class WorkspaceTree implements java.io.Serializable
     {
 
 	String parentPath = pathToParent(path);
+
+
+	
 	if(root != null && parentPath.equals(""))
 	    throw new TopologyException("Cannot mount on root path");
 	
@@ -143,7 +149,12 @@ public class WorkspaceTree implements java.io.Serializable
 	    }
 	else
 	    {
+		
 		TreeNode parent = getNodeFromPath(parentPath);
+
+		if(parent == null)
+		    throw new TopologyException("Invalid mount path");
+		
 		String newName = path.substring(path.lastIndexOf("/")+1);
 
 		TreeNode newNode = new TreeNode(wsid, nId, address); //
@@ -151,6 +162,8 @@ public class WorkspaceTree implements java.io.Serializable
 		parent.addChild(newNode);
 
 		mapIds.put(wsid, newNode);
+
+		mapNodes.put(nId, address);
 	    }
 	    
     }
@@ -195,10 +208,30 @@ public class WorkspaceTree implements java.io.Serializable
     {
 	ArrayList<String> res = new ArrayList<String>();
 
+	
 	for(NodeId aux : mapNodes.keySet())
 	    {
 		res.add(mapNodes.get(aux));
 	    }
 	return res;
     }
+
+    private void printTree(TreeNode current, int spaces)
+    {
+	for(int i = 0; i < spaces*3; i++)
+	    {
+		System.out.print(" ");
+	    }
+	System.out.println("| " + current.getName());
+	for(TreeNode aux : current.getChildren().values())
+	    {
+		printTree(aux, spaces+1);
+	    }
+    }
+
+    public void printTree()
+    {
+	printTree(this.root, 0);
+    }
+    
 }

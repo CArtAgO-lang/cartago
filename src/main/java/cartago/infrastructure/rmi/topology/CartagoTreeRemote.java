@@ -48,7 +48,7 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
     }
     
 
-    public String getNodeAddressFromPath(String path) throws TopologyException
+    public String getNodeAddressFromPath(String path) throws TopologyException, RemoteException
     {
 	return this.tree.getNodeAddressFromPath(path);
     }
@@ -65,7 +65,7 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
 	this.tree.mount(wspPath, wspId);
     }
 
-    public WorkspaceTree getTree()
+    public WorkspaceTree getTree() throws RemoteException
     {
 	return this.tree;
     }

@@ -66,6 +66,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		    {
 			ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+ad+"/cartago_node");
 			env.setTree(tCen);
+			System.out.println("Tree updated");
 		    }
 		catch (RemoteException ex)
 		    {
@@ -97,16 +98,16 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 	try
 	    {
 
-		CartagoTreeRemote tr = (CartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
+		ICartagoTreeRemote tr = (ICartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
 
 		String rmiAddress = tr.getNodeAddressFromPath(pAux);
 		
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+rmiAddress+"/cartago_node");
 		String newName = wspPath.substring(wspPath.lastIndexOf("/")+1);
-		CartagoWorkspace wsp = env.createWorkspace(newName);
+		WorkspaceId wsp = env.createWorkspace(newName);
 
 		//get WorkspaceTree
-		tr.mount(wspPath, wsp.getId());
+		tr.mount(wspPath, wsp);
 
 		syncTrees(tr.getTree());
 		
@@ -141,6 +142,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		WorkspaceTree tree = new WorkspaceTree();
 		service = new CartagoTreeRemote(tree);
 		service.installTree(address, wId, nId);
+		syncTrees(tree); //add this tree to root node
 	    }
 	catch (Exception ex)
 	    {
@@ -179,7 +181,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
     {
 	try
 	    {
-		CartagoTreeRemote tr = (CartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
+		ICartagoTreeRemote tr = (ICartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+address+"/cartago_node");
 		String newName = wspPath.substring(wspPath.lastIndexOf("/")+1);
 
