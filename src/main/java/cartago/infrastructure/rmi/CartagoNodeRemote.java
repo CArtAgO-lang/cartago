@@ -93,13 +93,13 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 		return proxy;		
 	}
 
-    public CartagoWorkspace createWorkspace(String wspName) throws CartagoException
+    public CartagoWorkspace createWorkspace(String wspName) throws CartagoException, RemoteException
     {
 	
 	return this.node.createWorkspace(wspName);
     }
 
-    public void setTree(WorkspaceTree tree)
+    public void setTree(WorkspaceTree tree) throws RemoteException
     {
 	this.node.setTree(tree);
     }

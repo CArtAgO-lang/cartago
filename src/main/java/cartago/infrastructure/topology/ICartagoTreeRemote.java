@@ -24,7 +24,8 @@ import cartago.topology.TopologyException;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.WorkspaceId;
 import cartago.NodeId;
-
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 /**
 Interface to implement a central remote workspace tree
@@ -34,8 +35,8 @@ Interface to implement a central remote workspace tree
 
 
 
-public interface ICartagoTreeRemote
+public interface ICartagoTreeRemote extends Remote
 {
-    public void mount(String wspPath, WorkspaceId wsId) throws TopologyException;
-    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException;
+    public void mount(String wspPath, WorkspaceId wsId) throws TopologyException, RemoteException;
+    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException, RemoteException;
 }

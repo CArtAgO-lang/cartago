@@ -33,6 +33,7 @@ import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import cartago.WorkspaceId;
 import cartago.NodeId;
+import java.rmi.RemoteException;
 
 public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTreeRemote
 {
@@ -59,7 +60,7 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
 	Naming.bind("rmi://"+fullAddress+"/tree", this);
     }
     
-    public void mount(String wspPath, WorkspaceId wspId) throws TopologyException
+    public void mount(String wspPath, WorkspaceId wspId) throws TopologyException, RemoteException
     {
 	this.tree.mount(wspPath, wspId);
     }
@@ -81,7 +82,7 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
 	    }
     }
 
-    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException
+    public void mountNode(String wspPath, WorkspaceId wsId, NodeId nId, String address) throws TopologyException, RemoteException
     {
 	this.tree.mountNode(wspPath, wsId, nId, address);
     }

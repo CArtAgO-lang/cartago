@@ -56,6 +56,8 @@ task generateRMIstubs(type:Exec, dependsOn: classes) {
   	commandLine 'rmic', '-classpath', '.', 'cartago.infrastructure.rmi.AgentBodyRemote'
   	commandLine 'rmic', '-classpath', '.', 'cartago.infrastructure.rmi.CartagoNodeRemote'
   	commandLine 'rmic', '-classpath', '.', 'cartago.infrastructure.rmi.CartagoCallbackRemote'
+	commandLine 'rmic', '-classpath', '.', 'cartago.infrastructure.rmi.topology.CartagoTreeRemote'
+	
 }
 
 task cartagoJar(type: Jar, dependsOn: [ classes, generateRMIstubs ]) {
