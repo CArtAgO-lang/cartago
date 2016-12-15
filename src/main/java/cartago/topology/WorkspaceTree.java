@@ -36,7 +36,7 @@ public class WorkspaceTree implements java.io.Serializable
 {
     private TreeNode root;
     private HashMap<WorkspaceId, TreeNode> mapIds; //to easly retrive TreeNodes from workspaceIds   
-    private HashMap<NodeId, String> mapNodes; //to know which address corresponds to a node
+    private HashMap<NodeId, String> mapNodes; //to know which address corresponds to a cartago node
 
     
 
@@ -118,6 +118,10 @@ public class WorkspaceTree implements java.io.Serializable
 	return retrievePath(node);
     }
 
+    
+    
+    
+
     //returns the parent's path
     private String pathToParent(String path) throws TopologyException
     {
@@ -198,6 +202,7 @@ public class WorkspaceTree implements java.io.Serializable
 	    TreeNode node = this.mapIds.get(id);
 	    return node.getAddress();
 	}
+
 
 	public void setAddressRoot(String address)
 	{

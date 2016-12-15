@@ -89,13 +89,15 @@ public class CartagoEnvironment extends Environment {
 			try {
 			    //create main
 			    // if (debug){
-					 Inspector insp = new Inspector();
-					 insp.start();
-					 CartagoService.startNode(insp.getLogger());
+			    //Inspector insp = new Inspector();
+					 //insp.start();
+					 //CartagoService.startNode(insp.getLogger());
 					 //	 }
 
-				
+			        CartagoService.startNode("main");
 				CartagoService.installInfrastructureLayer("default");
+				CartagoService.installTopologyLayer("default", "localhost:8090");
+				CartagoService.startInfrastructureCentralNodeService("default", "localhost:8090");				
 				checkProtocols(args);
 				logger.info("CArtAgO Environment - standalone setup succeeded.");
 			} catch (Exception ex){
@@ -105,7 +107,10 @@ public class CartagoEnvironment extends Environment {
 		} else if (infrastructure){
 			try {
 			    
-			        CartagoService.startNode();
+			        CartagoService.startNode("main");
+				CartagoService.installInfrastructureLayer("default");
+				CartagoService.installTopologyLayer("default", "localhost:8090");
+				CartagoService.startInfrastructureCentralNodeService("default", "localhost:8090");
 				checkProtocols(args);
 				int nserv = checkServices(args);
 				/*
@@ -132,7 +137,10 @@ public class CartagoEnvironment extends Environment {
 				wspAddress = args[2];
 			}
 			try {
+				CartagoService.startNode(wspName);
 				CartagoService.installInfrastructureLayer("default");
+				CartagoService.installTopologyLayer("default", "localhost:8090");
+				CartagoService.startInfrastructureCentralNodeService("default", wspAddress);
 				checkProtocols(args);
 
 				logger.info("CArtAgO Environment - remote setup succeeded - Joining a remote workspace: "+wspName+"@"+wspAddress);

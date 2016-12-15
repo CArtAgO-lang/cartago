@@ -57,7 +57,7 @@ public class NodeArtifact extends Artifact {
 		    if(tree.inSameCartagoNode(wspPath, artifactWorkspacePath))
 			joinLocalWorkspace(simpleName, res);
 		    else
-			joinRemoteWorkspace(simpleName, tree.getIdAddress(wId), res);
+			joinRemoteWorkspace(simpleName, tree.getNodeAddressFromPath(wspPath), res);
 		}
 	    catch(TopologyException ex)
 		{
@@ -186,13 +186,28 @@ public class NodeArtifact extends Artifact {
 			failed("Join Workspace error");
 		}
 	}
-	
+
+
+    @OPERATION void mount(String mountPoint)
+    {
+	try
+	    {
+		CartagoService.mount(mountPoint);
+		//observable property pendant check create workspace bellow
+	    }
+	catch(CartagoException ex)
+	    {
+		failed("Mount failed");
+	    }
+    }
+    
 	/**
 	 * Create a workspace in the local node.
 	 * 
 	 * @param name name of the workspace
 	 */
-	@OPERATION void createWorkspace(String name){
+    //no longer supported
+	 void createWorkspace(String name){
 		try {
 			CartagoWorkspace wsp = env.getNode().createWorkspace(name);
 			defineObsProperty("workspace",name,wsp.getId());
@@ -248,7 +263,9 @@ public class NodeArtifact extends Artifact {
 	 * 
 	 * @param name name of the workspace
 	 */
-	@OPERATION void createWorkspace(String name, ICartagoLogger logger){
+
+        //no longer supported
+	void createWorkspace(String name, ICartagoLogger logger){
 		try {
 			CartagoWorkspace wsp = env.getNode().createWorkspace(name,logger);
 			defineObsProperty("workspace",name,wsp.getId());

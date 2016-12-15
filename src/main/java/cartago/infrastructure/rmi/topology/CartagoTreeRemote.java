@@ -60,7 +60,7 @@ public class CartagoTreeRemote extends UnicastRemoteObject implements ICartagoTr
 	Naming.bind("rmi://"+fullAddress+"/tree", this);
     }
     
-    public void mount(String wspPath, WorkspaceId wspId) throws TopologyException, RemoteException
+    public synchronized void mount(String wspPath, WorkspaceId wspId) throws TopologyException, RemoteException
     {
 	this.tree.mount(wspPath, wspId);
     }
