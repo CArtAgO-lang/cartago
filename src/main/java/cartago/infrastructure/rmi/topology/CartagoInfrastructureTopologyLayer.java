@@ -37,7 +37,7 @@ import java.util.Collection;
 import cartago.infrastructure.rmi.topology.CartagoTreeRemote;
 import cartago.WorkspaceId;
 import cartago.NodeId;
-
+import cartago.topology.Utils;
 
 public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructureTopologyLayer
 {
@@ -91,8 +91,8 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
     {
 	//get parent path
 	String pAux = wspPath;
-	if(pAux.contains("/"))
-	    pAux = pAux.substring(0, pAux.lastIndexOf("/"));
+	if(pAux.contains(Utils.getSeparationToken()))
+	    pAux = Utils.parentPath(pAux);
 	//get address to locate remote node from parent		
 	
 	try
@@ -103,7 +103,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		String rmiAddress = tr.getNodeAddressFromPath(pAux);
 		
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+rmiAddress+"/cartago_node");
-		String newName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		String newName = Utils.createSimpleName(wspPath);
 		WorkspaceId wsp = env.createWorkspace(newName);
 
 		//get WorkspaceTree
@@ -176,14 +176,14 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 	this.centralNodeAddress = centralNodeAddress;
     }
 
-    //the node shoud be alredy be created 
+    //the node shoud alredy be created 
     public void mountNode(String wspPath, String address) throws TopologyException, CartagoInfrastructureLayerException
     {
 	try
 	    {
 		ICartagoTreeRemote tr = (ICartagoTreeRemote)Naming.lookup("rmi://"+this.centralNodeAddress+"/tree");
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+address+"/cartago_node");
-		String newName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		String newName = Utils.createSimpleName(wspPath);
 
 		//workspace already created
 		//CartagoWorkspace wsp = env.createWorkspace(newName);

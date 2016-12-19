@@ -19,6 +19,7 @@ package cartago;
 
 import cartago.topology.TopologyException;
 import cartago.topology.WorkspaceTree;
+import cartago.topology.Utils;
 
 /**
  * Artifact providing functionalities 
@@ -52,8 +53,8 @@ public class NodeArtifact extends Artifact {
 		{
 		    String artifactWorkspacePath = tree.getIdPath(wId);
 		    String simpleName = wspPath;
-		    if(wspPath.contains("/"))
-			simpleName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		    if(wspPath.contains(Utils.getSeparationToken()))
+			simpleName = Utils.createSimpleName(wspPath);
 		    if(tree.inSameCartagoNode(wspPath, artifactWorkspacePath))
 			joinLocalWorkspace(simpleName, res);
 		    else

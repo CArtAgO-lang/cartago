@@ -22,7 +22,7 @@ import java.util.*;
 import cartago.tools.inspector.Inspector;
 import cartago.topology.WorkspaceTree;
 import cartago.topology.TopologyException;
-
+import cartago.topology.Utils;
 
 /**
  * Class representing a CArtAgO node.
@@ -59,8 +59,8 @@ public class CartagoNode {
 	   
 
 		String simpleName = wspPath;
-		if(wspPath.contains("/"))
-		    simpleName = wspPath.substring(wspPath.lastIndexOf("/")+1);
+		if(wspPath.contains(Utils.getSeparationToken()))
+		    simpleName = Utils.createSimpleName(wspPath);
 		//this workspace should be mounted later
 		this.mainWorkspace = createWorkspace(simpleName);	      				  				
 	}

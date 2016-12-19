@@ -64,6 +64,7 @@ public class WorkspaceTree implements java.io.Serializable
     //checks if two workspaces are on the same CartagoNode
     public boolean inSameCartagoNode(String path1, String path2) throws TopologyException
     {
+	
 	TreeNode n1 = getNodeFromPath(path1);
 	TreeNode n2 = getNodeFromPath(path2);
 	if(n1 == null || n2 == null)
@@ -85,7 +86,8 @@ public class WorkspaceTree implements java.io.Serializable
     //returns null if wrong path
     private TreeNode getNodeFromPath(String path)
     {
-	String[] parts = path.split("/");
+
+	String[] parts = path.split(Utils.getSeparationTokenEscaped());
 	TreeNode current = this.root;
 	for(int i = 1; i < parts.length; i++) //first part is root
 	    {
@@ -105,7 +107,7 @@ public class WorkspaceTree implements java.io.Serializable
 	while(aux.getParent() != null)
 	    {		
 		aux = aux.getParent();
-		res += aux.getName() + "/" + res;
+		res += aux.getName() + Utils.getSeparationToken() + res;
 	    }
 	return res;
     }
@@ -125,13 +127,11 @@ public class WorkspaceTree implements java.io.Serializable
     //returns the parent's path
     private String pathToParent(String path) throws TopologyException
     {
-	if(!path.contains("/")) //is root or invalid
-	    {
-		if(this.root.getName().equals(path))
-		    return ""; //no parent
-		throw new TopologyException("Invalid path");
-	    }
-	return path.substring(0, path.lastIndexOf("/"));
+	String paPa = Utils.parentPath(path);
+	if(paPa.equals("") && !this.root.getName().equals(path))
+	    throw new TopologyException("Invalid path");
+	
+	return paPa;
     }
 
 
@@ -159,7 +159,7 @@ public class WorkspaceTree implements java.io.Serializable
 		if(parent == null)
 		    throw new TopologyException("Invalid mount path");
 		
-		String newName = path.substring(path.lastIndexOf("/")+1);
+		String newName = Utils.createSimpleName(path);
 
 		TreeNode newNode = new TreeNode(wsid, nId, address); //
 
@@ -186,7 +186,7 @@ public class WorkspaceTree implements java.io.Serializable
 	else
 	    {
 		TreeNode parent = getNodeFromPath(parentPath);
-		String newName = path.substring(path.lastIndexOf("/")+1);
+		String newName = Utils.createSimpleName(path);
 
 		TreeNode newNode = new TreeNode(wsid, parent.getNodeId(), parent.getAddress()); 
 
