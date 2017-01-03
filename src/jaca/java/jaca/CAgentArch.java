@@ -691,8 +691,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					prop.getValues()[1] = art;
 				}*/
 			} else if ("joined".equals(prop.getName())) {
-				prop.getValues()[0] = ASSyntax.parseTerm(prop.getValue(0).toString()); // to consider the use of namespaces in the art id
+			    Object aux = prop.getValues()[0];
+			    prop.getValues()[0] = ASSyntax.parseTerm(prop.getValue(2).toString()); //add full path on the believe
+				// to consider the use of namespaces in the art id
 				prop.getValues()[1] = lib.objectToTerm(prop.getValue(1));
+				prop.getValues()[2] = ASSyntax.parseTerm(aux.toString());
 			}
 		}
 		return nsp;

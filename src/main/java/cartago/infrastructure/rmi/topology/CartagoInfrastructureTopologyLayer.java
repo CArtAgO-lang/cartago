@@ -103,8 +103,9 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		String rmiAddress = tr.getNodeAddressFromPath(pAux);
 		
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+rmiAddress+"/cartago_node");
-		String newName = Utils.createSimpleName(wspPath);
-		WorkspaceId wsp = env.createWorkspace(newName);
+		//String newName = Utils.createSimpleName(wspPath);
+		WorkspaceId wsp = env.createWorkspace(wspPath);		
+		wsp.setFullPath(wspPath); //agregar path completo
 
 		//get WorkspaceTree
 		tr.mount(wspPath, wsp);

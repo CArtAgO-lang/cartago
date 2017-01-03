@@ -29,6 +29,7 @@ public class WorkspaceId implements Serializable {
 	private String name;
 	private NodeId nodeId;
 	private int hashCode;
+        private String fullPath; 
 	
 	WorkspaceId(String name, NodeId id){
 		this.name = name;
@@ -72,6 +73,17 @@ public class WorkspaceId implements Serializable {
 	}
 	
 	public String toString(){
-		return name;
+		return this.fullPath;
 	}
+
+    public String getFullPath()
+    {
+	return this.fullPath;
+    }
+
+    public void setFullPath(String fullPath)
+    {
+	this.fullPath = fullPath;
+    }
+    
 }

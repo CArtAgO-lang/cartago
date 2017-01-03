@@ -189,7 +189,7 @@ public class NodeArtifact extends Artifact {
 	}
 
 
-    @OPERATION void mount(String mountPoint)
+    @OPERATION void createWorkspace(String mountPoint)
     {
 	try
 	    {
@@ -198,7 +198,7 @@ public class NodeArtifact extends Artifact {
 	    }
 	catch(CartagoException ex)
 	    {
-		failed("Mount failed");
+		failed("Create workspace failed");
 	    }
     }
     
@@ -208,14 +208,14 @@ public class NodeArtifact extends Artifact {
 	 * @param name name of the workspace
 	 */
     //no longer supported
-	 void createWorkspace(String name){
+    /*void createWorkspace(String name){
 		try {
 			CartagoWorkspace wsp = env.getNode().createWorkspace(name);
 			defineObsProperty("workspace",name,wsp.getId());
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
-	}
+		}*/
 
 	/**
 	 * Experimental support for topology

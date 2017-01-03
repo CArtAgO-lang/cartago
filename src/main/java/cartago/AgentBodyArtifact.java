@@ -9,7 +9,7 @@ public class AgentBodyArtifact extends Artifact {
 	
 	@OPERATION void init(AgentBody body){
 		this.body = body;
-		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
+		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId(), body.getWorkspaceId().getFullPath()); 
 	}
 	
 	

@@ -62,7 +62,8 @@ public class CartagoNode {
 		if(wspPath.contains(Utils.getSeparationToken()))
 		    simpleName = Utils.createSimpleName(wspPath);
 		//this workspace should be mounted later
-		this.mainWorkspace = createWorkspace(simpleName);	      				  				
+		this.mainWorkspace = createWorkspace(simpleName);
+		this.mainWorkspace.getId().setFullPath(wspPath);
 	}
 
     public CartagoWorkspace getMainWorkspace()
@@ -93,11 +94,13 @@ public class CartagoNode {
 	 * @param name workspace name
 	 * @return
 	 */
-	public synchronized CartagoWorkspace createWorkspace(String name) throws CartagoException {
+	public synchronized CartagoWorkspace createWorkspace(String wspPath) throws CartagoException {
+	        String name = Utils.createSimpleName(wspPath);
 		CartagoWorkspace wsp = wsps.get(name);		
-		if (wsp==null){
+		if (wsp==null){		        
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
 			wsp = new CartagoWorkspace(wid,this);
+			wsp.getId().setFullPath(wspPath);
 			wsps.put(name, wsp);
 			return wsp;
 		} else {
