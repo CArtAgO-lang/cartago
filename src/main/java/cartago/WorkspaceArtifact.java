@@ -173,7 +173,8 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
-	@OPERATION void quitWorkspace() {
+    //@OPERATION moved to NodeArtifact
+	void quitWorkspace() {
 		try {
 			OpExecutionFrame opFrame = this.getOpFrame();
 			wspKernel.quitAgent(opFrame.getAgentId());

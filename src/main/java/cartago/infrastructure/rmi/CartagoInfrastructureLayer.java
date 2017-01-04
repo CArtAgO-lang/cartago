@@ -209,4 +209,29 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		
 	}
 
+    @Override
+    public void quitWorkspace(String address, String wspName, AgentId id) throws CartagoException
+    {
+	try
+	    {
+		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+address+"/cartago_node");
+		env.quit(wspName, id);
+	    }
+	catch (RemoteException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoException("Remote problems in quitWorkspace");
+	    }
+	catch (NotBoundException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+	catch (MalformedURLException ex)
+	    {
+		ex.printStackTrace();
+		throw new CartagoInfrastructureLayerException();
+	    }
+    }
+
 }

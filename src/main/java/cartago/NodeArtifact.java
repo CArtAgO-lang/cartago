@@ -194,7 +194,7 @@ public class NodeArtifact extends Artifact {
 	try
 	    {
 		CartagoService.mount(mountPoint);
-		//observable property pendant check create workspace bellow
+		signal("created_workspace",mountPoint);
 	    }
 	catch(CartagoException ex)
 	    {
@@ -323,4 +323,25 @@ public class NodeArtifact extends Artifact {
 			failed(ex.toString());
 		}
 	}
+
+    @OPERATION void quitWorkspace(String path)
+    {
+	try {
+	    OpExecutionFrame opFrame = this.getOpFrame();
+	    
+	    //thisWsp.quitAgent(opFrame.getAgentId());
+	    //WorkspaceId wspId = getId().getWorkspaceId();
+	    CartagoNode cnode = thisWsp.getNode();
+	    String wspName = Utils.createSimpleName(path);
+	    String address = cnode.getTree().getNodeAddressFromPath(path);
+	    
+	    CartagoService.quitWorkspace(address, wspName, opFrame.getAgentId(), "default");
+	    WorkspaceId wspId = cnode.getTree().getPathId(path);
+	    
+	    thisWsp.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);
+	    opFrame.setCompletionNotified();
+	} catch (Exception ex){
+	    failed("Quit Workspace failed.");
+	}
+    }
 }

@@ -191,4 +191,9 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
+    public void quitWorkspace(String address, String wspName, AgentId id) throws CartagoException
+    {
+	//dummy
+    }
+
 }

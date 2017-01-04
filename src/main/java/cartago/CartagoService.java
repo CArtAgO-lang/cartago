@@ -39,7 +39,7 @@ import cartago.infrastructure.topology.ICartagoInfrastructureTopologyLayer;
  * @author aricci, mguidi
  *
  */
-public class CartagoService {
+public class CartagoService{
 
 	public static String MAIN_WSP_NAME = "main";
 	/* singleton CArtAgO node */
@@ -759,6 +759,16 @@ public class CartagoService {
     public static boolean isLocal()
     {
 	return CartagoService.local;
+    }
+
+    public static synchronized void quitWorkspace(String address, String wspName, AgentId id, String protocol) throws CartagoException
+    {
+	if ((protocol == null) || (protocol.equals("default"))){
+				protocol = defaultInfraLayer;
+			} 
+	ICartagoInfrastructureLayer service = infraLayers.get(protocol);
+	service.quitWorkspace(address, wspName, id);
+	
     }
 	
 

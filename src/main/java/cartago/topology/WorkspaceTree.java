@@ -120,6 +120,15 @@ public class WorkspaceTree implements java.io.Serializable
 	return retrievePath(node);
     }
 
+     public WorkspaceId getPathId(String path) throws TopologyException
+    {
+	TreeNode node = getNodeFromPath(path);
+	
+	if(node == null)
+	    throw new TopologyException("Invalid Path");
+	return node.getWspId();
+    }
+
     
     
     
