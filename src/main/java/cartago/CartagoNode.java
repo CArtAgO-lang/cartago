@@ -39,7 +39,8 @@ public class CartagoNode {
 
     private CartagoWorkspace mainWorkspace = null;
 
-        private WorkspaceTree tree = null;
+    private WorkspaceTree tree = null;
+    
 	
 	CartagoNode() throws CartagoException {
 		wsps = new HashMap<String,CartagoWorkspace>();
@@ -212,4 +213,6 @@ public class CartagoNode {
     {
 	this.tree = tree;
     }
+
+
 }

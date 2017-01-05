@@ -81,7 +81,19 @@ public class WorkspaceKernel  {
 	
 	private AbstractWorkspaceTopology topology;
 	private CartagoNode node;
-	
+
+    private NodeArtifact artifact; //to easly propagate node infrastructure events through signals
+    public NodeArtifact getArtifact()
+    {
+	return this.artifact;
+    }
+
+    public void setArtifact(NodeArtifact artifact)
+    {
+	this.artifact = artifact;
+    }
+    
+    
 	/**
 	 * Create a workspace.  
 	 * 

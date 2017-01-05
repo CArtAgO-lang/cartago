@@ -49,5 +49,7 @@ public interface ICartagoNodeRemote extends Remote {
     WorkspaceId createWorkspace(String wspName) throws CartagoException, RemoteException;
 
     void setTree(WorkspaceTree tree) throws RemoteException;
+
+    void propagateEvent(String type, Object... objs) throws RemoteException;
     
 }

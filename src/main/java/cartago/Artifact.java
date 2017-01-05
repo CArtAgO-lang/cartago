@@ -44,7 +44,7 @@ public abstract class Artifact {
 	private HashMap<String, OpDescriptor> operationMap;
 
 	private int obsPropId;
-	private ObsPropMap obsPropertyMap;
+	protected ObsPropMap obsPropertyMap;
 	private HashMap<String, ArtifactOutPort> outPortsMap;
 
 	private ReentrantLock lock;

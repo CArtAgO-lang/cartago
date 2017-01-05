@@ -34,6 +34,7 @@ public class NodeArtifact extends Artifact {
 	
 	void init(WorkspaceKernel env){
 		thisWsp = env;
+		thisWsp.setArtifact(this);
 	}
 
 
@@ -188,13 +189,23 @@ public class NodeArtifact extends Artifact {
 		}
 	}
 
+    public void specialSignal(String type, Object... objs)
+    {
+	ArtifactObsProperty[] changed = obsPropertyMap.getPropsChanged();
+	ArtifactObsProperty[] added = obsPropertyMap.getPropsAdded();
+	ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
+	
+	thisWsp.notifyObsEvent(getId(), new Tuple(type, objs), changed, added, removed);
+	    //super.signal(type, objs);
+    }
+    
 
     @OPERATION void createWorkspace(String mountPoint)
     {
 	try
 	    {
 		CartagoService.mount(mountPoint);
-		signal("created_workspace",mountPoint);
+		//signal("created_workspace",mountPoint); now exeuted by infra
 	    }
 	catch(CartagoException ex)
 	    {
