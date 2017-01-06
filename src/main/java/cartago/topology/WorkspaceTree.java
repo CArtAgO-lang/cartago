@@ -102,14 +102,21 @@ public class WorkspaceTree implements java.io.Serializable
     //traverses parents to yield path
     private String retrievePath(TreeNode node)
     {
-	String res = node.getName();
-	TreeNode aux = node;
-	while(aux.getParent() != null)
-	    {		
-		aux = aux.getParent();
-		res += aux.getName() + Utils.getSeparationToken() + res;
-	    }
+	String res = retrievePathRec(node);
+	if(res.equals(""))
+	    return "";
+	if(res.startsWith(Utils.getSeparationToken()))
+	    return res.substring(1); //get ride of landing .
 	return res;
+    }
+
+    private String retrievePathRec(TreeNode node)
+    {
+	if(node == null)
+	    return "";
+
+	TreeNode aux = node.getParent();
+	return retrievePath(aux) + Utils.getSeparationToken() + node.getName();
     }
 
     public String getIdPath(WorkspaceId id) throws TopologyException

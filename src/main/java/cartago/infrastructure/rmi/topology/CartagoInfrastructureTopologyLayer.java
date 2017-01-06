@@ -56,8 +56,38 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
     }
 
 
+    //propagates events with NodeArtifact special signals
+    private synchronized void propagateEvent(WorkspaceTree tCen, String type, Object... objs) throws CartagoInfrastructureLayerException
+    {
+	Collection<String> adds = tCen.getNodesAddresses();
+	for(String ad : adds)
+	    {
+		try
+		    {
+			ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+ad+"/cartago_node");
+			env.propagateEvent(type, objs);			    			
+		    }
+		catch (RemoteException ex)
+		    {
+			ex.printStackTrace();
+			throw new CartagoInfrastructureLayerException();
+		    }
+		catch (NotBoundException ex)
+		    {
+			ex.printStackTrace();
+			throw new CartagoInfrastructureLayerException();
+		    }
+		catch (Exception ex)
+		    {
+			ex.printStackTrace();
+			throw new CartagoInfrastructureLayerException();
+		    }
+				
+	    }
+    }
+    
     //copies central tree to every node
-    private void syncTrees(WorkspaceTree tCen, boolean event, String type, Object... objs) throws CartagoInfrastructureLayerException
+    private synchronized void syncTrees(WorkspaceTree tCen) throws CartagoInfrastructureLayerException
     {
 	Collection<String> adds = tCen.getNodesAddresses();
 	for(String ad : adds)
@@ -66,9 +96,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		    {
 			ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+ad+"/cartago_node");
 			env.setTree(tCen);
-			if(event)
-			    env.propagateEvent(type, objs);
-			System.out.println("Tree updated");
+			    
 		    }
 		catch (RemoteException ex)
 		    {
@@ -113,7 +141,8 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		tr.mount(wspPath, wsp);
 
 		
-		syncTrees(tr.getTree(), true, "created_workspace",wspPath);
+		syncTrees(tr.getTree());
+		propagateEvent(tr.getTree(), "created_workspace",wspPath);
 		
 
 	    }
@@ -146,7 +175,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		WorkspaceTree tree = new WorkspaceTree();
 		service = new CartagoTreeRemote(tree);
 		service.installTree(address, wId, nId);
-		syncTrees(tree, false, ""); //add this tree to root node
+		syncTrees(tree); //add this tree to root node
 	    }
 	catch (Exception ex)
 	    {
@@ -195,8 +224,8 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		
 		tr.mountNode(wspPath, env.getMainWorkspaceId(), env.getNodeId(), address);
 
-		syncTrees(tr.getTree(), true, "created_workspace",wspPath);
-		
+		syncTrees(tr.getTree());
+		propagateEvent(tr.getTree(), "created_workspace",wspPath);
 
 
 	    }
