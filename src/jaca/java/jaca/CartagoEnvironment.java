@@ -11,7 +11,7 @@ import jaca.CartagoEnvironment;
 import cartago.CartagoException;
 import cartago.CartagoService;
 import cartago.ICartagoSession;
-import cartago.topology.WorkspaceTree;
+
 import cartago.tools.inspector.Inspector;
 
 /**
@@ -32,14 +32,18 @@ public class CartagoEnvironment extends Environment {
     private boolean standalone; // default case, install a node
     private boolean debug;
 	private String serviceType;
-    private WorkspaceTree tree;
+    //private WorkspaceTree tree;
+
+    private String hostPort = "localhost:8090";
     
 	static Logger logger = Logger.getLogger(CartagoEnvironment.class.getName());
 
 	public void init(String[] args) {
+
+	        
 		logger.setLevel(Level.WARNING);
 		wspName = cartago.CartagoService.MAIN_WSP_NAME;
-		tree = new WorkspaceTree(); //create topology tree
+		//tree = new WorkspaceTree(); //create topology tree
 		
 		infrastructure = false;
 		local = false;
@@ -51,39 +55,38 @@ public class CartagoEnvironment extends Environment {
 		/*
 		 * Arguments include also "options", whose prefix is "-"
 		 * Options can be specified in any position. 
-		 */
-		if (args.length > 0){
-			if (!args[0].startsWith("-")){
-				
-				if (args[0].equals("standalone")){
-					standalone = true;
-				} else if (args[0].equals("local")){
-					local = true;
-					standalone = false;
-				} else if (args[0].equals("infrastructure")){
-					infrastructure = true;
-					standalone = false;
-				} else if (args[0].equals("remote")){
-					remote = true;
-					standalone = false;
-				} else {
-					throw new IllegalArgumentException("Unknown argument: "+args[0]+" (should be local, remote or infrastructure)");
-				}
-			}
-		}
+		 */		
 
 		/* current supported options:
 		 * -debug
 		 */
-		for (String opt: args){
-			if (opt.startsWith("-")){
+
+		String host = this.hostPort.split(":")[0];
+		String port = this.hostPort.split(":")[1];
+		for (String opt: args)
+		    {
+			if (opt.startsWith("-"))
+			    {
 				if (opt.equals("-debug")){
-					debug = true;
-				} else {
-					throw new IllegalArgumentException("Unknown option: "+opt);
+				    debug = true;
 				}
-			}
-		}
+				else
+				    {
+					throw new IllegalArgumentException("Unknown option: "+opt);
+				    }
+			    }
+
+			if(opt.startsWith("host"))
+			    {
+				host = opt.split("=")[1].trim();
+			    }
+			else if(opt.startsWith("port"))
+			    {
+				port = opt.split("=")[1].trim();    
+			    }			   			
+		    }
+
+		this.hostPort = host + ":" + port;
 		
 		if (standalone){
 			try {
@@ -96,65 +99,16 @@ public class CartagoEnvironment extends Environment {
 
 			        CartagoService.startNode("main");
 				CartagoService.installInfrastructureLayer("default");
-				CartagoService.installTopologyLayer("default", "localhost:8090");
-				CartagoService.startInfrastructureCentralNodeService("default", "localhost:8090");				
+				CartagoService.installTopologyLayer("default", this.hostPort);
+				CartagoService.startInfrastructureCentralNodeService("default", this.hostPort);				
 				checkProtocols(args);
 				logger.info("CArtAgO Environment - standalone setup succeeded.");
 			} catch (Exception ex){
 				logger.severe("CArtAgO Environment - standalone setup failed.");
 				ex.printStackTrace();
 			}
-		} else if (infrastructure){
-			try {
-			    
-			        CartagoService.startNode("main");
-				CartagoService.installInfrastructureLayer("default");
-				CartagoService.installTopologyLayer("default", "localhost:8090");
-				CartagoService.startInfrastructureCentralNodeService("default", "localhost:8090");
-				checkProtocols(args);
-				int nserv = checkServices(args);
-				/*
-				 * We install the default infrastructure layer only if not 
-				 * already installed by one of the service parameter  
-				 */
-				if (!CartagoService.isInfrastructureLayerInstalled("default")){
-					CartagoService.installInfrastructureLayer("default");
-					logger.info("CArtAgO Environment - default infrastructure layer installed.");
-				}
-				if (nserv == 0){
-					CartagoService.startInfrastructureService("default");
-					logger.info("CArtAgO Environment - default infrastructure service installed.");
-				}
-				
-				logger.info("CArtAgO Environment - infrastructure setup succeeded.");
-			} catch (Exception ex){
-				logger.severe("CArtAgO Environment - infrastructure setup failed.");
-				ex.printStackTrace();
-			}
-		} else if (remote) {
-			if (args.length > 1){
-				wspName = args[1];
-				wspAddress = args[2];
-			}
-			try {
-				CartagoService.startNode(wspName);
-				CartagoService.installInfrastructureLayer("default");
-				CartagoService.installTopologyLayer("default", "localhost:8090");
-				CartagoService.startInfrastructureCentralNodeService("default", wspAddress);
-				checkProtocols(args);
+		}
 
-				logger.info("CArtAgO Environment - remote setup succeeded - Joining a remote workspace: "+wspName+"@"+wspAddress);
-			} catch (Exception ex){
-				logger.severe("CArtAgO Environment - remote setup failed.");
-				ex.printStackTrace();
-			}
-		} else if (local){
-			if (args.length > 1){
-				wspName = args[1];
-			}
-
-			logger.info("CArtAgO Environment - local setup succeeded - Joining a local workspace: "+wspName);
-		}		
 		instance = this;
 		
 	}
@@ -257,7 +211,7 @@ public class CartagoEnvironment extends Environment {
 			return context;
 		} else {
 		    //sets the ip address accordingly
-		    tree.setAddressRoot(wspAddress);
+		    //tree.setAddressRoot(wspAddress);
 			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
 			return context;
 		}
