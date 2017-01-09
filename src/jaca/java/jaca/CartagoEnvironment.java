@@ -34,13 +34,12 @@ public class CartagoEnvironment extends Environment {
 	private String serviceType;
     //private WorkspaceTree tree;
 
-    private String hostPort = "localhost:8090";
+    private String hostPort = "localhost:20100";
     
 	static Logger logger = Logger.getLogger(CartagoEnvironment.class.getName());
 
 	public void init(String[] args) {
 
-	        
 		logger.setLevel(Level.WARNING);
 		wspName = cartago.CartagoService.MAIN_WSP_NAME;
 		//tree = new WorkspaceTree(); //create topology tree
@@ -87,6 +86,7 @@ public class CartagoEnvironment extends Environment {
 		    }
 
 		this.hostPort = host + ":" + port;
+		System.out.println(hostPort);
 		
 		if (standalone){
 			try {
@@ -229,6 +229,8 @@ public class CartagoEnvironment extends Environment {
 			}
 		}
 	}
+
+
 
 
 }

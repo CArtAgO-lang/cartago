@@ -20,6 +20,9 @@ package cartago;
 import cartago.topology.TopologyException;
 import cartago.topology.WorkspaceTree;
 import cartago.topology.Utils;
+import jason.asSyntax.Literal;
+import jason.asSyntax.ASSyntax;
+import cartago.ObsProperty;
 
 /**
  * Artifact providing functionalities 
@@ -35,6 +38,8 @@ public class NodeArtifact extends Artifact {
 	void init(WorkspaceKernel env){
 		thisWsp = env;
 		thisWsp.setArtifact(this);
+		Literal list = ASSyntax.createLiteral("[]");
+		defineObsProperty("topology_tree", list);
 	}
 
 
@@ -354,5 +359,16 @@ public class NodeArtifact extends Artifact {
 	} catch (Exception ex){
 	    failed("Quit Workspace failed.");
 	}
+    }
+
+    public void updateTreeProperty()
+    {
+	CartagoNode cnode = thisWsp.getNode();
+	WorkspaceTree tree = cnode.getTree();
+
+	ObsProperty prop = getObsProperty("topology_tree");
+	String tt = tree.toList();
+	Literal list = ASSyntax.createLiteral(tt);
+	prop.updateValue(list);
     }
 }

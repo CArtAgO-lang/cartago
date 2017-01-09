@@ -102,6 +102,7 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
     public void setTree(WorkspaceTree tree) throws RemoteException
     {
 	this.node.setTree(tree);
+	node.getMainWorkspace().getKernel().getArtifact().updateTreeProperty();		
     }
 
 	public void quit(String wspName, AgentId id) throws RemoteException, CartagoException {

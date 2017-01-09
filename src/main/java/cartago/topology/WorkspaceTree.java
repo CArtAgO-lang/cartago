@@ -254,5 +254,37 @@ public class WorkspaceTree implements java.io.Serializable
     {
 	printTree(this.root, 0);
     }
+
+    //converts tree to a list representation
+    public String toList()
+    {
+	return toListRec(this.root);
+    }
+
+    private String toListRec(TreeNode current)
+    {
+	if(current == null)
+	    return "";
+
+	if(current.getChildren().size() == 0)
+	    return "[" + current.getName() + "]";
+	
+	return  "[" + current.getName() + "," + resChildren(current) + "]";
+    }
+
+    private String resChildren(TreeNode current)
+    {
+	if(current.getChildren().size() == 0)
+	    return "";
+
+	String res = "";
+
+	for(TreeNode aux : current.getChildren().values())
+	    {
+		res +=  toListRec(aux) + ",";
+	    }
+
+	return res.substring(0, res.length() - 1); //ignore trailing ,
+    }
     
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import cartago.*;
 import cartago.infrastructure.*;
 import cartago.security.*;
-
+import java.util.Enumeration;
 
 /**
  * CArtAgO RMI Infrastructure Service - enables remote interaction exploiting RMI transport protocol.
@@ -171,7 +171,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			int port = DEFAULT_PORT;
 			service = new CartagoNodeRemote(node);
 			if (address == null || address.equals("")){
-				address = InetAddress.getLocalHost().getHostAddress();
+			    address = getLocalIP();
 			} else {
 				int port1 = getPort(address);
 				if (port1 != -1){
@@ -232,6 +232,32 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		ex.printStackTrace();
 		throw new CartagoInfrastructureLayerException();
 	    }
+    }
+
+        public static String getLocalIP()
+    {
+	try
+	    {
+
+		Enumeration e = NetworkInterface.getNetworkInterfaces();
+		while(e.hasMoreElements())
+		    {
+		    	
+		        NetworkInterface n = (NetworkInterface) e.nextElement();	       
+		        Enumeration ee = n.getInetAddresses();
+		        while (ee.hasMoreElements())
+			    {
+				InetAddress i = (InetAddress) ee.nextElement();
+				if(i.isSiteLocalAddress())
+				    {
+					//System.out.println(i.getHostAddress());
+					return (i.getHostAddress());		            
+				    }
+			    }
+		    }
+	    }
+	catch(Exception e){e.printStackTrace();}
+	return("localhost");
     }
 
 }
