@@ -38,6 +38,7 @@ import cartago.infrastructure.rmi.topology.CartagoTreeRemote;
 import cartago.WorkspaceId;
 import cartago.NodeId;
 import cartago.topology.Utils;
+import jason.asSyntax.ASSyntax;
 
 public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructureTopologyLayer
 {
@@ -142,7 +143,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 
 		
 		syncTrees(tr.getTree());
-		propagateEvent(tr.getTree(), "created_workspace",wspPath);
+		propagateEvent(tr.getTree(), "created_workspace", ASSyntax.parseTerm(wspPath));
 		
 
 	    }
@@ -225,7 +226,7 @@ public class CartagoInfrastructureTopologyLayer implements ICartagoInfrastructur
 		tr.mountNode(wspPath, env.getMainWorkspaceId(), env.getNodeId(), address);
 
 		syncTrees(tr.getTree());
-		propagateEvent(tr.getTree(), "created_workspace",wspPath);
+		propagateEvent(tr.getTree(), "created_workspace", ASSyntax.parseTerm(wspPath));
 
 
 	    }
