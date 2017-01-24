@@ -160,9 +160,16 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 							}
 						} else if (st.getFunctor().equals("wsp")) {
 							if (st.getTerm(0).isString())
+							    {
 								wspName = ((StringTerm) (st.getTerm(0))).getString();
+								
+							    }
 							else
+							    {
 								wspName = st.getTerm(0).toString();
+								
+							    }
+							
 						} else {
 							logger.warning("Use failed: unknown annotation " + annot);
 							Term reason = Literal.parseLiteral("action_failed(" + action + ",unknown_annotation)");

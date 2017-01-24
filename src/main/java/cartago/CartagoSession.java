@@ -94,7 +94,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		long actId = actionId.incrementAndGet();
 		ICartagoContext ctx = null;
 		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
-			if (c.getKey().getName().equals(wspName)) {
+			if (c.getKey().getFullPath().equals(wspName)) {
 				ctx = c.getValue();
 				break;
 			}
@@ -114,7 +114,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		long actId = actionId.incrementAndGet();
 		ICartagoContext ctx = null;
 		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
-			if (c.getKey().getName().equals(wspName)) {
+			if (c.getKey().getFullPath().equals(wspName)) {
 				ctx = c.getValue();
 				break;
 			}
@@ -287,7 +287,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	}
 
 	public void notifyCartagoEvent(CartagoEvent ev) {
-		// System.out.println("NOTIFIED "+ev.getId()+"
+	    // Systema.out.println("NOTIFIED "+ev.getId()+"
 		// "+ev.getClass().getCanonicalName());
 		checkWSPEvents(ev);
 		boolean keepEvent = true;
