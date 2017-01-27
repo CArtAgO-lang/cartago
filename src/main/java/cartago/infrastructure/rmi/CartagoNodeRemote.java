@@ -83,8 +83,8 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 	 * @return a context to play inside the workspace
 	 *
 	 */
-	public ICartagoContext join(String wspName, AgentCredential cred, ICartagoCallback callback) throws cartago.security.SecurityException, RemoteException, CartagoException{
-		CartagoWorkspace wsp = node.getWorkspace(wspName);
+	public ICartagoContext join(WorkspaceId wId, AgentCredential cred, ICartagoCallback callback) throws cartago.security.SecurityException, RemoteException, CartagoException{
+		CartagoWorkspace wsp = node.getWorkspace(wId);
 		//System.out.println("Remote request to join: "+wspName+" "+roleName+" "+cred+" "+callback);
 		ICartagoContext ctx = wsp.join(cred,callback);
 		AgentBodyRemote rctx = new AgentBodyRemote((AgentBody)ctx);
@@ -105,8 +105,8 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 	node.getMainWorkspace().getKernel().getArtifact().updateTreeProperty();		
     }
 
-	public void quit(String wspName, AgentId id) throws RemoteException, CartagoException {
-		CartagoWorkspace wsp = node.getWorkspace(wspName);		
+	public void quit(WorkspaceId wId, AgentId id) throws RemoteException, CartagoException {
+		CartagoWorkspace wsp = node.getWorkspace(wId);		
 		wsp.quitAgent(id);
 		Iterator<AgentBodyRemote> it = remoteCtxs.iterator();
 		while (it.hasNext()){
@@ -134,8 +134,8 @@ public class CartagoNodeRemote extends UnicastRemoteObject implements ICartagoNo
 	 * @throws CartagoException
 	 */
 	public OpId execInterArtifactOp(ICartagoCallback callback, long callbackId, AgentId userId, ArtifactId srcId, ArtifactId targetId, Op op, long timeout, IAlignmentTest test) throws RemoteException, CartagoException {
-		String wspName = targetId.getWorkspaceId().getName();
-		CartagoWorkspace wsp = (CartagoWorkspace) node.getWorkspace(wspName);
+	    //String wspName = targetId.getWorkspaceId().getName();
+		CartagoWorkspace wsp = (CartagoWorkspace) node.getWorkspace(targetId.getWorkspaceId());
 		return wsp.execInterArtifactOp(callback, callbackId, userId, srcId, targetId, op, timeout, test);
 	}	 
 	

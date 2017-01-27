@@ -106,7 +106,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
 	@Override
-	public ICartagoContext joinRemoteWorkspace(String wspName, String fullAddress,
+	public ICartagoContext joinRemoteWorkspace(WorkspaceId wId, String fullAddress,
 			AgentCredential cred, ICartagoCallback eventListener)
 			throws CartagoInfrastructureLayerException, CartagoException {
 		
@@ -122,7 +122,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			}
 			Client client = new Client(address, port, callHandler);
 			ICartagoNodeRemote env = (ICartagoNodeRemote) client.getGlobal(ICartagoNodeRemote.class);
-			IAgentBodyRemote rctx = env.join(wspName, cred, srv);
+			IAgentBodyRemote rctx = env.join(wId, cred, srv);
 			ICartagoContext ctx = new  AgentBodyProxy(rctx, client);
 			mRemoteCtxs.add((AgentBodyProxy)ctx);
 			return ctx;
@@ -191,7 +191,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
-    public void quitWorkspace(String address, String wspName, AgentId id) throws CartagoException
+    public void quitWorkspace(String address, WorkspaceId wId, AgentId id) throws CartagoException
     {
 	//dummy
     }

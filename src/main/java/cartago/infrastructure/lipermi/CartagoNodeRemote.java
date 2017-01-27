@@ -22,6 +22,8 @@ import cartago.ICartagoContext;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpId;
+import cartago.WorkspaceId;
+
 
 /**
  * Class representing a CArtAgO node service, serving remote requests
@@ -86,8 +88,8 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 			long timeout, IAlignmentTest test) throws CartagoException {
 		
 		ICartagoCallback proxy = new CartagoCallbackProxy(callback);
-		String wspName = targetId.getWorkspaceId().getName();
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
+		//		String wspName = targetId.getWorkspaceId().getName();
+		CartagoWorkspace wsp = mNode.getWorkspace(targetId.getWorkspaceId());
 		return wsp.execInterArtifactOp(proxy, callbackId, userId, srcId, targetId, op, timeout, test);
 	}
 
@@ -97,10 +99,10 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 	}
 
 	@Override
-	public IAgentBodyRemote join(String wspName, AgentCredential cred,
+	public IAgentBodyRemote join(WorkspaceId wId, AgentCredential cred,
 			ICartagoCallbackRemote callback) throws CartagoException {
 		
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
+		CartagoWorkspace wsp = mNode.getWorkspace(wId);
 		ICartagoCallback proxy = new CartagoCallbackProxy(callback);
 		ICartagoContext ctx = wsp.join(cred,proxy);
 		try {
@@ -114,9 +116,9 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 	}
 
 	@Override
-	public void quit(String wspName, AgentId id) throws CartagoException {
+	public void quit(WorkspaceId wId, AgentId id) throws CartagoException {
 		
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
+		CartagoWorkspace wsp = mNode.getWorkspace(wId);
 		wsp.getKernel().quitAgent(id);
 		Iterator<AgentBodyRemote> it = mRemoteCtxs.iterator();
 		while (it.hasNext()){

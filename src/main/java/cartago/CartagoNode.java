@@ -23,6 +23,7 @@ import cartago.tools.inspector.Inspector;
 import cartago.topology.WorkspaceTree;
 import cartago.topology.TopologyException;
 import cartago.topology.Utils;
+import cartago.WorkspaceId;
 
 /**
  * Class representing a CArtAgO node.
@@ -34,7 +35,7 @@ import cartago.topology.Utils;
  */
 public class CartagoNode {
 	
-	private HashMap<String,CartagoWorkspace> wsps;
+	private HashMap<WorkspaceId,CartagoWorkspace> wsps;
 	private NodeId nodeId;
 
     private CartagoWorkspace mainWorkspace = null;
@@ -43,7 +44,7 @@ public class CartagoNode {
     
 	
 	CartagoNode() throws CartagoException {
-		wsps = new HashMap<String,CartagoWorkspace>();
+		wsps = new HashMap<WorkspaceId,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create main workspace		
 		createWorkspace(CartagoService.MAIN_WSP_NAME);		
@@ -54,7 +55,7 @@ public class CartagoNode {
     
     //version with new topology support
     CartagoNode(String wspPath) throws CartagoException {
-		wsps = new HashMap<String,CartagoWorkspace>();
+		wsps = new HashMap<WorkspaceId,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// creates a main workspace with a specified name and add it to tree
 	   
@@ -73,7 +74,7 @@ public class CartagoNode {
     }
 
 	CartagoNode(ICartagoLogger logger) throws CartagoException {
-		wsps = new HashMap<String,CartagoWorkspace>();
+		wsps = new HashMap<WorkspaceId,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
 		createWorkspace(CartagoService.MAIN_WSP_NAME ,logger);		
@@ -81,13 +82,13 @@ public class CartagoNode {
 
 	/* experimental support to topology */
 	
-	CartagoNode(AbstractWorkspaceTopology topology) throws CartagoException {
-		wsps = new HashMap<String,CartagoWorkspace>();
+    /*	CartagoNode(AbstractWorkspaceTopology topology) throws CartagoException {
+		wsps = new HashMap<WorkspaceId,CartagoWorkspace>();
 		nodeId = new NodeId();
 		// create default workspace		
 		createWorkspace(CartagoService.MAIN_WSP_NAME,topology);
 		
-	}	
+		}	*/
 	
 	/**
 	 * Create a workspace inside the node.
@@ -97,12 +98,18 @@ public class CartagoNode {
 	 */
 	public synchronized CartagoWorkspace createWorkspace(String wspPath) throws CartagoException {
 	        String name = Utils.createSimpleName(wspPath);
-		CartagoWorkspace wsp = wsps.get(name);		
+		CartagoWorkspace wsp = null;
+		if(this.tree != null)
+		    {
+			WorkspaceId wId = this.tree.getPathId(wspPath);		    
+			if(wId != null)
+			    wsp = wsps.get(wId);
+		    }
 		if (wsp==null){		        
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
 			wsp = new CartagoWorkspace(wid,this);
 			wsp.getId().setFullPath(wspPath);
-			wsps.put(name, wsp);
+			wsps.put(wid, wsp);
 			return wsp;
 		} else {
 			throw new CartagoException("workspace already created");
@@ -116,12 +123,19 @@ public class CartagoNode {
 	 * @param log logger
 	 * @return
 	 */
-	public synchronized CartagoWorkspace createWorkspace(String name, ICartagoLogger log) throws CartagoException {
-		CartagoWorkspace wsp = wsps.get(name);		
+	public synchronized CartagoWorkspace createWorkspace(String wspPath, ICartagoLogger log) throws CartagoException {	        
+		String name = Utils.createSimpleName(wspPath);
+		CartagoWorkspace wsp = null;
+		if(this.tree != null)
+		    {
+			WorkspaceId wId = this.tree.getPathId(wspPath);		    
+			if(wId != null)
+			    wsp = wsps.get(wId);
+		    }
 		if (wsp==null){
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
 			wsp = new CartagoWorkspace(wid,this,log);
-			wsps.put(name, wsp);
+			wsps.put(wid, wsp);
 			return wsp;
 		} else {
 			throw new CartagoException("workspace already created");
@@ -135,7 +149,7 @@ public class CartagoNode {
 	 * @param name workspace name
 	 * @return
 	 */
-	public synchronized CartagoWorkspace createWorkspace(String name, AbstractWorkspaceTopology topology) throws CartagoException {
+    /*	public synchronized CartagoWorkspace createWorkspace(String name, AbstractWorkspaceTopology topology) throws CartagoException {
 		CartagoWorkspace wsp = wsps.get(name);		
 		if (wsp==null){
 			WorkspaceId wid = new WorkspaceId(name,nodeId); 
@@ -146,7 +160,7 @@ public class CartagoNode {
 		} else {
 			throw new CartagoException("workspace already created");
 		}
-	}
+		}*/
 	
 	
 	/**
@@ -156,13 +170,15 @@ public class CartagoNode {
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized CartagoWorkspace getWorkspace(String wspName) throws CartagoException {
-		CartagoWorkspace env = wsps.get(wspName);		
+	public synchronized CartagoWorkspace getWorkspace(WorkspaceId wId) throws CartagoException {
+		CartagoWorkspace env = wsps.get(wId);		
 		if (env==null){
 			throw new CartagoException("Workspace not found.");
 		}
 		return env;
 	}
+
+
 	
 	
 	
@@ -174,7 +190,7 @@ public class CartagoNode {
 	OpId execInterArtifactOp(ICartagoCallback ctx, long actionId, AgentId userId, ArtifactId srcId, ArtifactId targetId, Op op, long timeout, IAlignmentTest test) throws InterruptedException, OpRequestTimeoutException, OperationUnavailableException, ArtifactNotAvailableException, CartagoException  {
 		WorkspaceId targetWsp = targetId.getWorkspaceId();
 		if (targetWsp.getNodeId().equals(nodeId)){
-			CartagoWorkspace wsp = wsps.get(targetWsp.getName());
+			CartagoWorkspace wsp = wsps.get(targetWsp);
 			if (wsp==null){
 				throw new ArtifactNotAvailableException();
 			} else {

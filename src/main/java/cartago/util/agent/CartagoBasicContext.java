@@ -76,7 +76,7 @@ public class CartagoBasicContext {
 	 * @param workspaceName workspace name
 	 * @param workspaceHost workspace host
 	 */
-	public CartagoBasicContext(String name, String workspaceName, String workspaceHost) {
+	public CartagoBasicContext(String name, WorkspaceId wId, String workspaceHost) {
 		super();
 		this.name = name;
 		agentCallback = new CartagoListener();
@@ -84,7 +84,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
+			session = CartagoService.startRemoteSession(wId, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

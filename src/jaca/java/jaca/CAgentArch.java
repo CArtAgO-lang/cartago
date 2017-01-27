@@ -214,7 +214,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 							outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
 								ICartagoController c;
 								try {
-									c = CartagoService.getController(aid1.getWorkspaceId().getName());
+									c = CartagoService.getController(aid1.getWorkspaceId());
 								} catch (CartagoException e) {
 									// can be ignored (?)
 									c = null;
@@ -420,7 +420,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		mappings.get(ev1.getTargetArtifact()).remove(nsp);
 		// The Observer is added again
 		if (!mappings.get(ev1.getTargetArtifact()).isEmpty()) {
-			String wspName = ev1.getTargetArtifact().getWorkspaceId().getName();
+			WorkspaceId wspName = ev1.getTargetArtifact().getWorkspaceId();
 			for (AgentId ag : CartagoService.getController(wspName).getCurrentAgents()) // to get the agentId from agName
 				if (ag.getAgentName().equals(getAgName())) {
 					Field f = CartagoService.class.getDeclaredField("instance"); // 1

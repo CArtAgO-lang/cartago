@@ -49,7 +49,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		keepAliveAgent.shutdown();
 	}
 
-	public ICartagoContext joinRemoteWorkspace(String wspName, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException {
+	public ICartagoContext joinRemoteWorkspace(WorkspaceId wId, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException {
 		try {
 			String fullAddress = address;
 			if (getPort(address)==-1){
@@ -59,7 +59,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			CartagoCallbackRemote srv = new CartagoCallbackRemote(eventListener);
 			CartagoCallbackProxy proxy = new CartagoCallbackProxy(srv);
 			System.out.println("Looking for "+"rmi://"+address+"/cartago_node");
-			ICartagoContext ctx = env.join(wspName, cred, proxy);
+			ICartagoContext ctx = env.join(wId, cred, proxy);
 			remoteCtxs.add((AgentBodyProxy)ctx);
 			return ctx;		
 		} catch (RemoteException ex) {
@@ -210,12 +210,12 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
     @Override
-    public void quitWorkspace(String address, String wspName, AgentId id) throws CartagoException
+    public void quitWorkspace(String address, WorkspaceId wId, AgentId id) throws CartagoException
     {
 	try
 	    {
 		ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+address+"/cartago_node");
-		env.quit(wspName, id);
+		env.quit(wId, id);
 	    }
 	catch (RemoteException ex)
 	    {

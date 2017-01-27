@@ -58,13 +58,12 @@ public class NodeArtifact extends Artifact {
 	    try
 		{
 		    String artifactWorkspacePath = tree.getIdPath(wId);
-		    String simpleName = wspPath;
-		    if(wspPath.contains(Utils.getSeparationToken()))
-			simpleName = Utils.createSimpleName(wspPath);
+		    WorkspaceId wId2 = tree.getPathId(wspPath);
+		    
 		    if(tree.inSameCartagoNode(wspPath, artifactWorkspacePath))
-			joinLocalWorkspace(simpleName, res);
+			joinLocalWorkspace(wId2, res);
 		    else
-			joinRemoteWorkspace(simpleName, tree.getNodeAddressFromPath(wspPath), res);
+			joinRemoteWorkspace(wId2, tree.getNodeAddressFromPath(wspPath), res);
 		}
 	    catch(TopologyException ex)
 		{
@@ -79,10 +78,10 @@ public class NodeArtifact extends Artifact {
 	 * @param wspName workspace name
 	 * @param res output parameter: workspace id
 	 */
-	void joinLocalWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
+	void joinLocalWorkspace(WorkspaceId wId, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = env.getNode().getWorkspace(wId);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
 				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
@@ -106,10 +105,10 @@ public class NodeArtifact extends Artifact {
 	 * @param cred agent credentials
 	 * @param res output parameter: workspace id
 	 */
-	void joinLocalWorkspace(String wspName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
+	void joinLocalWorkspace(WorkspaceId wId, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = env.getNode().getWorkspace(wId);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
 				ICartagoContext ctx = wspKernel.joinWorkspace(cred, opFrame.getAgentListener());
@@ -134,10 +133,10 @@ public class NodeArtifact extends Artifact {
 	 * @param address address
 	 * @param res output param: workspace id
 	 */
-	void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(WorkspaceId wId, String address, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wId, address, "default", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -156,10 +155,10 @@ public class NodeArtifact extends Artifact {
 	 * @param infraServiceType infrastructure service type - "default" to use default one
 	 * @param res output param: workspace id
 	 */
-	void joinRemoteWorkspace(String wspName, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(WorkspaceId wId, String address, String infraServiceType, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wId, address, infraServiceType, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -181,10 +180,10 @@ public class NodeArtifact extends Artifact {
 	 * @param cred agent credential
 	 * @param res output param: workspace id 
 	 */
-	void joinRemoteWorkspace(String wspName, String address, String infraServiceType, String roleName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
+	void joinRemoteWorkspace(WorkspaceId wId, String address, String infraServiceType, String roleName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, infraServiceType, cred, opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wId, address, infraServiceType, cred, opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -325,9 +324,9 @@ public class NodeArtifact extends Artifact {
 	 * @param workspaceName name of the workspace
 	 * @param aid output param: workspace id 
 	 */
-	@LINK void lookupWorkspace(String wspName, OpFeedbackParam<ArtifactId> aid){
+	@LINK void lookupWorkspace(WorkspaceId wId, OpFeedbackParam<ArtifactId> aid){
 		try {
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = env.getNode().getWorkspace(wId);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel();
 				
@@ -348,10 +347,9 @@ public class NodeArtifact extends Artifact {
 	    //thisWsp.quitAgent(opFrame.getAgentId());
 	    //WorkspaceId wspId = getId().getWorkspaceId();
 	    CartagoNode cnode = thisWsp.getNode();
-	    String wspName = Utils.createSimpleName(path);
 	    String address = cnode.getTree().getNodeAddressFromPath(path);
-	    
-	    CartagoService.quitWorkspace(address, wspName, opFrame.getAgentId(), "default");
+	    WorkspaceId wId = cnode.getTree().getPathId(path); 
+	    CartagoService.quitWorkspace(address, wId, opFrame.getAgentId(), "default");
 	    WorkspaceId wspId = cnode.getTree().getPathId(path);
 	    
 	    thisWsp.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);

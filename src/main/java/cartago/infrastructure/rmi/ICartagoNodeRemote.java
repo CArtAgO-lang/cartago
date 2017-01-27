@@ -32,11 +32,11 @@ import cartago.topology.WorkspaceTree;
  */
 public interface ICartagoNodeRemote extends Remote {
 
-	ICartagoContext join(String wspName, AgentCredential cred, ICartagoCallback callback) throws RemoteException, CartagoException;
+	ICartagoContext join(WorkspaceId wId, AgentCredential cred, ICartagoCallback callback) throws RemoteException, CartagoException;
 
 	void registerLogger(String wspName, ICartagoLogger logger) throws RemoteException, CartagoException;
 	
-	void quit(String wspName, AgentId id) throws RemoteException, CartagoException;
+	void quit(WorkspaceId wId, AgentId id) throws RemoteException, CartagoException;
 
 	OpId execInterArtifactOp(ICartagoCallback callback, long callbackId, AgentId userId, ArtifactId srcId, ArtifactId targetId, Op op, long timeout, IAlignmentTest test) throws RemoteException, CartagoException;
 

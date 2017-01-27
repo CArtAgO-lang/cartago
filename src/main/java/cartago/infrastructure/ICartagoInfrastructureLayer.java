@@ -42,10 +42,10 @@ public interface ICartagoInfrastructureLayer {
 	 * @throws CartagoInfrastructureLayerException
 	 * @throws CartagoException
 	 */
-	ICartagoContext joinRemoteWorkspace(String wspName, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException;
+	ICartagoContext joinRemoteWorkspace(WorkspaceId wId, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException;
 
 
-    void quitWorkspace(String address, String wspName, AgentId id) throws CartagoException;
+    void quitWorkspace(String address, WorkspaceId wId, AgentId id) throws CartagoException;
 	/**
 	 * Execute an linked operation from a local artifact to a target remote artifact using this service
 	 * 

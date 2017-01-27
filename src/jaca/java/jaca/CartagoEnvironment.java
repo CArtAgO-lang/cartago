@@ -210,10 +210,10 @@ public class CartagoEnvironment extends Environment {
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {
-		    //sets the ip address accordingly
-		    //tree.setAddressRoot(wspAddress);
-			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
-			return context;
+		    
+		    /*ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
+		      return context;*/
+		    return null;
 		}
 	}
 

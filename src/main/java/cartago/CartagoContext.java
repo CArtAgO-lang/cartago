@@ -84,7 +84,7 @@ public class CartagoContext {
 	 * @param workspaceName workspace name
 	 * @param workspaceHost workspace host
 	 */
-	public CartagoContext(AgentCredential cred, String workspaceName, String workspaceHost) {
+	public CartagoContext(AgentCredential cred, WorkspaceId wId, String workspaceHost) {
 		super();
 		agentCallback = new CartagoListener();
 		actionFeedbackQueue = new ActionFeedbackQueue();
@@ -93,7 +93,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", credential, agentCallback);
+			session = CartagoService.startRemoteSession(wId, workspaceHost, "default", credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

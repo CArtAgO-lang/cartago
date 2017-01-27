@@ -6,7 +6,7 @@ import cartago.tools.inspector.*;
 public class TestController {
 	
 	public static void main(String[] args) throws Exception {		
-		CartagoService.startNode();
+	    /*CartagoService.startNode();
 		//CartagoService.registerLogger("main",new BasicLogger());
 		new HelloAgent("Michelangelo1","c1").start(); 
 		Thread.sleep(1000);
@@ -27,6 +27,6 @@ public class TestController {
 	}
 	
 	static void log(String msg){
-		System.out.println(msg);
+	System.out.println(msg);*/
 	}
 }

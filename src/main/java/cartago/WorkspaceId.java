@@ -18,6 +18,7 @@
 package cartago;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Identifier of a workspace
@@ -30,11 +31,13 @@ public class WorkspaceId implements Serializable {
 	private NodeId nodeId;
 	private int hashCode;
         private String fullPath; 
-	
+        private UUID id;
+    
 	WorkspaceId(String name, NodeId id){
 		this.name = name;
 		this.nodeId = id;
 		hashCode = id.hashCode();
+		this.id = UUID.randomUUID();
 	}
 	
 	/**
@@ -43,7 +46,7 @@ public class WorkspaceId implements Serializable {
 	 * @return
 	 */
 	public String getId(){
-		return name+"-"+nodeId.getId();
+		return name+"-"+nodeId.getId()+"-"+this.id;
 	}
 	
 	/**

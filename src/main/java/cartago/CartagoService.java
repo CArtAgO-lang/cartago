@@ -369,7 +369,9 @@ public class CartagoService{
 			if (wspName==null){
 				wspName = CartagoService.MAIN_WSP_NAME;
 			}
-			CartagoWorkspace wsp = instance.getWorkspace(wspName);
+			WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+			
+			CartagoWorkspace wsp = instance.getWorkspace(wId);
 			if (wsp == null){
 				throw new CartagoException("Unknown workspace "+wspName);
 			} else {			
@@ -394,10 +396,8 @@ public class CartagoService{
 	 * @param eventListener listener to workspace events to be perceived by the agent
 	 * @return a context for working inside the workspace
 	 */
-	public static synchronized ICartagoSession startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
-		if (wspName==null){
-		    wspName = "default"; //Xavier: I think it shoud be main
-		}
+	public static synchronized ICartagoSession startRemoteSession(WorkspaceId wId, String wspAddress, String protocol, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
+
 		
 		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
 
@@ -406,7 +406,7 @@ public class CartagoService{
 		if(!infraLayers.containsKey(protocol)) installInfrastructureLayer(protocol);
 		
 		CartagoSession session = new CartagoSession(cred,null,eventListener);
-		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, session);
+		ICartagoContext startContext = joinRemoteWorkspace(wId, wspAddress, protocol, cred, session);
 		WorkspaceId wspId = startContext.getWorkspaceId();
 		session.setInitialContext(wspId, startContext);
 		return session;
@@ -426,7 +426,8 @@ public class CartagoService{
 			if (wspName==null){
 				wspName = CartagoService.MAIN_WSP_NAME;
 			}
-			CartagoWorkspace wsp = instance.getWorkspace(wspName);
+			WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+			CartagoWorkspace wsp = instance.getWorkspace(wId);
 			if (wsp == null){
 				throw new CartagoException("Unknown workspace "+wspName);
 			} else {			
@@ -463,10 +464,8 @@ public class CartagoService{
 	 * @param eventListener listener to workspace events to be perceived by the agent
 	 * @return a context for working inside the workspace
 	 */
-	public static synchronized CartagoContext startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
-		if (wspName==null){
-		    wspName = "default"; //Xavier: main?
-		}
+    	public static synchronized CartagoContext startRemoteSession(WorkspaceId wId, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
+		
 		
 		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
 
@@ -476,11 +475,11 @@ public class CartagoService{
 			installInfrastructureLayer(protocol);
 		}
 		CartagoContext context = new CartagoContext(cred);
-		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, context.getCartagoSession());
+		ICartagoContext startContext = joinRemoteWorkspace(wId, wspAddress, protocol, cred, context.getCartagoSession());
 		WorkspaceId wspId = startContext.getWorkspaceId();
 		context.getCartagoSession().setInitialContext(wspId, startContext);
 		return context;
-	}
+		}
 	
 
 	//
@@ -497,13 +496,13 @@ public class CartagoService{
 	 * @throws cartago.security.SecurityException
 	 * @throws CartagoException
 	 */
-	static synchronized ICartagoContext joinRemoteWorkspace(String wspName, String address, String protocol, AgentCredential cred, ICartagoCallback eventListener) throws cartago.security.SecurityException, CartagoException{
+	static synchronized ICartagoContext joinRemoteWorkspace(WorkspaceId wId, String address, String protocol, AgentCredential cred, ICartagoCallback eventListener) throws cartago.security.SecurityException, CartagoException{
 		try {
 			if ((protocol == null) || (protocol.equals("default"))){
 				protocol = defaultInfraLayer;
 			} 
 			ICartagoInfrastructureLayer service = infraLayers.get(protocol);
-			ICartagoContext ctx = service.joinRemoteWorkspace(wspName, address, cred, eventListener);
+			ICartagoContext ctx = service.joinRemoteWorkspace(wId, address, cred, eventListener);
 			LinkedNodeInfo nodeInfo = new LinkedNodeInfo(ctx.getWorkspaceId().getNodeId(), protocol, address);
 			boolean exists = false;
 			for(LinkedNodeInfo tempNodeInfo : linkedNodes) {
@@ -519,7 +518,7 @@ public class CartagoService{
 			return ctx;
 		} catch (CartagoInfrastructureLayerException ex) {
 			ex.printStackTrace();
-			throw new CartagoException("Join "+wspName+"@"+address+" failed ");
+			throw new CartagoException("Join "+wId+"@"+address+" failed ");
 		}
 	}
 	
@@ -569,7 +568,8 @@ public class CartagoService{
 			if (wspName==null){
 				wspName = CartagoService.MAIN_WSP_NAME;
 			}
-			instance.getWorkspace(wspName).getKernel().addArtifactFactory(factory);
+			WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+			instance.getWorkspace(wId).getKernel().addArtifactFactory(factory);
 		} else {
 			throw new CartagoNodeNotActiveException();
 		}
@@ -586,7 +586,8 @@ public class CartagoService{
 			if (wspName==null){
 				wspName = CartagoService.MAIN_WSP_NAME;
 			}
-			instance.getWorkspace(wspName).getKernel().removeArtifactFactory(name);
+			WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+			instance.getWorkspace(wId).getKernel().removeArtifactFactory(name);
 		} else {
 			throw new CartagoNodeNotActiveException();
 		}
@@ -601,7 +602,8 @@ public class CartagoService{
 	 */
 	public static synchronized void registerLogger(String wspName, ICartagoLogger logger) throws CartagoException {
 		if (instance != null){
-			instance.getWorkspace(wspName).registerLogger(logger);
+		    WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+		    instance.getWorkspace(wId).registerLogger(logger);
 		} else {
 			throw new CartagoNodeNotActiveException();
 		}
@@ -617,7 +619,8 @@ public class CartagoService{
 		if (instance != null){
 			 Inspector insp = debuggers.get(wspName);
 			 if (insp == null){
-				 CartagoWorkspace wsp = instance.getWorkspace(wspName);
+			     	WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+				 CartagoWorkspace wsp = instance.getWorkspace(wId);
 				 insp = new Inspector();
 				 insp.start();
 				 wsp.registerLogger(insp.getLogger());
@@ -638,7 +641,8 @@ public class CartagoService{
 		if (instance != null){
 			 Inspector insp = debuggers.remove(wspName);
 			 if (insp != null){
-				 CartagoWorkspace wsp = instance.getWorkspace(wspName);
+			     WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+				 CartagoWorkspace wsp = instance.getWorkspace(wId);
 				 wsp.unregisterLogger(insp.getLogger());
 			 }
 		} else {
@@ -678,7 +682,8 @@ public class CartagoService{
 	 */
 	public static synchronized void unregisterLogger(String wspName, ICartagoLogger logger) throws CartagoException {
 		if (instance != null){
-			instance.getWorkspace(wspName).unregisterLogger(logger);
+		        	WorkspaceId wId = CartagoService.instance.getTree().getPathId(wspName);
+			instance.getWorkspace(wId).unregisterLogger(logger);
 		} else {
 			throw new CartagoNodeNotActiveException();
 		}
@@ -702,9 +707,10 @@ public class CartagoService{
 	 * @return
 	 * @throws CartagoException
 	 */
-	public static ICartagoController  getController(String wspName) throws CartagoException {
+	public static ICartagoController  getController(WorkspaceId wIdx) throws CartagoException {
 		if (instance != null){
-			return instance.getWorkspace(wspName).getController();
+		    WorkspaceId wId = wIdx;
+			return instance.getWorkspace(wId).getController();
 		} else {
 			throw new CartagoNodeNotActiveException();
 		}
@@ -761,13 +767,13 @@ public class CartagoService{
 	return CartagoService.local;
     }
 
-    public static synchronized void quitWorkspace(String address, String wspName, AgentId id, String protocol) throws CartagoException
+    public static synchronized void quitWorkspace(String address, WorkspaceId wId, AgentId id, String protocol) throws CartagoException
     {
 	if ((protocol == null) || (protocol.equals("default"))){
 				protocol = defaultInfraLayer;
 			} 
 	ICartagoInfrastructureLayer service = infraLayers.get(protocol);
-	service.quitWorkspace(address, wspName, id);
+	service.quitWorkspace(address, wId, id);
 	
     }
 	

@@ -274,7 +274,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;
 			contexts.put(wspev.getWorkspaceId(), wspev.getContext());
 			synchronized(contextOrderedList){
-				contextOrderedList.addFirst(wspev.getWorkspaceId());
+			    contextOrderedList.addLast(wspev.getWorkspaceId()); //queue behaviour, home is always the first
 			}
 
 		} else if (ev instanceof QuitWSPSucceededEvent) {
