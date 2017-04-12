@@ -565,9 +565,16 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		if (Character.isUpperCase(prop.getName().charAt(0)))
 			logger.warning("Observable Property "+prop.getName()+" starts with upper case and will cause problems when perceived by the agentes.");
 		JaCaLiteral struct = new JaCaLiteral(ns, prop.getName(), prop.getFullId());
+
 		for (Object obj : prop.getValues()) {
 			struct.addTerm(lib.objectToTerm(obj));
 		}
+
+		if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
+			struct.addAnnot(ASSyntax.createStructure("norm", new Atom(prop.getValue(4).toString())));
+			struct.delTerm(4);
+		}
+		
 		struct.addAnnot(BeliefBase.TPercept);
 		struct.addAnnot(OBS_PROP_PERCEPT);
 		//struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
