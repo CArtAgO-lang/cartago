@@ -571,7 +571,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		}
 
 		if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
-			struct.addAnnot(ASSyntax.createStructure("norm", new Atom(prop.getValue(4).toString())));
+			struct.addAnnot(lib.objectToTerm(prop.getValue(4)));
 			struct.delTerm(4);
 		}
 		
