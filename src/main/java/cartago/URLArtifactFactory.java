@@ -1,6 +1,9 @@
 package cartago;
 
-import java.net.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 public class URLArtifactFactory extends ArtifactFactory {
 
@@ -25,7 +28,26 @@ public class URLArtifactFactory extends ArtifactFactory {
 	@Override
 	public Artifact createArtifact(Class<?> caller, String templateName, Class<?>[] paramsTypes)
 			throws CartagoException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			Class<?> callee = cloader.loadClass(templateName);
+
+			if ((caller == WorkspaceKernel.class) || (caller == WorkspaceArtifact.class)
+					|| (accessible(caller, callee, paramsTypes))) {
+				Constructor<?> defaultConstructor = callee.getDeclaredConstructor();
+				defaultConstructor.setAccessible(true);
+				return (Artifact) defaultConstructor.newInstance();
+			}
+
+			String errorMsg = String.format("%s can not access %s's init method", caller.getName(), callee.getName());
+			throw new IllegalAccessException(errorMsg);
+		} catch (ClassNotFoundException ex) {
+			throw new CartagoException("Template not found: " + templateName + " at " + address);
+		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+			throw new CartagoException(e.getMessage());
+		} catch (IllegalArgumentException | NoSuchMethodException e) {
+			throw new CartagoException("No init method signature with the given parameters in " + templateName);
+		} catch (SecurityException e) {
+			throw new CartagoException("Security violation");
+		}
 	}
 }
