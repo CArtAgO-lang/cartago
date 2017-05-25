@@ -99,7 +99,7 @@ public abstract class AbstractWSPRuleEngine {
 	 */
 	final protected ArtifactId makeArtifact(String artifactName, String templateName, Object...params) throws CartagoException {
 		AgentId id = kernel.getWSPManager().getAgentId();
-		return kernel.makeArtifact(id,artifactName,templateName,new ArtifactConfig(params));
+		return kernel.makeArtifact(id,artifactName,templateName,new ArtifactConfig(params), getClass());
 	}
 
 	/**
