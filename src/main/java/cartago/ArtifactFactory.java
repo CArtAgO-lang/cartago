@@ -62,7 +62,7 @@ public abstract class ArtifactFactory implements java.io.Serializable {
 	 */
 	protected boolean accessible(Class<?> caller, Class<?> callee, Class<?>[] paramsTypes)
 			throws NoSuchMethodException, SecurityException {
-		Method init = callee.getDeclaredMethod("init", paramsTypes);
+		Method init = getMethodInHierarchy(callee, "init", paramsTypes);
 		switch (init.getModifiers()) {
 		case Modifier.PRIVATE:
 			Class<?> clazz = caller;
