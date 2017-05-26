@@ -84,4 +84,46 @@ public abstract class ArtifactFactory implements java.io.Serializable {
 		}
 		return false;
 	}
+
+	/**
+	 * Returns a {@link Method} object that reflects the specified public member
+	 * method of the class or interface represented by the {@code clazz} object.
+	 * The {@code name} parameter is a {@link String} specifying the simple name
+	 * of the desired method. The {@code paramsTypes} parameter is an array of
+	 * {@link Class} objects that identify the method's formal parameter types,
+	 * in declared order.
+	 * 
+	 * @param clazz
+	 *            class where the method must be looked up first
+	 * @param name
+	 *            the name of the method
+	 * @param paramsTypes
+	 *            the list of parameters
+	 * @return the {@link Method} object that matches the specified {@code name}
+	 *         and {@code paramsTypes}
+	 * @throws NoSuchMethodException
+	 *             if a matching method is not found or if the name is
+	 *             {@literal "<init>"} or {@literal "<cinit>"}
+	 */
+	private Method getMethodInHierarchy(Class<?> clazz, String name, Class<?>[] paramsTypes)
+			throws NoSuchMethodException {
+		Class<?> cls = clazz;
+		do {
+			Method[] methods = cls.getDeclaredMethods();
+			methodLoop: for (Method method : methods) {
+				if (method.getName().equals(name) && method.getParameterCount() == paramsTypes.length) {
+					Class<?> types[] = method.getParameterTypes();
+					int i = 0;
+					for (i = 0; i < method.getParameterCount(); i++) {
+						if (!types[i].isAssignableFrom(paramsTypes[i])) {
+							continue methodLoop;
+						}
+					}
+					return method;
+				}
+			}
+			cls = cls.getSuperclass();
+		} while (cls != null);
+		throw new NoSuchMethodException();
+	}
 }
