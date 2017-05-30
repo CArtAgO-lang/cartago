@@ -3,6 +3,7 @@ package jaca;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -228,10 +229,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									}
 								}
 							}
-							// TODO: decide wheter to try this (in all wkspaces!)
+							// TODO: decide whether to try this (in all wkspaces!)
 							if (actId == Long.MIN_VALUE) {
 								// try as before name spaces
-								actId = envSession.doAction(op,test,timeout);
+								try {
+									actId = envSession.doAction(op,test,timeout);
+								} catch (Exception e) {
+									logger.warning("error trying action with cartago "+e.getMessage());
+								}
 							}
 						}
 					}
@@ -259,10 +264,10 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		}
 	}
 
-	public List<Literal> perceive() {
-		super.perceive();
+	@Override
+	public Collection<Literal> perceive() {
 		if (envSession == null) // the init isn't finished yet...
-			return null;
+			return super.perceive();
 
 		try {
 			CartagoEvent evt = envSession.fetchNextPercept();
@@ -301,7 +306,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			logger.severe("Exception in fetching events from the context.");
 		}
 		// THE METHOD MUST RETURN NULL: since the percept semantics is different (event vs. state), all the the percepts from the env must be managed here, not by the BUF
-		return null;
+		return super.perceive();
 	}
 
 	private void perceiveAddedOP(ArtifactObsEvent ev) {
@@ -572,9 +577,16 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		if (Character.isUpperCase(prop.getName().charAt(0)))
 			logger.warning("Observable Property "+prop.getName()+" starts with upper case and will cause problems when perceived by the agentes.");
 		JaCaLiteral struct = new JaCaLiteral(ns, prop.getName(), prop.getFullId());
+
 		for (Object obj : prop.getValues()) {
 			struct.addTerm(lib.objectToTerm(obj));
 		}
+
+		if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
+			struct.addAnnot(lib.objectToTerm(prop.getValue(4)));
+			struct.delTerm(4);
+		}
+		
 		struct.addAnnot(BeliefBase.TPercept);
 		struct.addAnnot(OBS_PROP_PERCEPT);
 		//struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
