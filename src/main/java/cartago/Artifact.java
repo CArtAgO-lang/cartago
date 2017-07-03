@@ -996,7 +996,7 @@ public abstract class Artifact {
 	 */
 	protected void dispose(ArtifactId aid) throws OperationException {
 		try {
-			env.disposeArtifact(this.getCurrentOpAgentId(),id);
+			env.disposeArtifact(this.getCurrentOpAgentId(),aid);
 		} catch (Exception ex) {
 			throw new OperationException("disposeArtifact failed: " + aid);
 		}
