@@ -575,10 +575,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			struct.addTerm(lib.objectToTerm(obj));
 		}
 
-		if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
+		/*if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
 			struct.addAnnot(lib.objectToTerm(prop.getValue(4)));
 			struct.delTerm(4);
-		}
+		} removed to use annots from cartago */		
+		if (prop.getAnnots() != null)
+			for (Object o: prop.getAnnots())
+				struct.addAnnot(lib.objectToTerm(o));
 		
 		struct.addAnnot(BeliefBase.TPercept);
 		struct.addAnnot(OBS_PROP_PERCEPT);

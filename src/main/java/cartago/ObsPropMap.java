@@ -206,7 +206,7 @@ public class ObsPropMap implements IObsPropMap {
 	public ArtifactObsProperty getPropValue(String name, Object... values){
 		ObsProperty prop = get(name,values);
 		if (prop!=null){
-			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues());
+			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues()).setAnnots(prop.getAnnots());
 		} else {
 			return null;
 		}
@@ -225,7 +225,7 @@ public class ObsPropMap implements IObsPropMap {
 	public ArtifactObsProperty getPropValueByName(String name){
 		ObsProperty prop = getByName(name);
 		if (prop!=null){
-			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues());
+			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues()).setAnnots(prop.getAnnots());
 		} else {
 			return null;
 		}

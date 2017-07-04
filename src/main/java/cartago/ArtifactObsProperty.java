@@ -17,7 +17,8 @@
  */
 package cartago;
 
-import cartago.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class representing an artifact observable property
@@ -32,6 +33,7 @@ public class ArtifactObsProperty implements java.io.Serializable {
 	private Object[] values;
 	private long id;
 	private String fullId;
+	private List<Object> annots = null;
 	
 	public ArtifactObsProperty(String fullId, long id, String name, Object... values){
     	this.name = name;
@@ -39,7 +41,16 @@ public class ArtifactObsProperty implements java.io.Serializable {
     	this.id = id;
     	this.fullId = fullId;
 	}
+	
+	public ArtifactObsProperty setAnnots(List<Object> annots) {
+		this.annots = annots;
+		return this;
+	}
 
+	public List<Object> getAnnots() {
+		return annots;		
+	}
+	
 	/**
 	 * Get the id of the property 
 	 */
