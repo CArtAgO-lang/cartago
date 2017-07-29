@@ -1,17 +1,20 @@
 package cartago;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ObsPropMap implements IObsPropMap {
 
-	private HashMap<String,ArrayList<ObsProperty>> props;
+	private Map<String,ArrayList<ObsProperty>> props;
 	
 	private ArrayList<ObsProperty> propsChanged;
 	private ArrayList<ObsProperty> propsAdded;
 	private ArrayList<ObsProperty> propsRemoved;
 
 	public ObsPropMap(){
-		props = new HashMap<String,ArrayList<ObsProperty>>();
+		props = new ConcurrentHashMap<String,ArrayList<ObsProperty>>();
 		propsChanged = new ArrayList<ObsProperty>();
 		propsAdded = new ArrayList<ObsProperty>();
 		propsRemoved = new ArrayList<ObsProperty>();
