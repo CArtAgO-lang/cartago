@@ -1,17 +1,22 @@
 package cartago;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ObsPropMap implements IObsPropMap {
 
-	private HashMap<String,ArrayList<ObsProperty>> props;
+	private Map<String,List<ObsProperty>> props;
 	
 	private ArrayList<ObsProperty> propsChanged;
 	private ArrayList<ObsProperty> propsAdded;
 	private ArrayList<ObsProperty> propsRemoved;
 
 	public ObsPropMap(){
-		props = new HashMap<String,ArrayList<ObsProperty>>();
+		props = new ConcurrentHashMap<String,List<ObsProperty>>();
 		propsChanged = new ArrayList<ObsProperty>();
 		propsAdded = new ArrayList<ObsProperty>();
 		propsRemoved = new ArrayList<ObsProperty>();
@@ -20,7 +25,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 	
 	public void add(ObsProperty prop){
-		ArrayList<ObsProperty> list = props.get(prop.getName());
+		List<ObsProperty> list = props.get(prop.getName());
 		if (list == null){
 			list = new ArrayList<ObsProperty>();
 			props.put(prop.getName(), list);
@@ -30,7 +35,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 	
 	private void addProp(ObsProperty prop){
-		ArrayList<ObsProperty> list = props.get(prop.getName());
+		List<ObsProperty> list = props.get(prop.getName());
 		if (list == null){
 			list = new ArrayList<ObsProperty>();
 			props.put(prop.getName(), list);
@@ -39,7 +44,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 	
 	public ObsProperty getByName(String name){
-		ArrayList<ObsProperty> list = props.get(name);
+		List<ObsProperty> list = props.get(name);
 		if (list != null){
 			return list.get(0);
 		} else {
@@ -48,7 +53,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 
 	public ObsProperty removeByName(String name){
-		ArrayList<ObsProperty> list = props.get(name);
+		List<ObsProperty> list = props.get(name);
 		if (list != null){
 			ObsProperty p = list.remove(0);
 			propsRemoved.add(p);
@@ -62,7 +67,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 
 	public ObsProperty get(String name, Object... values){
-		ArrayList<ObsProperty> list = props.get(name);
+		List<ObsProperty> list = props.get(name);
 		if (list != null){
 			if (values.length == 0){
 				return list.get(0);
@@ -81,7 +86,7 @@ public class ObsPropMap implements IObsPropMap {
 	
 
 	public ObsProperty remove(String name, Object... values){
-		ArrayList<ObsProperty> list = props.get(name);
+		List<ObsProperty> list = props.get(name);
 		if (list != null){
 			if (values.length == 0){
 				props.remove(name);
@@ -110,7 +115,7 @@ public class ObsPropMap implements IObsPropMap {
 	}
 	
 	private void remove(String name, long id){
-		ArrayList<ObsProperty> list = props.get(name);
+		List<ObsProperty> list = props.get(name);
 		if (list != null){
 				Iterator<ObsProperty> it = list.iterator();
 				while (it.hasNext()){
@@ -206,7 +211,7 @@ public class ObsPropMap implements IObsPropMap {
 	public ArtifactObsProperty getPropValue(String name, Object... values){
 		ObsProperty prop = get(name,values);
 		if (prop!=null){
-			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues());
+			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues()).setAnnots(prop.getAnnots());
 		} else {
 			return null;
 		}
@@ -214,9 +219,9 @@ public class ObsPropMap implements IObsPropMap {
 
 	public ArrayList<ArtifactObsProperty> readAll(){
 		ArrayList<ArtifactObsProperty> list = new ArrayList<ArtifactObsProperty>();
-		for (ArrayList<ObsProperty> l: props.values()){
-			for (ObsProperty p: l){
-				list.add(p.getUserCopy());
+		for (List<ObsProperty> l: props.values()){
+			for (Object p: l.toArray()) { // use toArray to avoid concurrent modification (JH)
+				list.add( ((ObsProperty)p).getUserCopy());
 			}
 		}
 		return list;
@@ -225,7 +230,7 @@ public class ObsPropMap implements IObsPropMap {
 	public ArtifactObsProperty getPropValueByName(String name){
 		ObsProperty prop = getByName(name);
 		if (prop!=null){
-			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues());
+			return new ArtifactObsProperty(prop.getFullId(),prop.getId(),prop.getName(),prop.getValues()).setAnnots(prop.getAnnots());
 		} else {
 			return null;
 		}

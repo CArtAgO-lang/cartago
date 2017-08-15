@@ -8,14 +8,16 @@ public class MySimpleGUI extends GUIArtifact {
 
 	private MyFrame frame;
 	
-	public void setup() {
+	public void init(int initialValue) {
+		this.init();
 		frame = new MyFrame();
 		
 		linkActionEventToOp(frame.okButton,"ok");
 		linkKeyStrokeToOp(frame.text,"ENTER","updateText");
 		linkWindowClosingEventToOp(frame, "closed");
 
-		defineObsProperty("value",getValue());
+		defineObsProperty("value",initialValue);
+		frame.setText(""+initialValue);
 		frame.setVisible(true);		
 	}
 

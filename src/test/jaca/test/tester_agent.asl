@@ -1,11 +1,11 @@
 //!test_double_join.
-!main_test.
+//!main_test.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
 //!test_wsp.
 //!test2.
 //!test3.
-//!test_gui.
+!test_gui.
 //!test_gui2.
 //!test_multi_prop.
 //!test_new_prop.
@@ -189,7 +189,7 @@
 //
 
 +!test_gui
-  <-  makeArtifact("gui","c4jtest.MySimpleGUI",[],Id);
+  <-  makeArtifact("gui","c4jtest.MySimpleGUI",[10],Id);
       focus(Id).
 
 +value(V) 

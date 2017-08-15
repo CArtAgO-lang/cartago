@@ -688,17 +688,17 @@ public abstract class Artifact {
 	 * @param values
 	 *            values of the property
 	 */
-	protected void defineObsProperty(String name, Object... values) {			
+	protected ObsProperty defineObsProperty(String name, Object... values) {			
 			try {
 				String fullId="obs_id_"+this.env.getId().getId()+this.id.getId()+"_"+obsPropId;
 				ObsProperty prop = new ObsProperty(obsPropertyMap,obsPropId, fullId, name, values); 
 				obsPropertyMap.add(prop);
 				obsPropId++;
+				return prop;
 				//env.notifyObsPropAddedEvent(id, prop.getUserCopy());
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				throw new IllegalArgumentException(
-						"invalid observable property: " + name);
+				throw new IllegalArgumentException("invalid observable property: " + name);
 			}
 	}
 
@@ -982,10 +982,10 @@ public abstract class Artifact {
 		try {
 			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
 		} catch (Exception ex) {
-			throw new OperationException("makeArtifact failed: " + name + " "
-					+ type);
+			throw new OperationException("makeArtifact failed: " + name + " " + type);
 		}
 	}
+	
 
 	/**
 	 * Dispose an artifact

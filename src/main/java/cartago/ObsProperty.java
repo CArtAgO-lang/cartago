@@ -17,6 +17,9 @@
  */
 package cartago;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Class represeting artifact observable properties.
  * 
@@ -32,6 +35,7 @@ public class ObsProperty implements java.io.Serializable {
 	private ObsPropMap container;
 	private long id;
 	private String fullId;
+	private List<Object> annots = null;
 	
 	ObsProperty(ObsPropMap container, long id, String fullId, String name, Object... values){
     	this.name = name;
@@ -58,6 +62,27 @@ public class ObsProperty implements java.io.Serializable {
 	 */
 	public String getName(){
 		return name;
+	}
+	
+	public void addAnnot(Object o) {
+		if (annots == null) 
+			annots = new ArrayList<Object>();
+		annots.add(o);
+	}
+	
+	public List<Object> getAnnots() {
+		return annots;
+	}
+	
+	public boolean hasAnnots() {
+		return annots != null && !annots.isEmpty();
+	}
+	
+	public List<Object> cloneAnnots() {
+		if (annots == null)
+			return null;
+		else
+			return new ArrayList<Object>(annots);
 	}
 	
 	
@@ -322,7 +347,7 @@ public class ObsProperty implements java.io.Serializable {
 	}
 	
 	ArtifactObsProperty getUserCopy(){
-		return new ArtifactObsProperty(fullId,id,name,values.clone());
+		return new ArtifactObsProperty(fullId,id,name,values.clone()).setAnnots(cloneAnnots());
 	}
 	
 	public String toString(){

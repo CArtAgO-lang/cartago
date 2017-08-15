@@ -49,10 +49,6 @@ public abstract class GUIArtifact extends Artifact {
     	setup();
     	execInternalOp("fetchGUIEvents");
     }
-
-    protected void init(Object... params){
-    	this.init();
-    }
     
     /**
      * Set the GUI Artifact main frame
@@ -68,10 +64,6 @@ public abstract class GUIArtifact extends Artifact {
      */
     public void setup(){}
     
-    /**
-     * This method can be override to initialize the GUI
-     */
-    public void setup(Object... param){}
 
     @OPERATION void selectFileToOpen(String currentDir, String fileDesc, String[] extensions, OpFeedbackParam<String> selectedFile){
     	File file = new File(currentDir);
