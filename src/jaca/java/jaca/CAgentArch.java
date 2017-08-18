@@ -45,6 +45,7 @@ import jason.architecture.AgArch;
 import jason.asSemantics.ActionExec;
 import jason.asSemantics.Event;
 import jason.asSemantics.Intention;
+import jason.asSemantics.Message;
 import jason.asSemantics.TransitionSystem;
 import jason.asSemantics.Unifier;
 import jason.asSyntax.ASSyntax;
@@ -496,6 +497,17 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		}
 	}
 
+	@Override
+	public void sendMsg(Message m) throws Exception {
+		// if content is an mapped object, use it
+		if (m.getPropCont() instanceof Atom) {
+			Object o = lib.getObject((Atom)m.getPropCont());
+			if (o != null)
+				m.setPropCont(o);
+		}
+		super.sendMsg(m);
+	}
+	
 	protected Object getObject(Term t) {
 		return lib.termToObject(t);
 	}

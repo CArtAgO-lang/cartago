@@ -1036,6 +1036,8 @@ public class JavaLibrary {
 				list[i++] = termToObject(t1);
 			}
 			return list;
+		} else if (t instanceof ObjectTerm){
+			return ((ObjectTerm)t).getObject();
 		} else {
 			return t.toString();
 		}
