@@ -991,7 +991,7 @@ public class JavaLibrary {
 			} else {
 				return new OpFeedbackParam<Object>();
 			}
-	    } else if (t.isAtom()){
+	    } else if (t.isAtom()) {
 			Atom t2 = (Atom)t;
 			if (t2.equals(Atom.LTrue)){
 				return Boolean.TRUE;
@@ -1005,7 +1005,7 @@ public class JavaLibrary {
 					return t2.toString();
 				}
 			}
-	    } else if (t.isNumeric()){
+	    } else if (t.isNumeric()) {
 			NumberTerm nt = (NumberTerm)t;
 			double d = 0;
             try {
@@ -1024,10 +1024,10 @@ public class JavaLibrary {
 			} else {
 				return d;
 			}
-		} else if (t.isString()){
+		} else if (t.isString()) {
 			//System.out.println("STRING "+t);
 			return ((StringTerm)t).getString(); //(t.toString()).substring(1,t.toString().length()-1);
-		} else if (t.isList()){
+		} else if (t.isList()) {
 			//System.out.println("LIST "+t);
 			ListTerm lt = (ListTerm)t;
 			int i = 0;

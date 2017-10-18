@@ -241,9 +241,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					pendingActions.put(actId, pa);
 					// getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
 				} else {
-					String msg = "Action failed: " + actionExec.getActionTerm()+". No artifact in namespace " + action.getNS() + " implements operation " + op;
+					String msg = "Action failed: " + actionExec.getActionTerm()+", in namespace " + action.getNS() + ", operation " + op;
 					logger.warning(msg);
-					Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",no_art("+action.getNS()+",\""+op+"\"))");
+					Term reasonTerm = null;
+					try {
+						reasonTerm = Literal.parseLiteral("action_failed(" + action.getFunctor() + ",op("+action.getNS()+",\""+op+"\"))");
+					} catch (Throwable serror) {
+						reasonTerm = Literal.parseLiteral("action_failed(" + action.getFunctor() + ",op(notparsedop))");	
+					}
 					Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
 					notifyActionFailure(actionExec, reason, msg);
 				}
@@ -251,7 +256,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.warning("Op " + action + " on artifact " + aid + "(artifact_name= " + artName + ") by " + this.getAgName() + " failed - op: " + action);
-			Term reasonTerm = Literal.parseLiteral("action_failed(" + action + ",generic_error)");
+			Term reasonTerm = Literal.parseLiteral("action_failed(" + action.getFunctor() + ",generic_error)");
 			Literal reason = ASSyntax.createLiteral("env_failure", reasonTerm);
 			String msg = "Action failed: " + actionExec.getActionTerm() + ". "+ex.getMessage();
 			notifyActionFailure(actionExec, reason, msg);
@@ -627,10 +632,24 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			super(jl.getNS(), Literal.LPos, jl);
 			obsPropId = jl.obsPropId;
 		}
+		public JaCaLiteral(JaCaLiteral jl, Unifier u) {
+			super(jl, u);
+			obsPropId = jl.obsPropId;
+		}
+
+		public String getObsPropId() {
+			return obsPropId;
+		}
+		
 		@Override
 		public Literal copy() {
 			return new JaCaLiteral(this);
 		}
+		@Override
+		public Term capply(Unifier u) {
+	        return new JaCaLiteral(this, u);
+		}
+		
 		boolean hasPropId(String id) {
 			return obsPropId.equals(id);
 		}
