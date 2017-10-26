@@ -15,7 +15,7 @@
   createWorkspace(main.test2);  //spawned on node1
   createWorkspace(main.test1.test1);  //spawned on node2
   println("on second node")[wsp(main.test1)]; //excecuted at home if not specified
-  joinWorkspace("main.test2", WId2); //node1
+  joinWorkspace(main.test2, WId2); //node1
   println("on first node");
   createWorkspace("main.test1.wx"); //spawned on node 2
   joinWorkspace("main.test1.wx", WId3); //node2
