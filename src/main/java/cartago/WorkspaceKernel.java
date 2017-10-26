@@ -782,8 +782,8 @@ public class WorkspaceKernel  {
 					opTodo.put(frame);
 					return true;
 				} catch (Exception ex){
-					ex.printStackTrace();
-					throw new CartagoException("exec op exception.");
+					//ex.printStackTrace();
+					throw new CartagoException("exec op exception."+ex.getMessage());
 				}
 			} else {
 				try {
@@ -791,8 +791,8 @@ public class WorkspaceKernel  {
 					ctx.notifyCartagoEvent(ev);
 					return false;
 				} catch (Exception ex){
-					ex.printStackTrace();
-					throw new CartagoException("exec op exception.");
+					//ex.printStackTrace();
+					throw new CartagoException("exec op exception."+ex.getMessage());
 				}
 			}
 		}

@@ -223,7 +223,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									}
 								}
 							}
-							// TODO: decide whether to try this (in all wkspaces!)
+							// TODO: decide whether to try this (in all workspaces!)
 							if (actId == Long.MIN_VALUE) {
 								// try as before name spaces
 								try {
