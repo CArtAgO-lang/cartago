@@ -1,0 +1,15 @@
+MAS pruebasCartagoV2 {
+
+	
+
+	environment: jaca.CartagoEnvironment("host=localhost","port=8090")
+
+	agents:
+		agent1 sample_agent agentArchClass jaca.CAgentArch;
+
+
+	aslSourcePath:
+		"src/asl";
+	
+	
+}
