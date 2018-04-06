@@ -600,7 +600,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			for (Object o: prop.getAnnots())
 				struct.addAnnot(lib.objectToTerm(o));
 		
-		struct.addAnnot(BeliefBase.TPercept);
+		//struct.addAnnot(BeliefBase.TPercept);  // Do not add source(percept) anymore, cartago bels are not handled by BUF. It causes problems when more ag archs are used (see ProVant project)
 		struct.addAnnot(OBS_PROP_PERCEPT);
 		//struct.addAnnot(ASSyntax.createStructure("obs_prop_id", ASSyntax.createString(prop.getFullId())));
 		addSourceAnnots(source, struct);
@@ -640,6 +640,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		public String getObsPropId() {
 			return obsPropId;
 		}
+		
+		@Override
+	    public boolean subjectToBUF() {
+	        return false;
+	    }
 		
 		@Override
 		public Literal copy() {
