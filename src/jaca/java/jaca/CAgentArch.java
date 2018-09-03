@@ -559,7 +559,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	public boolean notifyCartagoEvent(CartagoEvent ev) {
 		// System.out.println("NOTIFIED "+ev.getId()+" "+ev.getClass().getCanonicalName());
 		// logger.info("Notified event "+ev);
-		getArchInfraTier().wake();
+		getFirstAgArch().wake();
 		return true; // true means that we want the event to be enqueued in the percept queue
 	}
 
