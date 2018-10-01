@@ -1,4 +1,4 @@
-/* CArtAgO + JaCa naive gradle build file 
+/* CArtAgO + JaCa naive gradle build file
  * - to be improved -
  *
  * Note:
@@ -10,9 +10,9 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-version '2.3-SNAPSHOT'
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+version '2.3'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 sourceSets {
   main {
@@ -29,7 +29,7 @@ sourceSets {
       java {
         srcDir 'src/jaca/java'
       }
-  
+
       output.classesDir = 'build/classes/jaca'
       compileClasspath = files ('build/classes/main','build/classes/jaca') + configurations.compile
   }
@@ -41,7 +41,7 @@ dependencies {
   compile files('libs/lipermi-0.4.jar')
   //compile files('libs/jason.jar')
   //compile group: 'net.sf.jason', name: 'jason', version: '2.0'
-  compile group: 'org.jason-lang', name: 'jason'    , version: '2.3-SNAPSHOT'  , changing: true , transitive: false
+  compile group: 'org.jason-lang', name: 'jason'    , version: '2.3'  , changing: true , transitive: false
 }
 
 /* still not used */
@@ -70,7 +70,7 @@ task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   from 'build/classes/jaca'
   include '**'
 }
-  
+
 
 
 task makeDist (dependsOn: ['build','jar']) {
@@ -133,4 +133,3 @@ artifacts {
     archives cartagoJar
     archives jacaJar
 }
-

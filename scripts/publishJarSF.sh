@@ -6,7 +6,7 @@ if [ -z $USERSF ] ; then
     exit
 fi
 
-REL=2.3-SNAPSHOT
+REL=2.3
 
 
 # for cartago
@@ -51,5 +51,3 @@ echo '  <version>'$REL'</version>' >> $POM
 echo '</project>' >> $POM
 
 scp -r $MAVEN/$REL $USERSF,jacamo@web.sf.net:/home/project-web/jacamo/htdocs/maven2/org/jacamo/jaca
-
-
