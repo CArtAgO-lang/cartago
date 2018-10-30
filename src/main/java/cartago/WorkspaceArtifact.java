@@ -40,6 +40,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * Start observing an artifact of the workspace
 	 * 
 	 * @param aid the artifact id
@@ -57,6 +58,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * Start observing an artifact of the workspace
 	 * 
 	 * @param aid the artifact id
@@ -73,7 +75,7 @@ public class WorkspaceArtifact extends Artifact {
 			failed("Artifact Not Available.");
 		}
 	}
-	
+
 	/**
 	 * Start observing an artifact as soon as it is available
 	 * 
@@ -95,8 +97,6 @@ public class WorkspaceArtifact extends Artifact {
 			failed("Artifact Not Available.");
 		}
 	}
-
-	
 	
 	/**
 	 * Start observing an artifact as soon as it is available
@@ -150,6 +150,25 @@ public class WorkspaceArtifact extends Artifact {
 	/**
 	 * Stop observing an artifact
 	 * 
+	 * @param artName artifact name
+	 */
+	@OPERATION void stopFocus(String artName){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			ArtifactId aid = wspKernel.getArtifact(artName);
+			List<ArtifactObsProperty> props = wspKernel.stopFocus(userId, opFrame.getAgentListener(), aid);
+			wspKernel.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
+	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * Stop observing an artifact
+	 * 
 	 * @param aid
 	 */
 	@OPERATION void stopFocus(ArtifactId aid){
@@ -164,10 +183,36 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 	
+	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * Link two artifacts allowing to implement linked operations
+	 * 
+	 * @param artifactOutId id of the producer
+	 * @param artifactOutPort port name used by the producer
+	 * @param artifactInId id of the consumer
+	 */
 	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
 		AgentId userId = this.getCurrentOpAgentId();
 		try {
 			wspKernel.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	/**
+	 * Link two artifacts allowing to implement linked operations
+	 * 
+	 * @param artifactOutName artifact name of the producer
+	 * @param artifactOutPort port name used by the producer
+	 * @param artifactInName artifact name of the consumer
+	 */
+	@OPERATION void linkArtifacts(String artifactOutName, String artifactOutPort, String artifactInName){
+		AgentId userId = this.getCurrentOpAgentId();
+		try {
+			ArtifactId aOutid = wspKernel.getArtifact(artifactOutName);
+			ArtifactId aInid = wspKernel.getArtifact(artifactInName);
+			wspKernel.linkArtifacts(userId, aOutid, artifactOutPort, aInid);
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
@@ -187,6 +232,7 @@ public class WorkspaceArtifact extends Artifact {
 
 	
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * <p>Discover an artifact by name</p>
 	 * 
 	 * <p>Parameters:
@@ -206,6 +252,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * <p>Discover an artifact by type</p>
 	 * 
 	 * <p>Parameters:
@@ -307,9 +354,9 @@ public class WorkspaceArtifact extends Artifact {
 			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
 		}
 	}
-
 	
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * <p>Create a new artifact</p>
 	 * 
 	 * <p>Parameters:
@@ -339,6 +386,66 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
+	/**
+	 * <p>Create or lookup an artifact</p>
+	 * 
+	 * <p>Parameters:
+	 * <ul>
+	 * <li>name (String) -  name of the artifact</li>
+	 * <li>template (String) -  artifact template</li>
+	 * <li>param (ArtifactConfig) -  artifact configuration</li>
+	 * </ul></p>
+	 * 
+	 * <p>Events generated:
+	 * <ul>
+	 * <li>new_artifact_created(name:String, template:String, id:ArtifactId) - if make succeeded</li>
+	 * </ul></p>
+	 */	
+	@OPERATION @LINK void bringArtifact(String artifactName, String templateName, Object[] params){
+		try {
+			ArtifactId id;
+			if (wspKernel.getArtifact(artifactName) == null)
+				id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
+			else
+				id = wspKernel.getArtifact(artifactName);
+			if (this.getObsProperty("artifact") == null)
+				this.defineObsProperty("artifact", artifactName, templateName, id);
+		} catch (UnknownArtifactTemplateException ex){
+			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
+		} catch (ArtifactAlreadyPresentException ex){
+			failed("artifact "+artifactName+" creation failed: "+artifactName+"already present","makeArtifactFailure","artifact_already_present",artifactName);
+		} catch (ArtifactConfigurationFailedException ex){
+			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
+		}
+	}
+
+	/**
+	 * <p>Destroy an artifact</p>
+	 * 
+	 * <p>Parameters:
+	 * <ul>
+	 * <li>name (String) -  name of the artifact</li>
+	 * </ul></p>
+	 */	
+	@OPERATION @LINK void disposeArtifact(String artifactName){
+		try {
+			ArtifactId id = wspKernel.getArtifact(artifactName);
+			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
+			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
+		} catch (Exception ex){
+			failed(ex.toString());
+		}
+	}
+
+	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * <p>Destroy an artifact</p>
+	 * 
+	 * <p>Parameters:
+	 * <ul>
+	 * <li>id (ArtifactId) -  id of the artifact</li>
+	 * </ul></p>
+	 */	
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
 			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
@@ -468,6 +575,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
+	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * Get current artifact list.
 	 * 
 	 * 

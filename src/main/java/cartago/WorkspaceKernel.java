@@ -430,7 +430,8 @@ public class WorkspaceKernel  {
 		synchronized (artifactMap){
 			des = artifactMap.get(name);
 			if (des!=null){
-				throw new ArtifactAlreadyPresentException(name,this.id.getName());
+				return des.getArtifact().getId();
+				//throw new ArtifactAlreadyPresentException(name,this.id.getName());
 			}
 		}
 		Artifact artifact = makeArtifact(template);

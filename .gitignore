@@ -1,7 +1,37 @@
-/bin/
+bin
 build
+target
+APDescription.txt
+MTPs-Main-Container.txt
+
+*.log
+.stop___MAS
 *~
-.classpath
 .gradle
-.project
 .settings
+doc/*.html
+gradle
+gradlew
+gradlew.bat
+
+.DS_Store
+
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+readme.html
+release-notes.html
+
+src/test/java/project/log
+
+.classpath
+.project
