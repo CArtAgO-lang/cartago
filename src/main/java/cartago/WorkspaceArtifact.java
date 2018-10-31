@@ -152,7 +152,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * @param artName artifact name
 	 */
-	@OPERATION void stopFocus(String artName){
+	@OPERATION void stopFocusing(String artName){
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
@@ -182,7 +182,7 @@ public class WorkspaceArtifact extends Artifact {
 			failed("Artifact Not Available.");
 		}
 	}
-	
+
 	/**
 	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
 	 * Link two artifacts allowing to implement linked operations
@@ -201,18 +201,20 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * Link two artifacts allowing to implement linked operations
+	 * Link two artifacts in both ways allowing to implement linked operations
+	 * It uses
 	 * 
 	 * @param artifactOutName artifact name of the producer
 	 * @param artifactOutPort port name used by the producer
 	 * @param artifactInName artifact name of the consumer
 	 */
-	@OPERATION void linkArtifacts(String artifactOutName, String artifactOutPort, String artifactInName){
+	@OPERATION void linkArtifactsMutually(String artifactA, String artifactAPort, String artifactB, String artifactBPort){
 		AgentId userId = this.getCurrentOpAgentId();
 		try {
-			ArtifactId aOutid = wspKernel.getArtifact(artifactOutName);
-			ArtifactId aInid = wspKernel.getArtifact(artifactInName);
-			wspKernel.linkArtifacts(userId, aOutid, artifactOutPort, aInid);
+			ArtifactId aAid = wspKernel.getArtifact(artifactA);
+			ArtifactId aBid = wspKernel.getArtifact(artifactB);
+			wspKernel.linkArtifacts(userId, aAid, artifactAPort, aBid);
+			wspKernel.linkArtifacts(userId, aBid, artifactBPort, aAid);
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
@@ -441,7 +443,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * <li>name (String) -  name of the artifact</li>
 	 * </ul></p>
 	 */	
-	@OPERATION @LINK void disposeArtifact(String artifactName){
+	@OPERATION @LINK void destroyArtifact(String artifactName){
 		try {
 			ArtifactId id = wspKernel.getArtifact(artifactName);
 			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
