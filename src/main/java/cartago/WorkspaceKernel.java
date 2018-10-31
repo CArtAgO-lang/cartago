@@ -894,9 +894,9 @@ public class WorkspaceKernel  {
 			}
 		}
 		des.removeObserver(userId);
-		synchronized (joinedAgents){
+		synchronized (joinedAgents) {
 			AgentBody body = joinedAgents.get(userId.getGlobalId());
-			if (body!=null){
+			if (body != null) {
 				body.removeFocusedArtifacts(des);
 			}
 		}
@@ -905,6 +905,7 @@ public class WorkspaceKernel  {
 			logManager.artifactNoMoreFocussed(System.currentTimeMillis(), userId, aid);
 		}
 		List<ArtifactObsProperty> obs = des.getAdapter().readProperties();
+	
 		return obs;
 	}
 

@@ -204,9 +204,10 @@ public class WorkspaceArtifact extends Artifact {
 	 * Link two artifacts in both ways allowing to implement linked operations
 	 * It uses
 	 * 
-	 * @param artifactOutName artifact name of the producer
-	 * @param artifactOutPort port name used by the producer
-	 * @param artifactInName artifact name of the consumer
+	 * @param artifactA artifact name of 'A' producer/consumer
+	 * @param artifactAPort port name used by 'A' producer/consumer
+	 * @param artifactB artifact name of 'B' producer/consumer
+	 * @param artifactBPort port name used by 'B' producer/consumer
 	 */
 	@OPERATION void linkArtifactsMutually(String artifactA, String artifactAPort, String artifactB, String artifactBPort){
 		AgentId userId = this.getCurrentOpAgentId();
@@ -220,6 +221,25 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
+	/**
+	 * Link two artifacts in both ways allowing to implement linked operations
+	 * It uses
+	 * 
+	 * @param artifactOutName artifact name of the producer
+	 * @param artifactOutPort port name used by the producer
+	 * @param artifactInName artifact name of the consumer
+	 */
+	@OPERATION void linkArtifactsOneWay(String artifactOutName, String artifactOutPort, String artifactInName){
+		AgentId userId = this.getCurrentOpAgentId();
+		try {
+			ArtifactId aAid = wspKernel.getArtifact(artifactOutName);
+			ArtifactId aBid = wspKernel.getArtifact(artifactInName);
+			wspKernel.linkArtifacts(userId, aAid, artifactOutPort, aBid);
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
 	@OPERATION void quitWorkspace() {
 		try {
 			OpExecutionFrame opFrame = this.getOpFrame();
