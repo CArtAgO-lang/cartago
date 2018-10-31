@@ -613,7 +613,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		try {
 			artName = ASSyntax.parseTerm(source.getName());
 		} catch (Exception e) {
-			artName = ASSyntax.createAtom(source.getName());
+			artName = ASSyntax.createAtom(source.getName().replaceAll("-", "_"));
 		}
 		//struct.addAnnot(ASSyntax.createStructure("source", id));
 		struct.addAnnot(ASSyntax.createStructure("artifact_id", id));
