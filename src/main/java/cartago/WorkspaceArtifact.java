@@ -387,7 +387,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * <p>Create or lookup an artifact</p>
+	 * <p>Create or lookup and focus an artifact</p>
 	 * 
 	 * <p>Parameters:
 	 * <ul>
@@ -401,21 +401,35 @@ public class WorkspaceArtifact extends Artifact {
 	 * <li>new_artifact_created(name:String, template:String, id:ArtifactId) - if make succeeded</li>
 	 * </ul></p>
 	 */	
-	@OPERATION @LINK void bringArtifact(String artifactName, String templateName, Object[] params){
+	@OPERATION @LINK void raiseArtifact(String artifactName, String templateName, Object[] params){
 		try {
-			ArtifactId id;
-			if (wspKernel.getArtifact(artifactName) == null)
+			// Create or lookup the artifact
+			ArtifactId id = null;
+			if (wspKernel.getArtifact(artifactName) == null) {
 				id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
-			else
+			} else {
 				id = wspKernel.getArtifact(artifactName);
+			}
+			
+			// create property and perception
 			if (this.getObsProperty("artifact") == null)
 				this.defineObsProperty("artifact", artifactName, templateName, id);
+
+			// focus artifact
+			AgentId userId = this.getCurrentOpAgentId();
+			OpExecutionFrame opFrame = this.getOpFrame();
+			List<ArtifactObsProperty> props = wspKernel.focus(userId, null, opFrame.getAgentListener(), id);
+			wspKernel.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), id, props);
+			opFrame.setCompletionNotified();
+
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
 		} catch (ArtifactAlreadyPresentException ex){
 			failed("artifact "+artifactName+" creation failed: "+artifactName+"already present","makeArtifactFailure","artifact_already_present",artifactName);
 		} catch (ArtifactConfigurationFailedException ex){
 			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
+		} catch (CartagoException e) {
+			failed("Artifact Not Available.");
 		}
 	}
 

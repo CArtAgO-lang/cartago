@@ -730,7 +730,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			if ("focused".equals(prop.getName())) {
 				// focused in handled by processFocusSucceeded
 				return null;
-				/*if (prop.getValue(1).toString().endsWith("-body")) {
+				/*if (prop.getValue(1).toString().endsWith("_body")) {
 					return null;
 				} else {
 					// add artifact_type annot in the art name

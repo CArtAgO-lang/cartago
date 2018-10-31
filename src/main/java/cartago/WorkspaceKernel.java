@@ -227,7 +227,7 @@ public class WorkspaceKernel  {
 
 	private ArtifactId makeAgentBodyArtifact(AgentBody body){
 		try {
-			String name = body.getAgentId().getAgentName()+"-body";
+			String name = body.getAgentId().getAgentName()+"_body";
 			ArtifactId id = makeArtifact(wspManager.getAgentId(),name,"cartago.AgentBodyArtifact",new ArtifactConfig(body));
 			ArtifactDescriptor des = null;
 			synchronized (artifactMap){
