@@ -421,24 +421,28 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		// removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
 		Atom nsp = ((NameSpaceOp) ev1.getOp()).getNS();
 		removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), nsp);
-		mappings.get(ev1.getTargetArtifact()).remove(nsp);
-		// The Observer is added again
-		if (!mappings.get(ev1.getTargetArtifact()).isEmpty()) {
-			String wspName = ev1.getTargetArtifact().getWorkspaceId().getName();
-			for (AgentId ag : CartagoService.getController(wspName).getCurrentAgents()) // to get the agentId from agName
-				if (ag.getAgentName().equals(getAgName())) {
-					Field f = CartagoService.class.getDeclaredField("instance"); // 1
-					f.setAccessible(true); // 2
-					CartagoNode node = (CartagoNode) f.get(CartagoService.class); // 3
-					WorkspaceKernel kernel = node.getWorkspace(wspName).getKernel(); // 4
-					f = kernel.getClass().getDeclaredField("artifactMap"); // 5
-					f.setAccessible(true); // 6
-					ArtifactDescriptor des = ((HashMap<String, ArtifactDescriptor>) f.get(kernel)).get(ev1.getTargetArtifact().getName()); // 'des' is what i want!
-					des.addObserver(ag, null, (ICartagoCallback) envSession);
-					break;
-				}
-		} else
-			mappings.remove(ev1.getTargetArtifact());
+		HashSet<Atom> aa = mappings.get(ev1.getTargetArtifact());
+		if (aa != null) { 
+			aa.remove(nsp);
+			// The Observer is added again
+			if (!aa.isEmpty()) {
+				String wspName = ev1.getTargetArtifact().getWorkspaceId().getName();
+				for (AgentId ag : CartagoService.getController(wspName).getCurrentAgents()) // to get the agentId from agName
+					if (ag.getAgentName().equals(getAgName())) {
+						Field f = CartagoService.class.getDeclaredField("instance"); // 1
+						f.setAccessible(true); // 2
+						CartagoNode node = (CartagoNode) f.get(CartagoService.class); // 3
+						WorkspaceKernel kernel = node.getWorkspace(wspName).getKernel(); // 4
+						f = kernel.getClass().getDeclaredField("artifactMap"); // 5
+						f.setAccessible(true); // 6
+						ArtifactDescriptor des = ((HashMap<String, ArtifactDescriptor>) f.get(kernel)).get(ev1.getTargetArtifact().getName()); // 'des' is what i want!
+						des.addObserver(ag, null, (ICartagoCallback) envSession);
+						break;
+					}
+			} else {
+				mappings.remove(ev1.getTargetArtifact());
+			}
+		}
 	}
 
 	private void perceiveFocusSucceeded(FocusSucceededEvent ev) {
