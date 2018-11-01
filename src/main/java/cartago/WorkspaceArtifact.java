@@ -20,6 +20,11 @@ package cartago;
 import cartago.security.SecurityException;
 import cartago.tools.inspector.Inspector;
 import cartago.security.*;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -303,6 +308,27 @@ public class WorkspaceArtifact extends Artifact {
 			String[] names = wspKernel.getArtifactList();
 			list.set(names);
 		} catch (Exception ex){
+			failed(ex.toString());
+		}
+	}
+	
+	/**
+	 * Experimental operation to write in the file "graph.gv" the
+	 * generate graph of environment components and relations
+	 * 
+	 * This method is temporary, this function sounds to be more useful
+	 * if it is integrated to some interface instead of create a file
+	 */
+	@OPERATION void writeEnvironmentGraphInFile() {
+		try (FileWriter fw = new FileWriter("graph.gv", false);
+				BufferedWriter bw = new BufferedWriter(fw);
+				PrintWriter out = new PrintWriter(bw)) {
+
+			String graph = wspKernel.generateGraph();
+			out.print(graph);
+			out.flush();
+			out.close();
+		} catch (Exception ex) {
 			failed(ex.toString());
 		}
 	}
@@ -619,4 +645,17 @@ public class WorkspaceArtifact extends Artifact {
 	@LINK void getArtifactList(OpFeedbackParam<ArtifactId[]> artifacts) {
 		artifacts.set(wspKernel.getArtifactIdList());
 	}
+	
+	/**
+	 * Set the default use policy
+	 * 
+	 */
+	@OPERATION void getDefaultRolePolicy(String roleName, String artName, IArtifactUsePolicy policy) {
+		try {
+			wspKernel.getSecurityManager().setDefaultRolePolicy(roleName, policy);
+		} catch(SecurityException ex){
+			failed("security_exception");
+		}
+	}
+	
 }

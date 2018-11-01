@@ -20,6 +20,7 @@ package cartago;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
@@ -30,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -38,7 +40,8 @@ import java.util.concurrent.TimeUnit;
 import cartago.events.*;
 import cartago.security.IWorkspaceSecurityManager;
 import cartago.security.NullSecurityManager;
-import cartago.security.SecurityException;
+import cartago.tools.graph.GraphGenerator;
+import cartago.tools.graph.GraphNode;
 
 /**
  * This class represents the core machinery of a workspace.
@@ -969,7 +972,40 @@ public class WorkspaceKernel  {
 		}
 	}
 
-	//
+	/**
+	 * Generate a graph of all environment artifacts clustering by workspaces
+	 * It includes the agents that are observing artifacts making arrows to show this 
+	 * relation as well as represent the linking artifacts
+	 * 
+	 * @return Graphviz generated string
+	 * @throws CartagoException
+	 * @throws IOException
+	 */
+	public String generateGraph() throws CartagoException, IOException {
+		
+		GraphGenerator gg = new GraphGenerator();
+		synchronized (artifactMap) {
+			for(Entry<String, ArtifactDescriptor> entry : artifactMap.entrySet()) {
+			    ArtifactDescriptor artDescriptor = entry.getValue();
+
+			    GraphNode gn = new GraphNode();
+			    gn.setName(artDescriptor.getArtifact().getId().getName());
+			    gn.setWorkspace(artDescriptor.getArtifact().getId().getWorkspaceId().getName());
+			    gn.setType(artDescriptor.getArtifactType());
+
+			    artDescriptor.getObservers().forEach(x -> gn.addNewObservingAgent(x.getAgentId().getAgentName()));
+			    artDescriptor.getArtifact().getLinkedArtifacts().forEach(x -> gn.addNewLinkedArtifact(x.getName()));
+			    artDescriptor.getAdapter().readProperties().forEach(x -> gn.addNewObservableProperty(x.getName().split("/")[0]));
+			    artDescriptor.getAdapter().getOperations().forEach(x -> gn.addNewObservableProperty(x.getKeyId().split("/")[0]));
+			    
+			    // general data use by main generator to build a graph with clusters
+			    artDescriptor.getObservers().forEach(x -> gg.addNewObservingAgent(x.getAgentId().getAgentName()));
+			    gg.addNode(artDescriptor.getArtifact().getId().getWorkspaceId().getName(),gn);
+			}
+			return gg.generateGraph();
+		}
+
+	}
 
 	public OpId doInternalOp(ArtifactId aid, Op op) throws InterruptedException, OpRequestTimeoutException, OperationUnavailableException, ArtifactNotAvailableException, CartagoException  {
 		ArtifactDescriptor des = null;
