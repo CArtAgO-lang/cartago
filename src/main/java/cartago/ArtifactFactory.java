@@ -8,6 +8,8 @@ package cartago;
  *
  */
 public abstract class ArtifactFactory implements java.io.Serializable {
+	private static final long serialVersionUID = -2887781204461566684L;
+
 	private String name;
 	
 	public ArtifactFactory(String name){
@@ -19,4 +21,7 @@ public abstract class ArtifactFactory implements java.io.Serializable {
 	}
 	
 	abstract public Artifact createArtifact(String templateName) throws CartagoException ;
+
+	abstract public Artifact createDynamicArtifact(String templateName, String sourceDir) throws CartagoException;
+
 }

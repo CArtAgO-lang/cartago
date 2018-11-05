@@ -23,7 +23,6 @@ import cartago.security.*;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -50,6 +49,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * @param aid the artifact id
 	 */
+	@Deprecated
 	@OPERATION void focus(ArtifactId aid){
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
@@ -69,6 +69,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param aid the artifact id
 	 * @param filter filter to select which events to perceive
 	 */
+	@Deprecated
 	@OPERATION void focus(ArtifactId aid, IEventFilter filter){
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
@@ -176,6 +177,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * @param aid
 	 */
+	@Deprecated
 	@OPERATION void stopFocus(ArtifactId aid){
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
@@ -196,6 +198,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param artifactOutPort port name used by the producer
 	 * @param artifactInId id of the consumer
 	 */
+	@Deprecated
 	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
 		AgentId userId = this.getCurrentOpAgentId();
 		try {
@@ -269,6 +272,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * </ul></p>
 	 */
+	@Deprecated
 	@OPERATION @LINK void lookupArtifact(String artifactName, OpFeedbackParam<ArtifactId> aid){
 		try {
 			ArtifactId id = wspKernel.lookupArtifact(this.getCurrentOpAgentId(),artifactName);
@@ -289,6 +293,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * </ul></p>
 	 */
+	@Deprecated
 	@OPERATION @LINK void lookupArtifactByType(String artifactType, OpFeedbackParam<ArtifactId> aid){
 		try {
 			ArtifactId id = wspKernel.lookupArtifactByType(this.getCurrentOpAgentId(),artifactType);
@@ -417,9 +422,9 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * </ul></p>
 	 */	
-	@OPERATION @LINK void makeDynamicArtifact(String artifactName, String templateName, Object[] param){
+	@OPERATION @LINK void makeDynamicArtifact(String artifactName, String templateName, String sourceDir, Object[] param){
 		try {
-			ArtifactId id = wspKernel.makeDynamicArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
+			ArtifactId id = wspKernel.makeDynamicArtifact(this.getCurrentOpAgentId(),artifactName,templateName,sourceDir,new ArtifactConfig(param));
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
@@ -429,8 +434,6 @@ public class WorkspaceArtifact extends Artifact {
 			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
 		}
 	}
-
-
 	
 	/**
 	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
@@ -449,6 +452,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * <li>new_artifact_created(name:String, template:String, id:ArtifactId) - if make succeeded</li>
 	 * </ul></p>
 	 */	
+	@Deprecated
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] params, OpFeedbackParam<ArtifactId> aid){
 		try {
 			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
@@ -537,6 +541,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * <li>id (ArtifactId) -  id of the artifact</li>
 	 * </ul></p>
 	 */	
+	@Deprecated
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
 			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
@@ -671,6 +676,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 * 
 	 */
+	@Deprecated
 	@LINK void getArtifactList(OpFeedbackParam<ArtifactId[]> artifacts) {
 		artifacts.set(wspKernel.getArtifactIdList());
 	}

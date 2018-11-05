@@ -424,8 +424,6 @@ public class WorkspaceKernel  {
 		}
 	}
 
-	//
-
 	public ArtifactId makeArtifact(AgentId userId, String name, String template, ArtifactConfig config) throws ArtifactAlreadyPresentException, UnknownArtifactTemplateException, ArtifactConfigurationFailedException {
 		ArtifactId id = null;
 		AbstractArtifactAdapter adapter = null;
@@ -488,6 +486,96 @@ public class WorkspaceKernel  {
 		}
 	}
 
+
+	/**
+	 * Create artifact allowing runtime compilation
+	 * 
+	 * @param userId id of the agent
+	 * @param name name of the new artifact
+	 * @param template template file of the artifact to be created
+	 * @param sourceDir source directory, if null "src/env/" will be used 
+	 * @param config extra configurations
+	 * @return artifact id of created artifact
+	 * @throws ArtifactAlreadyPresentException
+	 * @throws UnknownArtifactTemplateException
+	 * @throws ArtifactConfigurationFailedException
+	 */
+	public ArtifactId makeDynamicArtifact(AgentId userId, String name, String template, String sourceDir, ArtifactConfig config) throws ArtifactAlreadyPresentException, UnknownArtifactTemplateException, ArtifactConfigurationFailedException {
+		ArtifactId id = null;
+		AbstractArtifactAdapter adapter = null;
+		ArtifactDescriptor des = null;
+		synchronized (artifactMap){
+			des = artifactMap.get(name);
+			if (des!=null){
+				return des.getArtifact().getId();
+			}
+		}
+		Artifact artifact = makeDynamicArtifact(template,sourceDir);
+		try {
+			int freshid = artifactIds.incrementAndGet();
+			id = new ArtifactId(name, freshid,template,this.id, userId);
+
+			artifact.bind(id,userId,this);	
+
+			adapter = artifact.getAdapter();				
+			ArtifactDescriptor desc = new ArtifactDescriptor(artifact, userId, adapter);
+
+			synchronized (artifactMap){
+				artifactMap.put(name,desc);
+			}
+
+			try {
+				adapter.initArtifact(config);
+				List<OpDescriptor> ops = desc.getAdapter().getOperations();
+				synchronized (opMap){
+					for (OpDescriptor op: ops){
+						List<ArtifactDescriptor> list = opMap.get(op.getKeyId());
+						if (list == null){
+							list = new ArrayList<ArtifactDescriptor>();
+						}	
+						list.add(desc);
+						opMap.put(op.getKeyId(), list);
+					}
+				}
+				
+				if (logManager.isLogging()){
+					logManager.artifactCreated(System.currentTimeMillis(),id,userId);
+				}	
+
+				return id;
+
+			} catch (Exception ex){
+				synchronized (artifactMap){
+					artifactMap.remove(name);
+				}
+				throw new ArtifactConfigurationFailedException(template);
+			}
+
+		} catch (Exception ex){
+			throw new ArtifactConfigurationFailedException(template);
+		}
+	}
+
+	/**
+	 * Create artifact instance using artifact factory allowing dynamic compilation 
+	 * @param template of the artifact to be created
+	 * @param sourceDir source directory, if null "src/env/" will be used 
+	 * @return Return artifact instance
+	 * @throws UnknownArtifactTemplateException
+	 */
+	private Artifact makeDynamicArtifact(String template, String sourceDir) throws UnknownArtifactTemplateException {
+		synchronized (artifactFactories){
+			for (ArtifactFactory factory: artifactFactories){
+				try {
+					return factory.createDynamicArtifact(template,sourceDir);
+				} catch (Exception ex){
+				}
+			}
+		}
+		throw new UnknownArtifactTemplateException("template: "+template);
+	}
+
+	
 	private Artifact makeArtifact(String template) throws UnknownArtifactTemplateException {
 			synchronized (artifactFactories){
 				for (ArtifactFactory factory: artifactFactories){
@@ -1206,6 +1294,7 @@ public class WorkspaceKernel  {
 			final Collection<ArtifactDescriptor> list = artifactMap.values();
 			final CountDownLatch latch = new CountDownLatch(1);
 			new Thread(){
+				@Override
 				public void run(){
 					for (ArtifactDescriptor des: list){
 						des.getArtifact().dispose();
@@ -1505,6 +1594,7 @@ public class WorkspaceKernel  {
 			return stopped;
 		}
 
+		@Override
 		public void run(){
 			stopped = false;
 			while (!isStopped()){
@@ -1551,22 +1641,27 @@ public class WorkspaceKernel  {
 			this.env = env;
 		}
 
+		@Override
 		public ArtifactId[] getCurrentArtifacts() throws CartagoException {
 			return env.getCurrentArtifacts();
 		}
 
+		@Override
 		public AgentId[] getCurrentAgents() throws CartagoException {
 			return env.getCurrentAgents();
 		}
 
+		@Override
 		public boolean removeArtifact(String artifactName) throws CartagoException {
 			return env.removeArtifact(artifactName);
 		}
 
+		@Override
 		public boolean removeAgent(String globalId) throws CartagoException {
 			return env.removeAgent(globalId);
 		}
 
+		@Override
 		public ArtifactInfo getArtifactInfo(String artifactName) throws CartagoException {
 			return env.getArtifactInfo(artifactName);
 		}

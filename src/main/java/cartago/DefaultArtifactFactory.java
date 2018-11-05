@@ -13,27 +13,46 @@ public class DefaultArtifactFactory extends ArtifactFactory {
 		super("default");
 	}
 	
+	@Override
 	public Artifact createArtifact(String templateName) throws CartagoException {
 		try {
-			Class<?> cl = null;
-			if (templateName.startsWith("cartago.")) {
-				cl = Class.forName(templateName);
-			} else {
-				String filename = "src/env/" + templateName.split("\\.")[0] + "/" + templateName.split("\\.")[1] + ".java";
-				File file = new File(filename);
-				FileInputStream fis = new FileInputStream(file);
-				byte[] data = new byte[(int) file.length()];
-				fis.read(data);
-				fis.close();
-				
-				String javacode = new String(data, "UTF-8");
-				
-				ClassLoader cloader = new ClassLoader() {};
-				cc = new CachedCompiler(null, null);
-				
-				cl = cc.loadFromJava(cloader, templateName, javacode);
-			}
+			Class<?> cl = Class.forName(templateName);
 			return (Artifact)cl.newInstance();
+		} catch(Exception ex){
+			throw new CartagoException("Template not found: "+templateName);
+		}
+	}
+	
+	/**
+	 * Create artifact dynamically allowing on-the-fly programming 	
+	 * @param templateName artifact code template
+	 * @param sourceDir source directory, if null "src/env/" will be used 
+	 * @return Artifact instance
+	 * @throws CartagoException 
+	 */
+	@Override
+	public Artifact createDynamicArtifact(String templateName, String sourceDir) throws CartagoException {
+		try {
+			String filename = null;
+			if (sourceDir == null)
+				filename = "src/env/" + templateName.replace("\\.", "/") + ".java";
+			else
+				filename = sourceDir + templateName.replace("\\.", "/") + ".java";
+
+			File file = new File(filename);
+			FileInputStream fis = new FileInputStream(file);
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			fis.close();
+
+			String javacode = new String(data, "UTF-8");
+
+			ClassLoader cloader = new ClassLoader() {
+			};
+			cc = new CachedCompiler(null, null);
+
+			Class<?> cl = cc.loadFromJava(cloader, templateName, javacode);
+			return (Artifact) cl.newInstance();
 		} catch(Exception ex){
 			throw new CartagoException("Template not found: "+templateName);
 		}
