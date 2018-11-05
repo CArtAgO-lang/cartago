@@ -45,7 +45,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * Start observing an artifact of the workspace
 	 * 
 	 * @param aid the artifact id
@@ -63,7 +63,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * Start observing an artifact of the workspace
 	 * 
 	 * @param aid the artifact id
@@ -171,7 +171,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 	
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * Stop observing an artifact
 	 * 
 	 * @param aid
@@ -189,7 +189,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * Link two artifacts allowing to implement linked operations
 	 * 
 	 * @param artifactOutId id of the producer
@@ -259,7 +259,7 @@ public class WorkspaceArtifact extends Artifact {
 
 	
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * <p>Discover an artifact by name</p>
 	 * 
 	 * <p>Parameters:
@@ -279,7 +279,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * <p>Discover an artifact by type</p>
 	 * 
 	 * <p>Parameters:
@@ -402,9 +402,38 @@ public class WorkspaceArtifact extends Artifact {
 			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
 		}
 	}
+
+
+	/**
+	 * <p>Create a new artifact</p>
+	 * 
+	 * <p>Parameters:
+	 * <ul>
+	 * <li>name (String) -  name of the artifact</li>
+	 * <li>template (String) -  artifact template</li>
+	 * <li>param (ArtifactConfig) -  artifact configuration</li>
+	 * <li>aid [feedback] - artifact id </li>
+	 * </ul></p>
+	 * 
+	 * </ul></p>
+	 */	
+	@OPERATION @LINK void makeDynamicArtifact(String artifactName, String templateName, Object[] param){
+		try {
+			ArtifactId id = wspKernel.makeDynamicArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
+			this.defineObsProperty("artifact", artifactName, templateName, id);
+		} catch (UnknownArtifactTemplateException ex){
+			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
+		} catch (ArtifactAlreadyPresentException ex){
+			failed("artifact "+artifactName+" creation failed: "+artifactName+"already present","makeArtifactFailure","artifact_already_present",artifactName);
+		} catch (ArtifactConfigurationFailedException ex){
+			failed("artifact "+artifactName+" creation failed: an error occurred in artifact initialisation","makeArtifactFailure","init_failed",artifactName);
+		}
+	}
+
+
 	
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * <p>Create a new artifact</p>
 	 * 
 	 * <p>Parameters:
@@ -500,7 +529,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * @deprecated the methods that uses ArtifactId were replaced by methos using only artifact "name" 
+	 * @deprecated the methods that uses ArtifactId were replaced by methods using only artifact "name" 
 	 * <p>Destroy an artifact</p>
 	 * 
 	 * <p>Parameters:
