@@ -38,10 +38,20 @@ sourceSets {
 
 /* still using local dep */
 dependencies {
+	
   compile files('libs/lipermi-0.4.jar')
+  //compile files('libs/tools.jar')
   //compile files('libs/jason.jar')
   //compile group: 'net.sf.jason', name: 'jason', version: '2.0'
-  compile group: 'org.jason-lang', name: 'jason'    , version: '2.3'  , changing: true , transitive: false
+  compile group: 'org.jason-lang', name: 'jason', version: '2.3', changing: true, transitive: false
+  // https://mvnrepository.com/artifact/net.openhft/compiler
+  compile group: 'net.openhft', name: 'compiler', version: '2.3.1', transitive: false
+  
+}
+
+configurations {
+	// configuration that holds jars to include in the jar
+	extraLibs
 }
 
 /* still not used */
@@ -70,7 +80,6 @@ task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   from 'build/classes/jaca'
   include '**'
 }
-
 
 
 task makeDist (dependsOn: ['build','jar']) {
