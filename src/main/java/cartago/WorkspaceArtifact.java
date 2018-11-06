@@ -486,7 +486,7 @@ public class WorkspaceArtifact extends Artifact {
 			// Create or lookup the artifact
 			ArtifactId id = null;
 			if (wspKernel.getArtifact(artifactName) == null) {
-				id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
+				id = wspKernel.makeDynamicArtifact(this.getCurrentOpAgentId(),artifactName,templateName,"",new ArtifactConfig(params));
 			} else {
 				id = wspKernel.getArtifact(artifactName);
 			}
