@@ -34,10 +34,10 @@ public class DefaultArtifactFactory extends ArtifactFactory {
 	public Artifact createDynamicArtifact(String templateName, String sourceDir) throws CartagoException {
 		try {
 			String filename = null;
-			if (sourceDir == null)
-				filename = "src/env/" + templateName.replace("\\.", "/") + ".java";
+			if (sourceDir.equals(""))
+				filename = "src/env/" + templateName.replace(".", "/") + ".java";
 			else
-				filename = sourceDir + templateName.replace("\\.", "/") + ".java";
+				filename = sourceDir + templateName.replace(".", "/") + ".java";
 
 			File file = new File(filename);
 			FileInputStream fis = new FileInputStream(file);

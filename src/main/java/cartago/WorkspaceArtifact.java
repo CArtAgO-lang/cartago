@@ -347,7 +347,6 @@ public class WorkspaceArtifact extends Artifact {
 		wspKernel.addArtifactFactory(factory);
 	}
 
-
 	/**
 	 * Remove an existing artifact factory
 	 * 
