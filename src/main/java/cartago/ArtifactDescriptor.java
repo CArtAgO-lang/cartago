@@ -121,6 +121,14 @@ public class ArtifactDescriptor {
 		return false;
 	}
 	
+	/**
+	 * Return the list of agents that are observing this artifact
+	 * @return list o agents that are observing this artifact
+	 */
+	public synchronized List<ArtifactObserver> getObservers() {
+		return observers;
+	}
+	
 	public synchronized void notifyObservers(CartagoEvent ev){
 		if (observed){
 			for (ArtifactObserver obs:observers){
