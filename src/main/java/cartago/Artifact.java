@@ -1235,7 +1235,22 @@ public abstract class Artifact {
 		OpId oid = new OpId(id, opName, opid, ctxId);
 		return oid;
 	}
-
+	
+	/**
+	 * Gets the list of artifacts linked with this one
+	 * 
+	 */
+	public List<ArtifactId> getLinkedArtifacts() {
+		List<ArtifactId> linkedArtifacts = new ArrayList<ArtifactId>();
+		Iterator it = outPortsMap.entrySet().iterator();
+	    while (it.hasNext()) {
+	    	Map.Entry<String, ArtifactOutPort> pair = (Map.Entry<String, ArtifactOutPort>) it.next();
+	    	linkedArtifacts.addAll(pair.getValue().getArtifactList());
+	    }
+		
+		return linkedArtifacts;
+	}
+	
 	/**
 	 * Class representing the adapter used to interface the artifact to the
 	 * environment
