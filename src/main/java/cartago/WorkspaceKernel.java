@@ -1398,6 +1398,7 @@ public class WorkspaceKernel  {
 						ad.readProperties(),
 						ad.getOpInExecution(),
 						des.getObservers(),
+						des.getArtifact().getLinkedArtifacts(),
 						ad.getManual());
 				
 				return info;
