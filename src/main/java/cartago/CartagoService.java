@@ -85,6 +85,10 @@ public class CartagoService {
 	public static synchronized boolean isNodeActive(){
 		return instance!=null;
 	}
+	
+	public static CartagoNode getNode() {
+		return instance;
+	}
 
 	/**
 	 * Shutdown the CArtAgO node.

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +68,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_prop"));
 	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
-	private HashMap<ArtifactId, HashSet<Atom>> mappings = new HashMap<ArtifactId, HashSet<Atom>>();
+	private HashMap<ArtifactId, Set<Atom>> mappings = new HashMap<>();
 	static private final List<String> DEF_OPS = Arrays.asList( 
 		      "makeArtifact","removeArtifactFactory","addArtifactFactory","lookupArtifactByType","lookupArtifact","focusWhenAvailable",
 		      "disposeArtifact","quitWorkspace","linkArtifacts","stopFocus","getCurrentArtifacts","focus","init","getRoleList","setSecurityManager",
@@ -90,11 +91,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	protected jason.bb.BeliefBase belBase;
 	protected jason.asSemantics.Agent agent;
 
-	List<WorkspaceId> allJoinedWsp = new ArrayList<WorkspaceId>(); // used in stopAg to quit this workspaces
+	List<WorkspaceId> allJoinedWsp = new ArrayList<>(); // used in stopAg to quit this workspaces
 
 	public CAgentArch() {
 		super();
-		pendingActions = new ConcurrentHashMap<Long, PendingAction>();
+		pendingActions = new ConcurrentHashMap<>();
 
 		logger = Logger.getLogger("CAgentArch");
 		lib = new JavaLibrary();
@@ -421,7 +422,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		// removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties());
 		Atom nsp = ((NameSpaceOp) ev1.getOp()).getNS();
 		removeObsPropertiesBel(ev1.getTargetArtifact(), ev1.getObsProperties(), nsp);
-		HashSet<Atom> aa = mappings.get(ev1.getTargetArtifact());
+		Set<Atom> aa = mappings.get(ev1.getTargetArtifact());
 		if (aa != null) { 
 			aa.remove(nsp);
 			// The Observer is added again
@@ -784,7 +785,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	}
 
 	private List<ArtifactId> focusedArtifacts(Atom nid) {
-		List<ArtifactId> aids = new ArrayList<ArtifactId>();
+		List<ArtifactId> aids = new ArrayList<>();
 		for (ArtifactId aid : mappings.keySet())
 			if (mappings.get(aid).contains(nid))
 				aids.add(aid);

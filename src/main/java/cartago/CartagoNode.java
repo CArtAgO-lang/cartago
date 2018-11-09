@@ -131,6 +131,9 @@ public class CartagoNode {
 		return env;
 	}
 	
+	public Collection<String> getWorkspaces() {
+		return wsps.keySet();
+	}
 	
 	
 	/**
