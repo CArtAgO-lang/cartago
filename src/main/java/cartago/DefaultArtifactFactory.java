@@ -14,9 +14,7 @@ public class DefaultArtifactFactory extends ArtifactFactory {
 	public Artifact createArtifact(String templateName) throws CartagoException {
 		try {
 			Class cl;
-			if (templateName.substring(0, 8).equals("cartago.")) {
-				cl = Class.forName(templateName);
-			} else {
+			if (templateName.substring(0, 8).equals("dynamic.")) {
 				String filename = "src/env/" + templateName.replace(".", "/") + ".java";
 
 				File file = new File(filename);
@@ -32,6 +30,8 @@ public class DefaultArtifactFactory extends ArtifactFactory {
 				CachedCompiler cc = new CachedCompiler(null, null);
 
 				cl = cc.loadFromJava(cloader, templateName, javacode);
+			} else {
+				cl = Class.forName(templateName);
 			}
 			return (Artifact) cl.newInstance();
 		} catch (Exception ex) {
