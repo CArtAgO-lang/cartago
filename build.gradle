@@ -69,6 +69,29 @@ task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   include '**'
 }
 
+javadoc {
+    options.showAll()
+    options.encoding('UTF-8')
+    options.setUse(true)
+    options.author(true)
+    options.version(true)
+    options.windowTitle('Cartago API')
+    options.docTitle('Cartago API')
+    options.footer('<a href=http://cartago.sf.net>Cartago Site</a>')
+    destinationDir = file("${buildDir}/../docs/api")
+    doFirst {
+        javadoc.title = 'Cartago API'
+        javadoc.options.docTitle = javadoc.title
+    }
+}
+// the following lines is used to avoid errors while generating javadoc
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+      tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+      }
+    }
+}
 
 
 task makeDist (dependsOn: ['build','jar']) {
