@@ -1,0 +1,23 @@
+/*
+    ext_thread
+    ---------------------------
+
+    show how a thread can update an obs property
+    (see tools.Counter)
+    
+    JaCaMo 0.8-SNAPSHOT
+    December 16, 2018 - 11:54:35
+*/
+
+mas ext_thread {
+
+    agent sample_agent {
+    	focus: w.c
+    }
+
+    workspace w {
+    	artifact c: tools.Counter(10)
+    }
+
+}
+

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="http://moise.sourceforge.net/xml/os.xsl" type="text/xsl" ?>
+
+<organisational-specification
+    id="ext_thread"
+    os-version="0.8"
+
+    xmlns='http://moise.sourceforge.net/os'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:schemaLocation='http://moise.sourceforge.net/os
+                        http://moise.sourceforge.net/xml/os.xsd' >
+
+<structural-specification>
+
+<role-definitions>
+    <role id="role1" />
+    <role id="role2" />
+</role-definitions>
+
+<group-specification id="group1">
+    <roles>
+        <role id="role1" min="1" max="1"/>
+        <role id="role2" min="1" max="1"/>
+    </roles>
+
+    <links>
+       <link from="role1" to="role2" type="authority"     scope="intra-group" bi-dir="false"/>
+       <link from="role2" to="role1" type="communication" scope="intra-group" bi-dir="false"/>
+    </links>
+    <formation-constraints>
+       <compatibility from="role1" to="role2" />
+    </formation-constraints>
+</group-specification>
+</structural-specification>
+
+<functional-specification>
+    <scheme id="scheme1">
+        <goal id="goal1">
+            <plan operator="sequence">
+                <goal id="goal2"    ttf="20 minutes" ds="description goal2"/>
+                <goal id="goal3"/>
+                <goal id="goal4"/>
+            </plan>
+        </goal>
+
+        <mission id="mission1" min="1" max="1">
+            <goal id="goal2"/>
+            <goal id="goal4"/>
+        </mission>
+        <mission id="mission2" min="1" max="1">
+            <goal id="goal3"/>
+        </mission>
+    </scheme>
+</functional-specification>
+
+<normative-specification>
+    <!--
+       setup of Moise properties (e.g. role compatibility) handling (regimented or not)
+
+       when value = "fail", the platform ensures that the property is not broken (the property is thus regiment)
+       when value = "prohibition", violations are produced when the property is not followed by the agents
+       when value = "ignore", no norm is produced 
+
+       possible properties are defined in https://github.com/moise-lang/moise/blob/master/src/main/java/ora4mas/nopl/tools/os2nopl.java
+
+       some examples follow
+    -->
+    <!-- properties>
+        <property id="default_management"  value="fail" />
+        <property id="role_compatibility"  value="prohibition" />
+        <property id="mission_cardinality" value="prohibition" />
+    </properties-->
+
+    <!-- the norms of the application -->
+    <norm id="norm1" type="obligation" role="role2" mission="mission1"/>
+</normative-specification>
+
+</organisational-specification>
