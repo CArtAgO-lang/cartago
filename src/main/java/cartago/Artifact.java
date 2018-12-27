@@ -980,7 +980,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId makeArtifact(String name, String type, ArtifactConfig params) throws OperationException {
 		try {
-			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
+			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params, getClass());
 		} catch (Exception ex) {
 			throw new OperationException("makeArtifact failed: " + name + " " + type);
 		}

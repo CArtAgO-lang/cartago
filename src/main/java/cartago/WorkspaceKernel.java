@@ -125,11 +125,11 @@ public class WorkspaceKernel  {
 		// creating the basic set of artifacts
 
 		try {
-			makeArtifact(wspManager.getAgentId(),"workspace", "cartago.WorkspaceArtifact", new ArtifactConfig(this));
-			makeArtifact(wspManager.getAgentId(),"node", "cartago.NodeArtifact", new ArtifactConfig(this));
-			makeArtifact(wspManager.getAgentId(),"manrepo","cartago.ManRepoArtifact",new ArtifactConfig(this));
-			makeArtifact(wspManager.getAgentId(),"console","cartago.tools.Console",ArtifactConfig.DEFAULT_CONFIG);
-			makeArtifact(wspManager.getAgentId(),"blackboard","cartago.tools.TupleSpace",ArtifactConfig.DEFAULT_CONFIG);
+			makeArtifact(wspManager.getAgentId(),"workspace", "cartago.WorkspaceArtifact", new ArtifactConfig(this), getClass());
+			makeArtifact(wspManager.getAgentId(),"node", "cartago.NodeArtifact", new ArtifactConfig(this), getClass());
+			makeArtifact(wspManager.getAgentId(),"manrepo","cartago.ManRepoArtifact",new ArtifactConfig(this), getClass());
+			makeArtifact(wspManager.getAgentId(),"console","cartago.tools.Console",ArtifactConfig.DEFAULT_CONFIG, getClass());
+			makeArtifact(wspManager.getAgentId(),"blackboard","cartago.tools.TupleSpace",ArtifactConfig.DEFAULT_CONFIG, getClass());
 
 			/*
 			String src = this.loadManualSrc("cartago/Workspace.man");
@@ -228,7 +228,7 @@ public class WorkspaceKernel  {
 	private ArtifactId makeAgentBodyArtifact(AgentBody body){
 		try {
 			String name = body.getAgentId().getAgentName()+"-body";
-			ArtifactId id = makeArtifact(wspManager.getAgentId(),name,"cartago.AgentBodyArtifact",new ArtifactConfig(body));
+			ArtifactId id = makeArtifact(wspManager.getAgentId(),name,"cartago.AgentBodyArtifact",new ArtifactConfig(body), getClass());
 			ArtifactDescriptor des = null;
 			synchronized (artifactMap){
 				des = artifactMap.get(name);
@@ -423,7 +423,7 @@ public class WorkspaceKernel  {
 
 	//
 
-	public ArtifactId makeArtifact(AgentId userId, String name, String template, ArtifactConfig config) throws ArtifactAlreadyPresentException, UnknownArtifactTemplateException, ArtifactConfigurationFailedException {
+	public ArtifactId makeArtifact(AgentId userId, String name, String template, ArtifactConfig config, Class<?> source) throws ArtifactAlreadyPresentException, UnknownArtifactTemplateException, ArtifactConfigurationFailedException {
 		ArtifactId id = null;
 		AbstractArtifactAdapter adapter = null;
 		ArtifactDescriptor des = null;
@@ -433,7 +433,7 @@ public class WorkspaceKernel  {
 				throw new ArtifactAlreadyPresentException(name,this.id.getName());
 			}
 		}
-		Artifact artifact = makeArtifact(template);
+		Artifact artifact = makeArtifact(source, template, config.getTypes());
 		try {
 			int freshid = artifactIds.incrementAndGet();
 			id = new ArtifactId(name, freshid,template,this.id, userId);
@@ -484,11 +484,11 @@ public class WorkspaceKernel  {
 		}
 	}
 
-	private Artifact makeArtifact(String template) throws UnknownArtifactTemplateException {
+	private Artifact makeArtifact(Class<?> caller, String template, Class<?>[] paramsTypes) throws UnknownArtifactTemplateException {
 			synchronized (artifactFactories){
 				for (ArtifactFactory factory: artifactFactories){
 					try {
-						return factory.createArtifact(template);
+						return factory.createArtifact(caller, template, paramsTypes);
 					} catch (Exception ex){
 					}
 				}

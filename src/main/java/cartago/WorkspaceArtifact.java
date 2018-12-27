@@ -270,7 +270,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG, getClass());
 			// signal("new_artifact_created",artifactName,templateName,id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
@@ -297,7 +297,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] param){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param), getClass());
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
@@ -327,7 +327,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] params, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
+			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params), getClass());
 			aid.set(id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
