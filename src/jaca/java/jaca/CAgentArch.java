@@ -792,4 +792,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 		return aids;
 	}
+	
+	@Override
+	public String toString() {
+		return "Cartago ag arch for "+getAgName();
+	}
 }

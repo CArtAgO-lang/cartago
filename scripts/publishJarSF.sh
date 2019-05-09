@@ -1,5 +1,9 @@
 #/bin/sh
 
+# use gradle 4
+export PATH=$HOME/bin/gradle-4.10.2/bin:$PATH
+
+
 # check user at sourceforge
 if [ -z $USERSF ] ; then
     echo the var USERSF must be set with the username at source forge
