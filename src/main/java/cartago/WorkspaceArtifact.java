@@ -361,13 +361,15 @@ public class WorkspaceArtifact extends Artifact {
 
 	/* Topology management */
 	
-	@OPERATION void setWorkspaceTopology(AbstractWorkspaceTopology topology){
+	/*
+	 @OPERATION void setWorkspaceTopology(AbstractWorkspaceTopology topology){
 		try {
 			wspKernel.setWSPTopology(topology);
 		} catch(Exception ex){
 			failed(ex.getMessage());
 		}
 	}
+	*/
 	
 	// manuals management
 
