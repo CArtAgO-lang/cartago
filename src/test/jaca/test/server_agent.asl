@@ -1,5 +1,5 @@
 !start.
 
 +!start<-
-	makeArtifact("remoteLinkableArt", "c4jtest.LinkableArt", [], ArtID);
+	makeArtifact("remoteLinkableArt", "test.LinkableArt", [], ArtID);
 	.println("Remote done, art created.").

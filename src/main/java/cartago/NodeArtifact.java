@@ -38,13 +38,42 @@ public class NodeArtifact extends Artifact {
 	 * @param wspName workspace name
 	 * @param res output parameter: workspace id
 	 */
+	@OPERATION void joinWorkspaceWithBody(String wspName, String artBodyClassName, OpFeedbackParam<WorkspaceId> res) {
+		try {
+		    OpExecutionFrame opFrame = this.getOpFrame();
+			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
+			if (wsp!=null){
+				WorkspaceKernel wspKernel = wsp.getKernel(); 
+				ICartagoContext ctx = wspKernel.joinWorkspace(
+						new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), 
+						artBodyClassName,
+						opFrame.getAgentListener());
+				WorkspaceId wspId = ctx.getWorkspaceId();
+				res.set(wspId);
+				thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
+				opFrame.setCompletionNotified();
+			} else {
+				failed("Workspace not available.");
+			}
+		} catch (Exception ex){
+			//ex.printStackTrace();
+			failed("Join Workspace error: "+ex.getMessage());
+		}
+	}
+
+	/**
+	 * Join a local workspace
+	 * 
+	 * @param wspName workspace name
+	 * @param res output parameter: workspace id
+	 */
 	@OPERATION void joinWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
 			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
-				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), null, opFrame.getAgentListener());
 				WorkspaceId wspId = ctx.getWorkspaceId();
 				res.set(wspId);
 				thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
@@ -71,7 +100,7 @@ public class NodeArtifact extends Artifact {
 			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
-				ICartagoContext ctx = wspKernel.joinWorkspace(cred, opFrame.getAgentListener());
+				ICartagoContext ctx = wspKernel.joinWorkspace(cred, null, opFrame.getAgentListener());
 				WorkspaceId wspId = ctx.getWorkspaceId();
 				res.set(wspId);
 				thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);

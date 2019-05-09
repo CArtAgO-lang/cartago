@@ -1,0 +1,10 @@
+MAS test_synch {
+
+    environment: jaca.CartagoEnvironment
+
+    agents:  
+   	situated_agent agentArchClass jaca.CAgentArch;
+   
+ 	aslSourcePath: "src/test/jaca/test";
+      
+}

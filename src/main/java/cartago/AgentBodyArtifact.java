@@ -12,7 +12,6 @@ public class AgentBodyArtifact extends Artifact {
 		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
 	
-	
 	protected void setupPosition(AbstractWorkspacePoint pos, double observabilityRadius, double observingRadius){
 		position = pos;
 		this.observabilityRadius = observabilityRadius;

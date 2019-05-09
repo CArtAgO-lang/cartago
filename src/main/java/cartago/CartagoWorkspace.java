@@ -68,7 +68,17 @@ public class CartagoWorkspace {
 	 * @return
 	 */
 	public ICartagoContext join(AgentCredential cred, ICartagoCallback agentCallback) throws SecurityException, CartagoException {		
-		return wspKernel.joinWorkspace(cred, agentCallback);
+		return wspKernel.joinWorkspace(cred, null, agentCallback);
+	}
+
+	/**
+	 * Get a context to work inside the workspace
+	 * 
+	 * @param aid Agent identifier
+	 * @return
+	 */
+	public ICartagoContext join(AgentCredential cred, String artBodyClassName, ICartagoCallback agentCallback) throws SecurityException, CartagoException {		
+		return wspKernel.joinWorkspace(cred, artBodyClassName, agentCallback);
 	}
 
 	public void quitAgent(AgentId agentId) throws CartagoException {

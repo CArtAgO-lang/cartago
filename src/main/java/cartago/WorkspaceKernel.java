@@ -176,7 +176,7 @@ public class WorkspaceKernel  {
 		return logManager;
 	}
 
-	public ICartagoContext joinWorkspace(AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
+	public ICartagoContext joinWorkspace(AgentCredential cred, String artBodyClassName, ICartagoCallback eventListener) throws CartagoException {
 		String roleName = cred.getRoleName();
 		if (roleName == null || roleName.equals("")){
 			roleName = securityManager.getDefaultRoleName();
@@ -209,7 +209,7 @@ public class WorkspaceKernel  {
 				notifyJoinWSPCompleted(eventListener, -1, null, null, this.getId(), context); 
 				
 				/* creating the body and focusing on it */
-				ArtifactId bodyId = makeAgentBodyArtifact(context);				
+				ArtifactId bodyId = makeAgentBodyArtifact(artBodyClassName, context);				
 				List<ArtifactObsProperty> props = focus(userId, null, eventListener, bodyId);
 				notifyFocusCompleted(eventListener, -1, null, null, bodyId, props);
 				
@@ -226,10 +226,15 @@ public class WorkspaceKernel  {
 
 	/*  EXPERIMENTAL: support for CArtAgO topology */
 
-	private ArtifactId makeAgentBodyArtifact(AgentBody body){
+	private ArtifactId makeAgentBodyArtifact(String artBodyClassName, AgentBody body){
 		try {
-			String name = body.getAgentId().getAgentName()+"-body";
-			ArtifactId id = makeArtifact(wspManager.getAgentId(),name,"cartago.AgentBodyArtifact",new ArtifactConfig(body));
+			String name = body.getAgentId().getAgentName()+"Body";
+			String className = artBodyClassName;
+			
+			if (className == null) {
+				className = "cartago.AgentBodyArtifact";
+			}
+			ArtifactId id = makeArtifact( body.getAgentId(),name, className, new ArtifactConfig(body));
 			ArtifactDescriptor des = null;
 			synchronized (artifactMap){
 				des = artifactMap.get(name);
