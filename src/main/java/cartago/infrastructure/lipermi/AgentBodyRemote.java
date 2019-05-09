@@ -30,18 +30,16 @@ public class AgentBodyRemote implements IAgentBodyRemote {
 	}
 	
 	@Override
-	public void doAction(long actionId, ArtifactId id, Op op,
-			IAlignmentTest test, long timeout) throws CartagoException {
-		mCtx.doAction(actionId, id, op, test, timeout);
-	}
-
-	@Override
 	public void doAction(long actionId, String name, Op op,
 			IAlignmentTest test, long timeout) throws CartagoException {
 		mCtx.doAction(actionId, name, op, test, timeout);
 		
 	}
 
+	@Override
+	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+		mCtx.doAction(actionId, op, test, timeout);
+	}
 
 	@Override
 	public AgentId getAgentId() throws CartagoException {
@@ -70,15 +68,16 @@ public class AgentBodyRemote implements IAgentBodyRemote {
 		// TODO 
 	}
 
-	@Override
+
+	/*
 	public ArtifactId getArtifactIdFromOp(Op op) {
 		return mCtx.getArtifactIdFromOp(op);
 	}
 
-	@Override
 	public ArtifactId getArtifactIdFromOp(String name, Op op) {
 		return mCtx.getArtifactIdFromOp(name, op);
 	}
+	*/
 
 
 }

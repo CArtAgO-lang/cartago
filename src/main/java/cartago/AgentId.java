@@ -26,18 +26,20 @@ package cartago;
 public class AgentId implements java.io.Serializable {
 
 	private int localId;
-	private String name;
-	private String role;
-	private WorkspaceId wspId;
+	private String agentName;
+	private String agentRole;
+	private WorkspaceId workspaceId;
 	private String globalId;
 	private int hashCode;
 	
-	AgentId(String name, String globalId, int localId, String role, WorkspaceId wspId){
-		this.name = name;
+	AgentId(){}
+	
+	public AgentId(String name, String globalId, int localId, String role, WorkspaceId wspId){
+		this.agentName = name;
 		this.localId = localId;
-		this.role = role;
+		this.agentRole = role;
 		this.globalId = globalId;
-		this.wspId = wspId;
+		this.workspaceId = wspId;
 		this.hashCode = globalId.hashCode();
 	}
 	
@@ -47,11 +49,11 @@ public class AgentId implements java.io.Serializable {
 	 * @return
 	 */
 	public String getAgentName(){
-		return name;
+		return agentName;
 	}
 	
 	public String toString(){
-		return name;
+		return agentName;
 	}
 
 	/**
@@ -59,11 +61,11 @@ public class AgentId implements java.io.Serializable {
 	 * @return
 	 */
 	public String getAgentRole(){
-		return role;
+		return agentRole;
 	}
 	
 	public WorkspaceId getWorkspaceId(){
-		return this.wspId;
+		return this.workspaceId;
 	}
 	
 	/**

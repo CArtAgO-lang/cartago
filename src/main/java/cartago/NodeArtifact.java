@@ -41,7 +41,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
 				ICartagoContext ctx = wspKernel.joinWorkspace(new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
@@ -68,7 +68,7 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinWorkspace(String wspName, AgentCredential cred, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel(); 
 				ICartagoContext ctx = wspKernel.joinWorkspace(cred, opFrame.getAgentListener());
@@ -96,13 +96,13 @@ public class NodeArtifact extends Artifact {
 	@OPERATION void joinRemoteWorkspace(String wspName, String address, OpFeedbackParam<WorkspaceId> res) {
 		try {
 		    OpExecutionFrame opFrame = this.getOpFrame();
-		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "default", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
+		    ICartagoContext ctx = CartagoService.joinRemoteWorkspace(wspName, address, "web", new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), opFrame.getAgentListener());
 			WorkspaceId wspId = ctx.getWorkspaceId();
 			res.set(wspId);
 			thisWsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
 			opFrame.setCompletionNotified();
 		} catch (Exception ex){
-			//ex.printStackTrace();
+			ex.printStackTrace();
 			failed("Join Workspace error");
 		}
 	}
@@ -160,7 +160,7 @@ public class NodeArtifact extends Artifact {
 	 */
 	@OPERATION void createWorkspace(String name){
 		try {
-			CartagoWorkspace wsp = env.getNode().createWorkspace(name);
+			CartagoWorkspace wsp = kernel.getNode().createWorkspace(name);
 			defineObsProperty("workspace",name,wsp.getId());
 		} catch (Exception ex){
 			failed("Workspace creation error");
@@ -176,7 +176,7 @@ public class NodeArtifact extends Artifact {
 	 */
 	@OPERATION void createWorkspaceWithTopology(String name, String topologyClassName){
 		try {
-			CartagoWorkspace wsp = env.getNode().createWorkspace(name);
+			CartagoWorkspace wsp = kernel.getNode().createWorkspace(name);
 			AbstractWorkspaceTopology topology = (AbstractWorkspaceTopology) Class.forName(topologyClassName).newInstance();
 			wsp.setTopology(topology);
 			defineObsProperty("workspace",name,wsp.getId());
@@ -192,7 +192,7 @@ public class NodeArtifact extends Artifact {
 	 */
 	@OPERATION void getNodeId(OpFeedbackParam<NodeId> param){
 		try {
-			param.set(env.getNode().getId());
+			param.set(kernel.getNode().getId());
 		} catch (Exception ex){
 			failed("no_node_id");
 		}
@@ -216,7 +216,7 @@ public class NodeArtifact extends Artifact {
 	 */
 	@OPERATION void createWorkspace(String name, ICartagoLogger logger){
 		try {
-			CartagoWorkspace wsp = env.getNode().createWorkspace(name,logger);
+			CartagoWorkspace wsp = kernel.getNode().createWorkspace(name,logger);
 			defineObsProperty("workspace",name,wsp.getId());
 		} catch (Exception ex){
 			failed("Workspace creation error");
@@ -259,7 +259,7 @@ public class NodeArtifact extends Artifact {
 	 */
 	@LINK void lookupWorkspace(String wspName, OpFeedbackParam<ArtifactId> aid){
 		try {
-			CartagoWorkspace wsp = env.getNode().getWorkspace(wspName);
+			CartagoWorkspace wsp = kernel.getNode().getWorkspace(wspName);
 			if (wsp!=null){
 				WorkspaceKernel wspKernel = wsp.getKernel();
 				

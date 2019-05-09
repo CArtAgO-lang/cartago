@@ -30,6 +30,8 @@ public class JoinWSPSucceededEvent extends ActionSucceededEvent {
 	private ICartagoContext ctx;
 	private WorkspaceId wspId;
 	
+	JoinWSPSucceededEvent(){}
+	
 	public JoinWSPSucceededEvent(long id, long actionId, Op op, ArtifactId aid, WorkspaceId wspId, ICartagoContext ctx){
 		super(id,actionId,op,aid);
 		this.ctx = ctx;

@@ -32,7 +32,7 @@ public interface ICartagoSession {
 	/**
 	 * Executing an action, i.e. an operation over an artifact
 	 * 
-	 * @param aid target artifact
+	 * @param aid target artifact (absolute identifier)
 	 * @param op target operation
 	 * @param test alignment test
 	 * @param timeout timeout
@@ -40,48 +40,7 @@ public interface ICartagoSession {
 	 * @throws CartagoException
 	 */
 	long doAction(ArtifactId aid, Op op, IAlignmentTest test, long timeout) throws CartagoException;
-	
-	/**
-	 * Executing an action, i.e. an operation over an artifact 
-	 * 
-	 * @param op target operation
-	 * @param test alignment test
-	 * @param timeout timeout
-	 * @return unique action identifier 
-	 * @throws CartagoException
-	 */
-	long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException;
-	
-	/**
-	 * Executing an action, i.e. an operation over an artifact
-	 * 
-	 * In this case, the target artifact is not specified.
-	 * 
-	 * @param wspId workspace identifier
-	 * @param op target operation
-	 * @param test alignment test
-	 * @param timeout timeout
-	 * @return unique action identifier 
-	 * @throws CartagoException
-	 */	
-	long doAction(WorkspaceId wspId, Op op, IAlignmentTest test, long timeout) throws CartagoException;
 
-
-	/**
-	 * Executing an action, i.e. an operation over an artifact
-	 * 
-	 * In this case, the target artifact is not specified.
-	 * 
-	 * @param wspId workspace identifier
-	 * @param op target operation
-	 * @param test alignment test
-	 * @param timeout timeout
-	 * @return unique action identifier 
-	 * @throws CartagoException
-	 */	
-	long doAction(String wspName, Op op, IAlignmentTest test, long timeout) throws CartagoException;
-	
-	
 	/**
 	 * Executing an action, i.e. an operation over an artifact
 	 * 
@@ -104,28 +63,52 @@ public interface ICartagoSession {
 	 * In this case, the name of the artifact and the workspace are specified.
 	 * 
 	 * @param artName target artifact
+	 * @param wspName name of the workspace 
+	 * @param op target operation
+	 * @param test alignment test
+	 * @param timeout timeout
+	 * @return unique action identifier 
+	 * @throws CartagoException
+	 */
+	long doAction(String wspName, String artName, Op op, IAlignmentTest test, long timeout) throws CartagoException;
+
+	
+	/**
+	 * Executing an action, implicit artifact and workspace
+	 * 
+	 * @param op target operation
+	 * @param test alignment test
+	 * @param timeout timeout
+	 * @return unique action identifier 
+	 * @throws CartagoException
+	 */
+	long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException;
+	
+	/**
+	 * Executing an action, implicit artifact
+	 * 
 	 * @param wspId workspace identifier
 	 * @param op target operation
 	 * @param test alignment test
 	 * @param timeout timeout
 	 * @return unique action identifier 
 	 * @throws CartagoException
-	 */
-	long doAction(String wspName, Op op, String artName, IAlignmentTest test, long timeout) throws CartagoException;
+	 */	
+	long doAction(Op op, WorkspaceId wspId, IAlignmentTest test, long timeout) throws CartagoException;
 
-	
+
 	/**
-	 * Executing an action, i.e. an operation over an artifact 
+	 * Executing an action, implicit artifact
 	 * 
-	 * @param artName target artifact
+	 * 
+	 * @param wspName workspace name
 	 * @param op target operation
 	 * @param test alignment test
 	 * @param timeout timeout
 	 * @return unique action identifier 
 	 * @throws CartagoException
-	 */
-	long doAction(Op op, String artName, IAlignmentTest test, long timeout) throws CartagoException;
-
+	 */	
+	long doAction(Op op, String wspName, IAlignmentTest test, long timeout) throws CartagoException;
 	
 	/**
 	 * Get the current workspaces joined by the agent.

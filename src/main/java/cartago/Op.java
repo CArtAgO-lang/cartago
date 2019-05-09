@@ -26,8 +26,10 @@ package cartago;
 public class Op implements java.io.Serializable {
 
 	private String name;
-	private Object[] values;
+	private Object[] paramValues;
 		
+	Op(){}
+	
 	/**
 	 * Specifies an operation with any number of arguments
 	 * 
@@ -36,7 +38,7 @@ public class Op implements java.io.Serializable {
 	 */
 	public Op(String name, Object... params){
 		this.name = name;
-		values = params;
+		this.paramValues = params;
 	}
 
 	public String getName(){
@@ -44,13 +46,13 @@ public class Op implements java.io.Serializable {
 	}
 	
 	public Object[] getParamValues(){
-		return values;
+		return paramValues;
 	}
 
 
 	public String toString(){
 		StringBuffer st = new StringBuffer("( "+name);
-		for (Object v: values){
+		for (Object v: paramValues){
 			st.append(" "+v);
 		}
 		st.append(" )");

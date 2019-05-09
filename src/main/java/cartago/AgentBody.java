@@ -65,27 +65,30 @@ public class AgentBody implements ICartagoContext {
 	}
 	//
 	
+	/*
 	public void doAction(long actionId, ArtifactId aid, Op op, IAlignmentTest test, long timeout) throws CartagoException {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
 		wspKernel.execOp(actionId, id, agentCallback, aid, op, timeout, test);
-	}
+	}*/
+	
 
-	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
 		wspKernel.execOp(actionId, id, agentCallback, name, op, timeout, test);
 	}
 	
-	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
 		wspKernel.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
 	
+	/*
 	public ArtifactId getArtifactIdFromOp(Op op){
 		return wspKernel.getArtifactIdFromOp(id, op);
 	}
@@ -93,6 +96,7 @@ public class AgentBody implements ICartagoContext {
 	public ArtifactId getArtifactIdFromOp(String name, Op op){
 		return wspKernel.getArtifactIdFromOp(id, name, op);
 	}
+	*/
 
 	// called by the kernel
 	

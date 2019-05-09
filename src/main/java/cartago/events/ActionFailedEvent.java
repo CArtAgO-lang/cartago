@@ -30,8 +30,16 @@ public class ActionFailedEvent extends CartagoActionEvent {
 	private String failureMsg;
 	private Tuple failureReason;
 	
+	ActionFailedEvent(){}
+	
 	public ActionFailedEvent(long id, long actionId, Op op, String failureMsg, Tuple failureReason){
 		super(id,actionId, op);
+		this.failureMsg = failureMsg;
+		this.failureReason = failureReason;
+	}
+
+	public ActionFailedEvent(long id, long actionId, Op op, String failureMsg, Tuple failureReason, long ts){
+		super(id,actionId, op, ts);
 		this.failureMsg = failureMsg;
 		this.failureReason = failureReason;
 	}

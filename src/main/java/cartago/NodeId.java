@@ -35,7 +35,11 @@ public class NodeId implements Serializable {
 		hashCode = id.hashCode();
 	}
 	
-	/**
+	public NodeId(String uuid){
+		this.id = UUID.fromString(uuid);
+	}
+	
+		/**
 	 * Get the unique identifier of the node
 	 * 
 	 * @return

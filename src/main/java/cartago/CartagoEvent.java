@@ -25,12 +25,19 @@ package cartago;
  */
 public abstract class CartagoEvent implements java.io.Serializable {
 	
-	private long when;
+	private long timestamp;
 	private long id;
+	
+	public CartagoEvent(){}
 	
 	protected CartagoEvent(long id){
 		this.id = id;
-		when = System.currentTimeMillis();
+		timestamp = System.currentTimeMillis();
+	}
+
+	protected CartagoEvent(long id, long ts){
+		this.id = id;
+		timestamp = ts;
 	}
 
 	/**
@@ -46,8 +53,8 @@ public abstract class CartagoEvent implements java.io.Serializable {
 	 * Gets event time generation
 	 * 
 	 */
-	public long getPhysicalTime(){
-		return when;
+	public long getTimestamp(){
+		return timestamp;
 	}
 
 

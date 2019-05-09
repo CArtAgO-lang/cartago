@@ -190,19 +190,38 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 					if (artName != null) {
 						actId = envSession.doAction(wspId, artName, op, test, timeout);
 					} else {
-						actId = envSession.doAction(wspId, op, test, timeout);
+						// implicit artifact
+						actId = envSession.doAction(op, wspId, test, timeout);
 					}
 				} else if (wspName != null) {
 					if (artName != null) {
-						actId = envSession.doAction(wspName, op, artName, test, timeout);
+						actId = envSession.doAction(wspName, artName, op, test, timeout);
 					} else {
-						actId = envSession.doAction(wspName, op, test, timeout);
+						// implicit artifact
+						actId = envSession.doAction(op, wspName, test, timeout);
 					}
 
 				} else {
+					
+					/* 
+					 * Op with implicit artifact & workspace 
+					 * 
+					 * According to CArtAgO semantics, the operation will be performed
+					 * on the last workspace joined by the agent.
+					 * 
+					 */
+					
+					try {
+						actId = envSession.doAction(op,test,timeout);
+					} catch (Exception e) {
+						logger.warning("error trying action with cartago "+e.getMessage());
+					}
+					
+					/* 
+					
 					if (artName != null) {
-						actId = envSession.doAction(op, artName, test, timeout);
-					} else {
+						actId = envSession.doAction(artName, op, test, timeout);
+					} else { 
 						if (DEF_OPS.contains(op.getName())) { // predefined CArtAgO operation
 							actId = envSession.doAction(op, test, timeout); // default operations go to workspace
 						} else { 
@@ -216,11 +235,15 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									c = null;
 								}
 								if (c != null) {
-									for (OpDescriptor o : c.getArtifactInfo(aid1.getName()).getOperations()) {
-										if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
-											actId = envSession.doAction(aid1, op, test, timeout); //
-											break outer; // action executes a corresponding op in only one artifact
+									try {
+										for (OpDescriptor o : c.getArtifactInfo(aid1.getName()).getOperations()) {
+											if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
+												actId = envSession.doAction(aid1, op, test, timeout); //
+												break outer; // action executes a corresponding op in only one artifact
+											}
 										}
+									} catch (Exception ex) {
+										ex.printStackTrace();
 									}
 								}
 							}
@@ -235,6 +258,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 							}
 						}
 					}
+					*/
 				}
 
 				if (actId != Long.MIN_VALUE) {

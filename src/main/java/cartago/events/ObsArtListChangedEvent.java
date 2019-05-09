@@ -29,7 +29,7 @@ import cartago.Tuple;
 /**
  * EXPERIMENTAL - Topology support
  * 
- * Class representing an observable artofact list changed event,
+ * Class representing an observable artifact list changed event,
  * @author aricci
  *
  */

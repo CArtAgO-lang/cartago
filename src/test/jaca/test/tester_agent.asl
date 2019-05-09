@@ -5,13 +5,13 @@
 //!test_wsp.
 //!test2.
 //!test3.
-!test_gui.
+//!test_gui.
 //!test_gui2.
 //!test_multi_prop.
 //!test_new_prop.
 //!test_varargs.
 //!test_java_api.
-//!test_remote.
+!test_remote.
 //!test_shutdown.
 //!test_wsp.
 //!test_art.
@@ -20,6 +20,16 @@
 //!test_wspruleman.
 //!test_array_obj.
 //!test_ext_interface.
+
+
+
++!test_basic
+  <-  !test_console.
+  
+   
++!test_console <-
+  println("this print is done by the console artifact").
+
 
 /* test double join */
 
@@ -252,12 +262,12 @@
   
 +!test_remote <-
   println("testing remote..");
-  joinWorkspace("default@localhost");
+  joinRemoteWorkspace("main","localhost",WspId);
   println("hello, remote world!");
   !use_remote.
   
 +!use_remote <-
-  makeArtifact("c0","basic.Counter",Id);
+  makeArtifact(c0,"c4jtest.Counter",[],Id);
   focus(Id);
   inc;
   inc.
@@ -267,7 +277,8 @@
   focus("c0");
   inc.
   
-+count(V)[art(Id,"c0")]
+  
++count(V)[artifact_name(Id,c0)]
   <- println("perceived from remote counter: ",V).
 
   
@@ -284,7 +295,7 @@
      println("joining w1...");
      joinWorkspace("w1",WspID2);
      println("computing...");
-     compute(5,X,Y);
+     compute(5,X,Y)[wsp("w0")];
      println(X).
 
 +joined_wsp(Name,Id)	

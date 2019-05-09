@@ -64,7 +64,7 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 
 	public void doAction(long agentCallbackId, ArtifactId id, Op op, IAlignmentTest test, long timeout) throws RemoteException, CartagoException {
 		// TODO Auto-generated method stub
-		ctx.doAction(agentCallbackId, id, op, test, timeout);
+		ctx.doAction(agentCallbackId, id.getName(), op, test, timeout);
 	}
 	
 	public void doAction(long agentCallbackId, String name, Op op, IAlignmentTest test, long timeout) throws RemoteException, CartagoException {
@@ -72,6 +72,11 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 		ctx.doAction(agentCallbackId, name, op, test, timeout);
 	}
 
+	@Override
+	public void doAction(long agentCallbackId, Op op, IAlignmentTest test, long timeout)
+			throws RemoteException, CartagoException {
+		ctx.doAction(agentCallbackId, op, test, timeout);
+	}
 	
 	public synchronized void  ping() throws RemoteException {
 		lastPingFromMind = System.currentTimeMillis();
@@ -83,6 +88,7 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 		}*/
 	}
 	
+	
 	synchronized long getLastPing(){
 		return lastPingFromMind;
 	}	
@@ -91,15 +97,17 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 		return ctx;
 	}
 
-	@Override
+	
+
+	/*
 	public ArtifactId getArtifactIdFromOp(Op op) {
 		return ctx.getArtifactIdFromOp(op);
 	}
 
-	@Override
 	public ArtifactId getArtifactIdFromOp(String name, Op op) {
 		return ctx.getArtifactIdFromOp(name,op);
 	}
+	*/
 
 
 }

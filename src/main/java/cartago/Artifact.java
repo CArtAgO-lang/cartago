@@ -34,7 +34,7 @@ public abstract class Artifact {
 	// private Logger logger = Logger.getLogger("log");
 
 	private ArtifactId id;
-	WorkspaceKernel env;
+	WorkspaceKernel kernel;
 
 	protected OpId thisOpId;
 	private OpExecutionFrame opExecFrame;
@@ -64,10 +64,10 @@ public abstract class Artifact {
 	/* defines the radius in which the artifact can be perceived*/
 	protected double observabilityRadius;
 	
-	final void bind(ArtifactId id, AgentId creatorId, WorkspaceKernel env) throws CartagoException {
+	void bind(ArtifactId id, AgentId creatorId, WorkspaceKernel env) throws CartagoException {
 		this.id = id;
 		this.creatorId = creatorId;
-		this.env = env;
+		this.kernel = env;
 		obsPropId = 0;
 		opIds = new java.util.concurrent.atomic.AtomicInteger(0);
 
@@ -316,7 +316,7 @@ public abstract class Artifact {
 	 * @throws CartagoException
 	 */
 	private void doOperation(OpExecutionFrame info) throws CartagoException {
-		ICartagoLoggerManager log = env.getLoggerManager();
+		ICartagoLoggerManager log = kernel.getLoggerManager();
 		try {
 			lock.lock();
 			Op op = info.getOperation();
@@ -547,7 +547,7 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (changed != null || added != null || removed != null){
-				env.notifyObsEvent(id, null, changed, added, removed);
+				kernel.notifyObsEvent(id, null, changed, added, removed);
 				guards.signalAll();
 			}
 		} catch (Exception ex){
@@ -566,9 +566,9 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (target == null){
-				env.notifyObsEvent(id, signal, changed, added, removed);
+				kernel.notifyObsEvent(id, signal, changed, added, removed);
 			} else {
-				env.notifyObsEventToAgent(id, target, signal, changed, added, removed);
+				kernel.notifyObsEventToAgent(id, target, signal, changed, added, removed);
 			}
 			guards.signalAll();
 		} catch (Exception ex){
@@ -621,7 +621,7 @@ public abstract class Artifact {
 	 * 
 	 */
 	protected ArtifactId getCurrentOpAgentBody() {
-		return env.getAgentBodyArtifact(opExecFrame.getAgentId());
+		return kernel.getAgentBodyArtifact(opExecFrame.getAgentId());
 	}
 
 
@@ -690,7 +690,7 @@ public abstract class Artifact {
 	 */
 	protected ObsProperty defineObsProperty(String name, Object... values) {			
 			try {
-				String fullId="obs_id_"+this.env.getId().getId()+this.id.getId()+"_"+obsPropId;
+				String fullId="obs_id_"+this.kernel.getId().getId()+this.id.getId()+"_"+obsPropId;
 				ObsProperty prop = new ObsProperty(obsPropertyMap,obsPropId, fullId, name, values); 
 				obsPropertyMap.add(prop);
 				obsPropId++;
@@ -768,7 +768,7 @@ public abstract class Artifact {
 	 *            - parameters of the method
 	 */
 	protected void await(String guardName, Object... params) {
-		ICartagoLoggerManager log = env.getLoggerManager();
+		ICartagoLoggerManager log = kernel.getLoggerManager();
 		OpId id = thisOpId;
 		try {
 			commitObsStateChanges();
@@ -850,7 +850,7 @@ public abstract class Artifact {
 	 */
 	protected void execInternalOp(String opName, Object... params) {
 		try {
-			env.doInternalOp(this.id, new Op(opName, params));
+			kernel.doInternalOp(this.id, new Op(opName, params));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new IllegalArgumentException(
@@ -884,7 +884,7 @@ public abstract class Artifact {
 					PendingOp pop = opCallback.createPendingOp();
 					AgentId userId = this.getCurrentOpAgentId();
 					Op op = new Op(opName, params);
-					env.getNode().execInterArtifactOp(opCallback, pop.getActionId(),
+					kernel.getNode().execInterArtifactOp(opCallback, pop.getActionId(),
 									userId, this.getId(), aid, op,
 									Integer.MAX_VALUE, null);
 					popList.add(pop);
@@ -947,7 +947,7 @@ public abstract class Artifact {
 			PendingOp pop = opCallback.createPendingOp();
 			AgentId userId = this.getCurrentOpAgentId();
 			Op op = new Op(opName, params);
-			env.getNode().execInterArtifactOp(opCallback, pop.getActionId(), userId,
+			kernel.getNode().execInterArtifactOp(opCallback, pop.getActionId(), userId,
 							this.getId(), aid, op, Integer.MAX_VALUE, null);
 			try {
 				this.commitObsStateChanges();
@@ -980,7 +980,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId makeArtifact(String name, String type, ArtifactConfig params) throws OperationException {
 		try {
-			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
+			return kernel.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
 		} catch (Exception ex) {
 			throw new OperationException("makeArtifact failed: " + name + " " + type);
 		}
@@ -996,7 +996,7 @@ public abstract class Artifact {
 	 */
 	protected void dispose(ArtifactId aid) throws OperationException {
 		try {
-			env.disposeArtifact(this.getCurrentOpAgentId(),aid);
+			kernel.disposeArtifact(this.getCurrentOpAgentId(),aid);
 		} catch (Exception ex) {
 			throw new OperationException("disposeArtifact failed: " + aid);
 		}
@@ -1012,7 +1012,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId lookupArtifact(String name) throws OperationException {
 		try {
-			return env.lookupArtifact(this.getCurrentOpAgentId(),name);
+			return kernel.lookupArtifact(this.getCurrentOpAgentId(),name);
 		} catch (Exception ex) {
 			throw new OperationException("lookupArtifact failed: " + name);
 		}
@@ -1083,7 +1083,7 @@ public abstract class Artifact {
 		position = pos;
 		this.observabilityRadius = observabilityRadius;
 		try {
-			env.notifyArtifactPositionOrRadiusChange(id);	
+			kernel.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1092,7 +1092,7 @@ public abstract class Artifact {
 	protected void updatePosition(AbstractWorkspacePoint pos) {
 		position = pos;
 		try {
-			this.env.notifyArtifactPositionOrRadiusChange(id);	
+			this.kernel.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1101,7 +1101,7 @@ public abstract class Artifact {
 	protected void updateObservabilityRadius(double radius) {
 		observabilityRadius = radius;
 		try {
-			this.env.notifyArtifactPositionOrRadiusChange(id);	
+			this.kernel.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

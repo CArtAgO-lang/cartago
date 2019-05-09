@@ -12,7 +12,11 @@ package cartago;
 public class OpFeedbackParam<T> implements java.io.Serializable {
 
 	private T value;
-
+	
+	public OpFeedbackParam(){
+		
+	}
+	
 	/**
 	 * Set the value of the parameter
 	 * 

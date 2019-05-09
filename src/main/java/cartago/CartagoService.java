@@ -158,12 +158,12 @@ public class CartagoService {
 		if (type.equals("default")){
 			type = defaultInfraLayer;
 		}
-		ICartagoInfrastructureLayer service = infraLayers.get(type);
-		if (service == null){
+		ICartagoInfrastructureLayer layer = infraLayers.get(type);
+		if (layer == null){
 			try {
 				Class<ICartagoInfrastructureLayer> serviceClass = (Class<ICartagoInfrastructureLayer>) Class.forName("cartago.infrastructure."+type+".CartagoInfrastructureLayer");
-				service = serviceClass.newInstance();
-				infraLayers.put(type, service);
+				layer = serviceClass.newInstance();
+				infraLayers.put(type, layer);
 			} catch (Exception ex){
 				ex.printStackTrace();
 				throw new CartagoException("Invalid infrastructure layer: "+type);
@@ -197,10 +197,10 @@ public class CartagoService {
 		if (type.equals("default")){
 			type = defaultInfraLayer;
 		}
-		ICartagoInfrastructureLayer service = infraLayers.get(type);
-		if (service != null){
+		ICartagoInfrastructureLayer layer = infraLayers.get(type);
+		if (layer != null){
 			try {
-				service.startService(instance,address);
+				layer.startService(instance,address);
 			} catch (Exception ex){
 				throw new CartagoException("Infrastructure layer service failure: "+type);
 			}
@@ -245,7 +245,7 @@ public class CartagoService {
 				CartagoSession session = new CartagoSession(cred,null,eventListener);
 				ICartagoContext startContext = wsp.join(cred,session);
 				WorkspaceId wspId = startContext.getWorkspaceId();
-				session.setInitialContext(wspId, startContext);
+				session.setInitialWorkspace(wspId, startContext);
 				return session;
 			}
 		} else {
@@ -277,7 +277,7 @@ public class CartagoService {
 		CartagoSession session = new CartagoSession(cred,null,eventListener);
 		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, session);
 		WorkspaceId wspId = startContext.getWorkspaceId();
-		session.setInitialContext(wspId, startContext);
+		session.setInitialWorkspace(wspId, startContext);
 		return session;
 	}
 
@@ -347,7 +347,7 @@ public class CartagoService {
 		CartagoContext context = new CartagoContext(cred);
 		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, context.getCartagoSession());
 		WorkspaceId wspId = startContext.getWorkspaceId();
-		context.getCartagoSession().setInitialContext(wspId, startContext);
+		context.getCartagoSession().setInitialWorkspace(wspId, startContext);
 		return context;
 	}
 	

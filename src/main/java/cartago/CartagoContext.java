@@ -276,8 +276,8 @@ public class CartagoContext {
 	 * @throws ActionFailedException
 	 * @throws CartagoException
 	 */
-	public void doAction(WorkspaceId wspId, Op op, long timeout) throws ActionFailedException, CartagoException {
-		long id = session.doAction(wspId, op, null, timeout);
+	public void doAction(Op op, WorkspaceId wspId, long timeout) throws ActionFailedException, CartagoException {
+		long id = session.doAction(op, wspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		try {
 			res.waitForCompletion();
@@ -318,8 +318,8 @@ public class CartagoContext {
 	 * @throws ActionFailedException
 	 * @throws CartagoException
 	 */
-	public void doAction(WorkspaceId wspId, Op op) throws ActionFailedException, CartagoException {
-		this.doAction(wspId, op, -1);
+	public void doAction(Op op, WorkspaceId wspId) throws ActionFailedException, CartagoException {
+		this.doAction(op, wspId, -1);
 	}
 
 	/**
@@ -440,7 +440,7 @@ public class CartagoContext {
 	public ArtifactId lookupArtifact(WorkspaceId wid, String artifactName) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(wid,new Op("lookupArtifact", artifactName, res));
+			doAction(new Op("lookupArtifact", artifactName, res), wid);
 		} catch (Exception ex){
 			throw new CartagoException();
 		}
@@ -599,7 +599,7 @@ public class CartagoContext {
 	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(wid, new Op("makeArtifact", artifactName, templateName, new Object[0], res), -1);
+			doAction(new Op("makeArtifact", artifactName, templateName, new Object[0], res), wid, -1);
 		} catch (Exception ex){
 			ex.printStackTrace();
 			throw new CartagoException();
@@ -620,7 +620,7 @@ public class CartagoContext {
 	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName, Object[] params) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(wid, new Op("makeArtifact", artifactName, templateName, params, res), -1);
+			doAction(new Op("makeArtifact", artifactName, templateName, params, res), wid, -1);
 		} catch (Exception ex){
 			throw new CartagoException();
 		}

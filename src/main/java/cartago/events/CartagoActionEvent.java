@@ -31,8 +31,16 @@ public abstract class CartagoActionEvent extends CartagoEvent {
 	private long actionId;
 	private Op op;
 	
+	CartagoActionEvent(){}
+	
 	protected CartagoActionEvent(long id, long actionId, Op op){
 		super(id);
+		this.actionId = actionId;
+		this.op = op;
+	}
+
+	protected CartagoActionEvent(long id, long actionId, Op op, long ts){
+		super(id, ts);
 		this.actionId = actionId;
 		this.op = op;
 	}

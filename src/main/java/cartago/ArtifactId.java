@@ -29,14 +29,16 @@ public class ArtifactId implements java.io.Serializable {
 	private String name;
 	private int id;
 	private String artifactType;
-    private WorkspaceId wspId;
+    private WorkspaceId workspaceId;
 	private AgentId creatorId;
 	private int hashCode;
 		
-	ArtifactId(String name, int id, String artifactType, WorkspaceId wspId, AgentId creatorId){
+	ArtifactId(){}
+	
+	public ArtifactId(String name, int id, String artifactType, WorkspaceId wspId, AgentId creatorId){
 		this.name = name;
 		this.id = id;
-		this.wspId = wspId;
+		this.workspaceId = wspId;
 		this.creatorId = creatorId;
 		this.artifactType = artifactType;
 		hashCode = (wspId.getNodeId().getId()+wspId.getName()+id).hashCode();
@@ -91,7 +93,7 @@ public class ArtifactId implements java.io.Serializable {
 						&& wId.getArtifactType().equals(artifactType)
 						&& wId.getCreatorId().equals(creatorId)
 						&& wId.getName().equals(name)
-						&& wId.getWorkspaceId().equals(wspId));
+						&& wId.getWorkspaceId().equals(workspaceId));
 		} else { 
 			return false;
 		}
@@ -103,7 +105,7 @@ public class ArtifactId implements java.io.Serializable {
 	 * @return
 	 */
 	public WorkspaceId getWorkspaceId(){
-		return wspId;
+		return workspaceId;
 	}
 	
 	public int hashCode(){

@@ -29,10 +29,14 @@ public class WorkspaceId implements Serializable {
 	private String name;
 	private NodeId nodeId;
 	private int hashCode;
+	private String id;
 	
-	WorkspaceId(String name, NodeId id){
+	WorkspaceId(){}
+	
+	public WorkspaceId(String name, NodeId id){
 		this.name = name;
 		this.nodeId = id;
+		this.id = name+"-"+nodeId.getId();
 		hashCode = id.hashCode();
 	}
 	
@@ -42,7 +46,7 @@ public class WorkspaceId implements Serializable {
 	 * @return
 	 */
 	public String getId(){
-		return name+"-"+nodeId.getId();
+		return id;
 	}
 	
 	/**

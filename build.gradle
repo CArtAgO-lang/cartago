@@ -10,7 +10,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-version '2.4-DYN-SNAPSHOT'
+version '2.4-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -21,7 +21,7 @@ sourceSets {
         srcDir 'src/main/java'
       }
 
-      output.classesDir = 'build/classes/main'
+      // output.classesDir = 'build/classes/main'
   }
 
   jaca {
@@ -30,7 +30,7 @@ sourceSets {
         srcDir 'src/jaca/java'
       }
 
-      output.classesDir = 'build/classes/jaca'
+      // output.classesDir = 'build/classes/jaca'
       compileClasspath = files ('build/classes/main','build/classes/jaca') + configurations.compile
   }
 }
@@ -40,8 +40,19 @@ sourceSets {
 dependencies {
   compile files('libs/lipermi-0.4.jar')
   compile group: 'org.jason-lang', name: 'jason'    , version: '2.4-SNAPSHOT'  , changing: true , transitive: false
-  // https://mvnrepository.com/artifact/net.openhft/compiler
-  compile group: 'net.openhft', name: 'compiler', version: '2.3.1'
+
+	// vert.x
+  	compile "io.vertx:vertx-core:3.7.0"
+  	compile "io.vertx:vertx-sync:3.7.0"
+  	compile "io.vertx:vertx-unit:3.7.0"
+	compile "io.vertx:vertx-rx-java:3.7.0"
+  	compile "io.vertx:vertx-web:3.7.0"
+
+	compile "com.fasterxml.jackson.core:jackson-databind:2.9.8"
+	
+</dependency>
+
+
 }
 
 /* still not used */
@@ -61,13 +72,13 @@ task generateRMIstubs(type:Exec, dependsOn: classes) {
 
 task cartagoJar(type: Jar, dependsOn: [ classes, generateRMIstubs ]) {
   baseName 'cartago'
-  from 'build/classes/main'
+  // from 'build/classes/main'
   include '**'
 }
 
 task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   baseName 'jaca'
-  from 'build/classes/jaca'
+  // from 'build/classes/jaca'
   include '**'
 }
 

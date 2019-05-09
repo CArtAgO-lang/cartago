@@ -38,8 +38,19 @@ public class ArtifactObsEvent extends CartagoEvent {
 	private ArtifactObsProperty[] propsRemoved;
 	
 	
+	ArtifactObsEvent(){}
+	
 	public ArtifactObsEvent(long id, ArtifactId src, Tuple signal, ArtifactObsProperty[] propsChanged, ArtifactObsProperty[] propsAdded, ArtifactObsProperty[] propsRemoved){
 		super(id);
+		this.src = src;
+		this.signal = signal;
+		this.propsChanged = propsChanged;
+		this.propsAdded = propsAdded;
+		this.propsRemoved = propsRemoved;
+	}
+
+	public ArtifactObsEvent(long id, ArtifactId src, Tuple signal, ArtifactObsProperty[] propsChanged, ArtifactObsProperty[] propsAdded, ArtifactObsProperty[] propsRemoved, long ts){
+		super(id, ts);
 		this.src = src;
 		this.signal = signal;
 		this.propsChanged = propsChanged;

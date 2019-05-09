@@ -27,14 +27,21 @@ import cartago.*;
  */
 public class ActionSucceededEvent extends CartagoActionEvent {
 	
-	private ArtifactId aid;
+	private ArtifactId artifactId;
+	
+	ActionSucceededEvent(){}
 	
 	public ActionSucceededEvent(long id, long actionId, Op op, ArtifactId aid){
 		super(id,actionId,op);
-		this.aid = aid;
+		this.artifactId = aid;
+	}
+
+	public ActionSucceededEvent(long id, long actionId, Op op, ArtifactId aid, long ts){
+		super(id,actionId, op, ts);
+		this.artifactId = aid;
 	}
 
 	public ArtifactId getArtifactId(){
-		return aid;
+		return artifactId;
 	}
 }

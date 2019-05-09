@@ -206,7 +206,8 @@ public class WorkspaceKernel  {
 			if (joinOK){
 				context = new AgentBody(userId, this, eventListener); 
 				joinedAgents.put(userId.getGlobalId(),context);
-
+				notifyJoinWSPCompleted(eventListener, -1, null, null, this.getId(), context); 
+				
 				/* creating the body and focusing on it */
 				ArtifactId bodyId = makeAgentBodyArtifact(context);				
 				List<ArtifactObsProperty> props = focus(userId, null, eventListener, bodyId);
@@ -596,18 +597,19 @@ public class WorkspaceKernel  {
 
 	//
 	
-	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId aid, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
+	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId aid, Op op, long timeout, IAlignmentTest test) {
 		execOp(actionId, userId, ctx, aid, null, op, timeout, test);
 	}
 
-	public boolean execOp(long actionId, AgentId userId, ICartagoCallback ctx, String name, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
-		return execOp(actionId, userId, ctx, null, name, op, timeout, test);
+	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, String name, Op op, long timeout, IAlignmentTest test) {
+		execOp(actionId, userId, ctx, null, name, op, timeout, test);
 	}
 
-	public boolean execOp(long actionId, AgentId userId, ICartagoCallback ctx, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
-		return execOp(actionId, userId, ctx, null, null, op, timeout, test);
+	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, Op op, long timeout, IAlignmentTest test) {
+		execOp(actionId, userId, ctx, null, null, op, timeout, test);
 	}
 
+	/*
 	public ArtifactId getArtifactIdFromOp(AgentId userId, Op op) {
 		synchronized(opMap){
 			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
@@ -638,8 +640,9 @@ public class WorkspaceKernel  {
 				return list.get(0).getArtifact().getId();
 			}
 		}
-	}
+	}*/
 
+	/*
 	public ArtifactId getArtifactIdFromOp(AgentId userId, String artName, Op op) {
 		synchronized(opMap){
 			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
@@ -660,13 +663,27 @@ public class WorkspaceKernel  {
 			}
 			return null;
 		}
-	}
+	}*/
 	
 	
-	private boolean execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) throws CartagoException  {
-		if (isShutdown){
-			throw new CartagoException("Workspace shutdown.");
+	private void notifyFailure(ICartagoCallback ctx, long actionId, Op op, String msg, Tuple t) {
+		try {
+			ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, msg, t,op); 					
+			ctx.notifyCartagoEvent(ev);
+			return;
+		} catch (Exception ex){
+			ex.printStackTrace();
+			return;
 		}
+	}
+
+	private void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) /* throws CartagoException */ {
+		
+		if (isShutdown){
+			notifyFailure(ctx, actionId, op, "Workspace shutdown", new Tuple("wsp_shutdown", this.id.getName()));
+			return;
+		}
+
 		String name = arName;
 		if (arId != null){
 			name = arId.getName();
@@ -676,14 +693,8 @@ public class WorkspaceKernel  {
 			synchronized(artifactMap){
 				des = artifactMap.get(name);
 				if (des == null){
-					try {
-						ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, "Artifact Not Available",new Tuple("artifact_not_available",name),op); 					
-						ctx.notifyCartagoEvent(ev);
-						return false;
-					} catch (Exception ex){
-						ex.printStackTrace();
-						throw new CartagoException("exec op exception.");
-					}
+					notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",name));
+					return;
 				}
 			}
 		} else {
@@ -696,14 +707,8 @@ public class WorkspaceKernel  {
 					//log("use - try with varags: "+opsign+" -- "+op);
 					list = opMap.get(opsign);
 					if (list == null){
-						try {
-							ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, "Artifact Not Available",new Tuple("artifact_not_available",aid),op); 					
-							ctx.notifyCartagoEvent(ev);
-							return false;
-						} catch (Exception ex){
-							ex.printStackTrace();
-							throw new CartagoException("exec op exception.");
-						}
+						notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+						return;
 					}
 				}
 				// if only one artifact has that operation, no problems...
@@ -731,14 +736,8 @@ public class WorkspaceKernel  {
 					}
 				}
 				if (des == null){
-					try {
-						ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, "Artifact Not Available",new Tuple("artifact_not_available",aid),op); 					
-						ctx.notifyCartagoEvent(ev);
-						return false;
-					} catch (Exception ex){
-						ex.printStackTrace();
-						throw new CartagoException("exec op exception.");
-					}
+					notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+					return;
 				} 
 			}
 		}
@@ -757,20 +756,15 @@ public class WorkspaceKernel  {
 				OpExecutionFrame info = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid,op,timeout,test);
 				try {
 					opTodo.put(info);
-					return true;
+					return;
 				} catch (Exception ex){
 					ex.printStackTrace();
-					throw new CartagoException("exec op exception.");
+					notifyFailure(ctx, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					return;
 				}
 			} else {
-				try {
-					ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, "Security exception",new Tuple("security_exception",userId,aid),op);
-					ctx.notifyCartagoEvent(ev);
-					return false;
-				} catch (Exception ex){
-					ex.printStackTrace();
-					throw new CartagoException("exec op exception.");
-				}
+				notifyFailure(ctx, actionId, op, "Security exception.", new Tuple("security_exception",userId,aid));
+				return;
 			}
 		} else {
 			OpRequestInfo request = new OpRequestInfo(actionId, userId, aid, op);
@@ -780,20 +774,15 @@ public class WorkspaceKernel  {
 				OpExecutionFrame frame = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid, request.getOp(), timeout, test);
 				try {
 					opTodo.put(frame);
-					return true;
+					return;
 				} catch (Exception ex){
 					//ex.printStackTrace();
-					throw new CartagoException("exec op exception."+ex.getMessage());
+					notifyFailure(ctx, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					return;
 				}
 			} else {
-				try {
-					ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, request.getFailureMsg(),request.getFailureDesc(),op);
-					ctx.notifyCartagoEvent(ev);
-					return false;
-				} catch (Exception ex){
-					//ex.printStackTrace();
-					throw new CartagoException("exec op exception."+ex.getMessage());
-				}
+				notifyFailure(ctx, actionId, op, "Internal Failure: wsp-rule exception.", new Tuple("internal_failure","wsp-rule"));
+				return;
 			}
 		}
 	}	
