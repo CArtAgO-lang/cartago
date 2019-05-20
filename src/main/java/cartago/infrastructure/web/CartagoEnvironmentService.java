@@ -42,25 +42,22 @@ import io.vertx.ext.web.handler.CorsHandler;
  * @author aricci
  *
  */
-public class CartagoNodeService extends AbstractVerticle  {
+public class CartagoEnvironmentService extends AbstractVerticle  {
 
 	private String fullAddress;
 	private int port;
-	
-	private CartagoNode node;
-	
+		
 	private Router router;
 	private HttpServer server;
 	
-	private Logger logger = LoggerFactory.getLogger(CartagoNodeService.class);
+	private Logger logger = LoggerFactory.getLogger(CartagoEnvironmentService.class);
 	
 	private static final String API_BASE_PATH = "/cartago/api";
 
 	private ConcurrentLinkedQueue<AgentBodyRemote> remoteCtxs;
 	// private GarbageBodyCollectorAgent garbageCollector;
 	
-	public CartagoNodeService(CartagoNode node) throws Exception {
-		this.node = node;
+	public CartagoEnvironmentService() throws Exception {
 		remoteCtxs = new ConcurrentLinkedQueue<AgentBodyRemote>();	
 		// garbageCollector = new GarbageBodyCollectorAgent(remoteCtxs,1000,10000);
 		// garbageCollector.start();
@@ -173,7 +170,7 @@ public class CartagoNodeService extends AbstractVerticle  {
 	}
 
 	public void registerLogger(String wspName, ICartagoLogger logger) throws RemoteException, CartagoException{
-		CartagoService.registerLogger(wspName, logger);
+		CartagoEnvironment.getInstance().registerLogger(wspName, logger);
 	}
 	
 
@@ -195,17 +192,19 @@ public class CartagoNodeService extends AbstractVerticle  {
 				AgentCredential cred = 	new AgentIdCredential(userName, roleName);
 						
 				try {
-					CartagoWorkspace wsp = node.getWorkspace(wspName);			
-					System.out.println("Remote request to join: "+wspName+" "+roleName+" "+cred);
+					Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(wspName).getWorkspace();			
+					System.out.println("Remote request to join: " + wspName + " " + roleName + " " + cred);
 						
 				    AgentBodyRemote rbody = new AgentBodyRemote();			
-					ICartagoContext ctx = wsp.join(cred, rbody);
+					ICartagoContext ctx = wsp.joinWorkspace(cred, rbody);
 					remoteCtxs.add(rbody);
 		
 					rbody.init((AgentBody) ctx, ws);	
 					
-					JsonObject uuid = new JsonObject().put("nodeUUID", wsp.getId().getNodeId().getId().toString());
-					ws.writeTextMessage(uuid.encode());
+					// JsonObject uuid = new JsonObject().put("nodeUUID", wsp.getId().getNodeId().getFullName().toString());
+
+					JsonObject wspId = new JsonObject().put("wspId", JsonUtil.toJson(wsp.getId()));
+					ws.writeTextMessage(wspId.encode());
 					
 					// HttpServerResponse response = routingContext.response();
 					// response.putHeader("content-type", "application/text").end(reply.encode());

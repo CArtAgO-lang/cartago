@@ -43,7 +43,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startSession(CartagoService.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(CartagoEnvironment.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -63,7 +63,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startSession(workspaceName, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(workspaceName, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -84,7 +84,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

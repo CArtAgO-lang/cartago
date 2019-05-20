@@ -26,53 +26,72 @@ import java.io.Serializable;
  */
 public class WorkspaceId implements Serializable {
 
-	private String name;
-	private NodeId nodeId;
-	private int hashCode;
-	private String id;
+	/* this is the local name, unique in the scope of the parent */
+	private String name;	
+	private WorkspaceId parentId; 
+
 	
 	WorkspaceId(){}
 	
-	public WorkspaceId(String name, NodeId id){
+	/**
+	 * Workspace identifier.
+	 * 
+	 * @param name local name, in the scope of the parent wsp
+	 * @param parentId parent id
+	 */
+	public WorkspaceId(String name, WorkspaceId parentId){
 		this.name = name;
-		this.nodeId = id;
-		this.id = name+"-"+nodeId.getId();
-		hashCode = id.hashCode();
+		this.parentId = parentId;
 	}
 	
 	/**
-	 * Get the numeric identifier of the workspace
 	 * 
-	 * @return
-	 */
-	public String getId(){
-		return id;
-	}
-	
-	/**
-	 * Get node id
+	 * Workspace identifier for a root workspace.
 	 * 
-	 * @return
+	 * @param name local name of root
 	 */
-	public NodeId getNodeId(){
-		return nodeId;
+	public WorkspaceId(String name){
+		this.name = name;
 	}
-	
+
 	/**
-	 * Get the logic name of the workspace
+	 * Get the local name of the workspace
 	 * 
 	 * @return
 	 */
 	public String getName(){
 		return name;
 	}
-		
+	
+	/**
+	 * Get the workspace identifier of the parent workspace.
+	 * 
+	 * @return
+	 */
+	public WorkspaceId getParentId() {
+		return parentId;
+	}
+	
+	/**
+	 * Get the full name, including path from root
+	 * 
+	 * @return
+	 */
+	public String getFullName(){
+		if (parentId != null) {
+			return parentId.getFullName() + "/" + name;
+		} else {
+			return "/" + name;
+		}
+	}
+	
+
 	public int hashCode(){
-		return hashCode;
+		return getFullName().hashCode();
 	}
 	
 	public boolean equals(Object obj){
-		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).getId().equals(this.getId()); 
+		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).getFullName().equals(this.getFullName()); 
 	}
 	
 	public String toString(){

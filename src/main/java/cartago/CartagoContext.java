@@ -50,7 +50,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = (CartagoSession) CartagoService.startSession(CartagoService.MAIN_WSP_NAME, credential, agentCallback);
+			session = (CartagoSession) CartagoEnvironment.getInstance().startSession(CartagoEnvironment.MAIN_WSP_NAME, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -71,7 +71,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = CartagoService.startSession(workspaceName, credential, agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(workspaceName, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -93,7 +93,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", credential, agentCallback);
+			session = CartagoEnvironment.getInstance().startRemoteSession(workspaceName, workspaceHost, "default", credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

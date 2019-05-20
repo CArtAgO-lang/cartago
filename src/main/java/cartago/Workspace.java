@@ -35,23 +35,27 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import cartago.events.*;
+import cartago.events.ActionFailedEvent;
+import cartago.events.ActionSucceededEvent;
+import cartago.events.ArtifactObsEvent;
+import cartago.events.FocussedArtifactDisposedEvent;
+import cartago.events.ObsArtListChangedEvent;
 import cartago.security.IWorkspaceSecurityManager;
 import cartago.security.NullSecurityManager;
 import cartago.security.SecurityException;
 
-/**
- * This class represents the core machinery of a workspace.
- * 
- * @author aricci 
- */
-public class WorkspaceKernel  {
 
+/**
+ * Class representing a Cartago workspace.
+ * 
+ * @author aricci
+ * 
+ */
+public class Workspace {
+		
 	private static final int NCONTROLLERS_DEFAULT = 20;
 
-	private WorkspaceId   id;
-
-	private java.util.concurrent.atomic.AtomicInteger artifactIds;
+	// private java.util.concurrent.atomic.AtomicInteger artifactIds;
 	private int ctxIds;
 
 	private HashMap<String,AgentBody> joinedAgents;
@@ -80,16 +84,34 @@ public class WorkspaceKernel  {
 	private AbstractWSPRuleEngine wspRuleEngine;
 	
 	private AbstractWorkspaceTopology topology;
-	private CartagoNode node;
+	private WorkspaceId id;
+	
+	private boolean securityManagerEnabled;
+		
+	// private WorkspaceDescriptor parent;
+	private HashMap<String,WorkspaceDescriptor> childWsp;
+	private HashMap<String,WorkspaceDescriptor> linkedWsp;
+	
+	private WorkspaceDescriptor desc;
+
+	/* v. 3.0 */
 	
 	/**
-	 * Create a workspace.  
+	 * Create an  workspace
 	 * 
-	 * 
+	 * @param name logic name of the environment
 	 */
-	WorkspaceKernel(WorkspaceId id, CartagoNode node, ICartagoLogger logger){		
-		this.id=id;
-		this.node = node;
+	public Workspace(WorkspaceId id, WorkspaceDescriptor desc, ICartagoLogger logger){
+		
+		this.id = id;
+		this.desc = desc;
+		
+		childWsp = new HashMap<String,WorkspaceDescriptor>();
+		linkedWsp = new HashMap<String,WorkspaceDescriptor>();
+		
+		desc.setWorkspace(this);
+		
+		securityManagerEnabled = false;
 		wspRuleEngine = null;
 		isShutdown = false;
 		eventRegistry = new EventRegistry();
@@ -99,13 +121,13 @@ public class WorkspaceKernel  {
 		opMap = new HashMap<String,List<ArtifactDescriptor>>();
 		artManuals = new HashMap<String,Manual>();
 		opTodo = new ArrayBlockingQueue<OpExecutionFrame>(100);		
-		artifactIds = new java.util.concurrent.atomic.AtomicInteger(0);
+		// artifactIds = new java.util.concurrent.atomic.AtomicInteger(0);
 		
 		artifactFactories = new LinkedList<ArtifactFactory>();
 		artifactFactories.addFirst(new DefaultArtifactFactory());
 		
 		ctxIds = 0;
-		wspManager = new AgentBody(new AgentId("workspace-manager", UUID.randomUUID().toString(), ctxIds++, "WorkspaceManager",id),this,null);
+		wspManager = new AgentBody(new AgentId("workspace-manager", UUID.randomUUID().toString(), ctxIds++, "WorkspaceManager", getId()),this,null);
 
 			
 		securityManager = DEFAULT_SECURITY_MANAGER;
@@ -126,7 +148,7 @@ public class WorkspaceKernel  {
 
 		try {
 			makeArtifact(wspManager.getAgentId(),"workspace", "cartago.WorkspaceArtifact", new ArtifactConfig(this));
-			makeArtifact(wspManager.getAgentId(),"node", "cartago.NodeArtifact", new ArtifactConfig(this));
+			makeArtifact(wspManager.getAgentId(),"system", "cartago.SystemArtifact", new ArtifactConfig());
 			makeArtifact(wspManager.getAgentId(),"manrepo","cartago.ManRepoArtifact",new ArtifactConfig(this));
 			makeArtifact(wspManager.getAgentId(),"console","cartago.tools.Console",ArtifactConfig.DEFAULT_CONFIG);
 			makeArtifact(wspManager.getAgentId(),"blackboard","cartago.tools.TupleSpace",ArtifactConfig.DEFAULT_CONFIG);
@@ -140,32 +162,180 @@ public class WorkspaceKernel  {
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
+	}
+		
+	
+	public   void registerLogger(ICartagoLogger logger){
+		this.logManager.registerLogger(logger);
+	}
+
+	public   void unregisterLogger(ICartagoLogger logger){
+		logManager.unregisterLogger(logger);
+	}		
+	
+	public void enableSecurityManager(){
+		this.setSecurityManager(new cartago.security.DefaultSecurityManager());
+		securityManagerEnabled = true;
+	}
+			
+		
+	
+	/* CArtAgO 3.0 */
+	
+	
+	/**
+	 * Create a workspace inside the node.
+	 * 
+	 * @param name workspace name
+	 * @return
+	 */
+	public synchronized WorkspaceDescriptor createWorkspace(String name) throws CartagoException {
+		return this.createWorkspace(name, (ICartagoLogger) null);
+	}
+
+	/**
+	 * Create a workspace inside the node.
+	 * 
+	 * @param name workspace name
+	 * @param log logger
+	 * @return
+	 */
+	public synchronized WorkspaceDescriptor createWorkspace(String logicalPath, ICartagoLogger log) throws CartagoException {
+		int index = logicalPath.lastIndexOf('/');
+		if (index == -1) {
+			return createLocalWorkspace(logicalPath, log);
+		} else {
+			String parentPath = null;
+			String name = logicalPath.substring(0,index);
+			if (logicalPath.startsWith("/")) {
+				/* from root */
+				parentPath = logicalPath.substring(0,index);
+			} else {
+				/* from this */
+				parentPath = this.id.getFullName()+"/"+logicalPath.substring(0,index);
+			}
+			try {
+				WorkspaceDescriptor wspParent = this.resolveWSP(parentPath);
+				if (wspParent.isLocal()) {
+					return wspParent.getWorkspace().createLocalWorkspace(name, log);
+				} else {
+					return CartagoEnvironment.getInstance().createRemoteWorkspace(name, wspParent);
+				}
+			} catch (Exception ex) {
+				throw new CartagoException("Parent workspace not found");
+			}
+		} 
+	}
+
+	public synchronized WorkspaceDescriptor createLocalWorkspace(String name, ICartagoLogger log) throws CartagoException {
+			WorkspaceDescriptor des = this.resolveLocalWSP(name);
+			if (des == null){
+				WorkspaceId wid = new WorkspaceId(name, this.getId()); 
+				WorkspaceDescriptor winfo = new WorkspaceDescriptor(wid, this.desc);
+				Workspace wsp = new Workspace(wid, winfo, log);
+				winfo.setWorkspace(wsp);
+				this.childWsp.put(name, winfo);
+				CartagoEnvironment.getInstance().registerWSP(wid.getFullName().toString(), winfo);
+				return winfo;
+			} else {
+				throw new CartagoException("workspace already created");
+			}
+	}
+	
+	public synchronized WorkspaceDescriptor mountWorkspace(String targetWsp, String address, String parentWsp, String linkName, String protocol) throws CartagoException {
+		WorkspaceDescriptor des = this.resolveLocalWSP(linkName);
+		if (des == null){
+			WorkspaceDescriptor pwsp = this.resolveWSP(parentWsp);
+			WorkspaceId wid = new WorkspaceId(linkName, pwsp.getId());		
+			des = new WorkspaceDescriptor(wid, pwsp);
+			des.setRemote(targetWsp, address, protocol);
+			this.linkedWsp.put(linkName, des);
+			CartagoEnvironment.getInstance().registerWSP(wid.getFullName().toString(), des);
+			return des;
+		} else {
+			throw new CartagoException("workspace already created");
+		}
+	}
+	
+	/*
+	public synchronized CartagoWorkspace createWorkspace(String name, AbstractWorkspaceTopology topology) throws CartagoException {
+		CartagoWorkspace wsp = wsps.get(name);		
+		if (wsp==null){
+			WorkspaceId wid = new WorkspaceId(name,nodeId); 
+			wsp = new CartagoWorkspace(wid,this);
+			wsp.setTopology(topology);
+			wsps.put(name, wsp);
+			return wsp;
+		} else {
+			throw new CartagoException("workspace already created");
+		}
+	}*/
+	
+	
+	/**
+	 * Get the reference to a workspace of the node.
+	 * 
+	 * @param wspName workspace name
+	 * @return
+	 * @throws CartagoException
+	 *//*
+	public synchronized CartagoWorkspace getWorkspace(String wspName) throws CartagoException {
+		CartagoWorkspace env = wsps.get(wspName);		
+		if (env==null){
+			throw new CartagoException("Workspace not found.");
+		}
+		return env;
+	}*/
+	
+	/*
+	public Collection<String> getWorkspaces() {
+		return wsps.keySet();
+	}*/
+	
+	
+	/**
+	 * Manage the execution of an inter-artifact op, possibly between artifacts 
+	 * belonging to different workspaces of this node.
+	 * 
+	 *//*
+	OpId execInterArtifactOp(ICartagoCallback ctx, long actionId, AgentId userId, ArtifactId srcId, ArtifactId targetId, Op op, long timeout, IAlignmentTest test) throws InterruptedException, OpRequestTimeoutException, OperationUnavailableException, ArtifactNotAvailableException, CartagoException  {
+		WorkspaceId targetWsp = targetId.getWorkspaceId();
+		if (targetWsp.getNodeId().equals(nodeId)){
+			CartagoWorkspace wsp = wsps.get(targetWsp.getName());
+			if (wsp==null){
+				throw new ArtifactNotAvailableException();
+			} else {
+				return wsp.execInterArtifactOp(ctx, actionId, userId, srcId, targetId, op, timeout, test);
+			}
+		} else {
+			return CartagoService.execRemoteInterArtifactOp(ctx, actionId, userId, srcId, targetId, op, timeout, test);
+		}
 	}	
-
-
+	*/
 	/**
 	 * Gets environment name
 	 * 
 	 * @return name
 	 */
 	public WorkspaceId getId(){
-		return id;
+		return this.id;
 	}
 	
-	public CartagoNode getNode(){
-		return node;
-	}
-
 	ICartagoContext getWSPManager(){
 		return wspManager;
 	}
 	
 	public void setSecurityManager(cartago.security.IWorkspaceSecurityManager man){
 		this.securityManager = man;
+		securityManagerEnabled = true;
 	}
 
-	public IWorkspaceSecurityManager getSecurityManager(){
-		return this.securityManager;
+	public IWorkspaceSecurityManager getSecurityManager() throws SecurityException {
+		if (securityManagerEnabled){
+			return this.securityManager;
+		} else {
+			throw new SecurityException("No security manager enabled.");
+		}
 	}
 
 	public void setLoggerManager(ICartagoLoggerManager man){
@@ -176,6 +346,106 @@ public class WorkspaceKernel  {
 		return logManager;
 	}
 
+	public WorkspaceDescriptor resolveWSP(String logicalPath) throws WorkspaceNotFoundException {
+		int index = logicalPath.lastIndexOf('/');
+		if (index == -1) {
+			WorkspaceDescriptor des = resolveLocalWSP(logicalPath);
+			if (des == null) {
+				throw new WorkspaceNotFoundException();
+			} else {
+				return des;
+			}
+		} else {
+			
+			String fullPath = null;
+			if (logicalPath.startsWith("/")) {
+				/* from root */
+				fullPath = logicalPath;
+			} else {
+				/* from this */
+				fullPath = this.id.getFullName()+"/"+logicalPath;
+			}
+			
+			return CartagoEnvironment.getInstance().resolveWSP(fullPath); 
+		} 
+	}
+
+	
+	public WorkspaceDescriptor resolveLocalWSP(String name) {
+		WorkspaceDescriptor wsp = this.childWsp.get(name);
+		if (wsp != null) {
+			return wsp;
+		} else {
+			return this.linkedWsp.get(name);
+		}
+	}
+	
+	public WorkspaceDescriptor getChildWSP(String name) {
+		return this.childWsp.get(name);
+	}
+
+	/**
+	 * Join a workspace
+	 * 
+	 * @param wspName
+	 * @param cred
+	 * @param artBodyClassName
+	 * @param eventListener
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, String artBodyClassName, ICartagoCallback eventListener) throws CartagoException {
+		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
+		if (wdes.isLocal()) {
+			return wdes.getWorkspace().joinWorkspace(cred, artBodyClassName, eventListener);
+		} else {
+			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
+		}
+	}
+	
+	/**
+	 * Join a workspace
+	 * 
+	 * @param wspName
+	 * @param cred
+	 * @param artBodyClassName
+	 * @param eventListener
+	 * @return
+	 * @throws CartagoException
+	 */
+	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
+		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
+		if (wdes.isLocal()) {
+			return wdes.getWorkspace().joinWorkspace(cred, eventListener);
+		} else {
+			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
+		}
+	}	
+
+	/**
+	 * Join this workspace
+	 * 
+	 * @param cred
+	 * @param artBodyClassName
+	 * @param eventListener
+	 * @return
+	 * @throws CartagoException
+	 */
+	
+	public ICartagoContext joinWorkspace(AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
+		return this.joinWorkspace(cred, AgentBodyArtifact.class.getName(), eventListener);
+	}
+	
+	/**
+	 * Join this workspace
+	 * 
+	 * @param cred
+	 * @param artBodyClassName
+	 * @param eventListener
+	 * @return
+	 * @throws CartagoException
+	 */
+	
 	public ICartagoContext joinWorkspace(AgentCredential cred, String artBodyClassName, ICartagoCallback eventListener) throws CartagoException {
 		String roleName = cred.getRoleName();
 		if (roleName == null || roleName.equals("")){
@@ -183,7 +453,7 @@ public class WorkspaceKernel  {
 		}
 		synchronized (joinedAgents){
 			AgentBody context = joinedAgents.get(cred.getGlobalId());
-			if (context!=null){
+			if (context != null){
 				return context;
 			}
 			/*
@@ -191,7 +461,7 @@ public class WorkspaceKernel  {
 				throw new SecurityException("Agent "+cred.getGlobalId()+" already joined "+this.getId());
 			}*/
 			ctxIds++;
-			AgentId userId = new AgentId(cred.getId(), cred.getGlobalId(), ctxIds, roleName,id);				
+			AgentId userId = new AgentId(cred.getId(), cred.getGlobalId(), ctxIds, roleName, id);				
 			boolean joinOK = true;
 			String failureMsg = "no msg";
 			
@@ -436,13 +706,14 @@ public class WorkspaceKernel  {
 		synchronized (artifactMap){
 			des = artifactMap.get(name);
 			if (des!=null){
-				throw new ArtifactAlreadyPresentException(name,this.id.getName());
+				throw new ArtifactAlreadyPresentException(name,this.getId().getName());
 			}
 		}
 		Artifact artifact = makeArtifact(template);
 		try {
-			int freshid = artifactIds.incrementAndGet();
-			id = new ArtifactId(name, freshid,template,this.id, userId);
+			// int freshid = artifactIds.incrementAndGet();
+			UUID freshId = UUID.randomUUID();
+			id = new ArtifactId(name, freshId, template, this.getId(), userId);
 			//log("NEW ID CREATED: "+id+" for "+name);
 
 			artifact.bind(id,userId,this);	
@@ -579,7 +850,27 @@ public class WorkspaceKernel  {
 		}
 	}
 
-	public ArtifactId lookupArtifact(AgentId userId, String name) throws UnknownArtifactException, ArtifactNotAvailableException{
+	public ArtifactId lookupArtifact(AgentId userId, String name) throws UnknownArtifactException, ArtifactNotAvailableException, WorkspaceNotFoundException {
+		int index = name.lastIndexOf('/');
+		if (index != -1) {
+			String wspName = name.substring(0, index);
+			String artName = name.substring(index + 1);
+			try {
+				WorkspaceDescriptor wdes = this.resolveWSP(wspName);
+				if (wdes.isLocal()) {
+					return wdes.getWorkspace().lookupLocalArtifact(userId, artName);
+				} else {
+					throw new RuntimeException("not implemented yet.");
+				}
+			} catch (Exception ex) {
+				throw new WorkspaceNotFoundException();
+			}
+		} else {
+			return this.lookupLocalArtifact(userId, name);
+		}
+	}
+
+	public ArtifactId lookupLocalArtifact(AgentId userId, String name) throws UnknownArtifactException, ArtifactNotAvailableException{
 		synchronized (artifactMap){
 			ArtifactDescriptor des = artifactMap.get(name);
 			if (des == null){
@@ -685,7 +976,7 @@ public class WorkspaceKernel  {
 	private void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) /* throws CartagoException */ {
 		
 		if (isShutdown){
-			notifyFailure(ctx, actionId, op, "Workspace shutdown", new Tuple("wsp_shutdown", this.id.getName()));
+			notifyFailure(ctx, actionId, op, "Workspace shutdown", new Tuple("wsp_shutdown", this.getId().getName()));
 			return;
 		}
 
@@ -1003,6 +1294,13 @@ public class WorkspaceKernel  {
 		}
 	}
 
+	public ArtifactDescriptor getArtifactDescriptor(String name) {
+		ArtifactDescriptor des = null; 
+		synchronized (artifactMap){
+			des = artifactMap.get(name);
+			return des;
+		}
+	}
 
 	// Linked op
 
@@ -1295,7 +1593,7 @@ public class WorkspaceKernel  {
 			quitAgent(ctx.getAgentId());
 		} catch (Exception ex){
 			ex.printStackTrace();
-			log("CONTEXT TO REMOVE NOT FOUND: "+id);
+			log("CONTEXT TO REMOVE NOT FOUND: "+getId());
 		}
 	}
 
@@ -1444,11 +1742,11 @@ public class WorkspaceKernel  {
 	class EnvironmentController extends Thread {
 
 		private ArrayBlockingQueue<OpExecutionFrame> opBuffer;
-		private WorkspaceKernel env;
+		private Workspace env;
 		private boolean stopped;
 		private int nfailures;
 
-		public EnvironmentController(WorkspaceKernel env, ArrayBlockingQueue<OpExecutionFrame> opBuffer){
+		public EnvironmentController(Workspace env, ArrayBlockingQueue<OpExecutionFrame> opBuffer){
 			this.env = env;
 			this.opBuffer = opBuffer;
 			nfailures = 0;
@@ -1503,9 +1801,9 @@ public class WorkspaceKernel  {
 
 	class CartagoController implements ICartagoController {
 
-		private WorkspaceKernel env;
+		private Workspace env;
 
-		public CartagoController(WorkspaceKernel env){
+		public CartagoController(Workspace env){
 			this.env = env;
 		}
 
@@ -1530,6 +1828,5 @@ public class WorkspaceKernel  {
 		}
 
 	}
-
+	
 }
-

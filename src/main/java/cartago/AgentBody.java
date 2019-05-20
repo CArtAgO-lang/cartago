@@ -28,7 +28,7 @@ import java.util.*;
 public class AgentBody implements ICartagoContext {
 	
 	private AgentId id;
-	private WorkspaceKernel wspKernel;
+	private Workspace wsp;
 	
 	/* agent callback to notify action/obs events */
 	protected ICartagoCallback agentCallback;
@@ -36,9 +36,9 @@ public class AgentBody implements ICartagoContext {
 	protected LinkedList<ArtifactDescriptor> focusedArtifacts;
 	protected AgentBodyArtifact bodyArtifact;
 	
-	AgentBody(AgentId id, WorkspaceKernel env, ICartagoCallback agentCallback){
+	AgentBody(AgentId id, Workspace env, ICartagoCallback agentCallback){
 		this.id = id;
-		this.wspKernel = env;
+		this.wsp = env;
 		this.agentCallback = agentCallback;
 		focusedArtifacts = new LinkedList<ArtifactDescriptor>();
 		bodyArtifact = null;
@@ -49,11 +49,11 @@ public class AgentBody implements ICartagoContext {
 	}
 	
 	public WorkspaceId getWorkspaceId(){
-		return wspKernel.getId();
+		return wsp.getId();
 	}
 	
-	public WorkspaceKernel getWSPKernel(){
-		return wspKernel;
+	public Workspace getWSPKernel(){
+		return wsp;
 	}
 
 	public void setBodyArtifact(AgentBodyArtifact art){
@@ -78,14 +78,14 @@ public class AgentBody implements ICartagoContext {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		wspKernel.execOp(actionId, id, agentCallback, name, op, timeout, test);
+		wsp.execOp(actionId, id, agentCallback, name, op, timeout, test);
 	}
 	
 	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		wspKernel.execOp(actionId, id, agentCallback, op, timeout, test);
+		wsp.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
 	
 	/*

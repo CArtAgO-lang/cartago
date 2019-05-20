@@ -1,8 +1,10 @@
 //!test_double_join.
-!main_test.
+
+//!main_test.
+
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
-//!test_wsp.
+!test_wsp.
 //!test2.
 //!test3.
 //!test_gui.
@@ -67,7 +69,8 @@
 	  
   
 +!main_test
-  <-  !test_console;
+  <-  .println("started.");
+      !test_console;
       !test_make_lookup_dispose;
       !test_use;
       !test_focus; 
@@ -277,7 +280,7 @@
 +count(V)[artifact_name(Id,c0)]
   <- println("perceived from remote counter: ",V).
 
-  
+/*  
 +!test_wsp 
   <- createWorkspace("w0");
      println("joining...");
@@ -292,7 +295,26 @@
      joinWorkspace("w1",WspID2);
      println("computing...");
      compute(5,X,Y)[wsp("w0")];
-     println(X).
+     println(X).     
+*/
+
++!test_wsp
+  <- createWorkspace("w0");
+     println("created w0");
+	 createWorkspace("w1");
+	 println("created w1");
+	 joinWorkspace("w0",W0);
+	 println("joined w0");
+	 joinWorkspace("/main/w1",W1);
+	 println("joined w1");
+  	 makeArtifact("my_counter","test.Counter", [], Id1);
+     println("artifact created ", Id1);
+     lookupArtifact("my_counter", Id2);
+     println("artifact lookup ", Id2);
+     lookupArtifact("/main/w1/my_counter",Id3);
+     println("artifact lookup with full path name ", Id3).
+	   
+	    
 
 +joined_wsp(Name,Id)	
 	<- println("joined wsp: ",Name," ",Id).          

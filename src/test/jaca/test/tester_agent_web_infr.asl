@@ -2,6 +2,13 @@
 
 +!test_remote <-
   println("testing remote..");
+  mountWorkspace("/main","localhost","/main","b","web");
+  joinWorkspace("/main/b", Wid);
+  println("hello, remote world!");
+  !use_remote.  
+
++!test_remote <-
+  println("testing remote..");
   joinRemoteWorkspace("main","localhost",WspId);
   println("hello, remote world!");
   !use_remote.

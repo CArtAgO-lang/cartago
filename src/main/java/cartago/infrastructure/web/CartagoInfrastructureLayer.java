@@ -17,7 +17,6 @@
  */
 package cartago.infrastructure.web;
 
-import java.rmi.*;
 import java.net.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -33,6 +32,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
 
 
 /**
@@ -46,7 +46,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	// private KeepRemoteBodyAliveManagerAgent keepAliveAgent;
 	// private ConcurrentLinkedQueue<AgentBodyProxy> remoteCtxs;
 	static public final int DEFAULT_PORT = 20100; 
-	private CartagoNodeService service;
+	private CartagoEnvironmentService service;
 	private Vertx vertx;
 	private boolean error = false;
 	
@@ -99,9 +99,9 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 				  
 				  ws.handler((Buffer b) -> {
 					JsonObject jwspId = b.toJsonObject();  
-					String nodeUUID = jwspId.getString("nodeUUID");
-					NodeId nodeId = new NodeId(nodeUUID);
-					WorkspaceId wspId = new WorkspaceId(wspName, nodeId);
+					// String nodeUUID = jwspId.getString("nodeUUID");
+					// NodeId nodeId = new NodeId(nodeUUID);
+					WorkspaceId wspId = JsonUtil.toWorkspaceId(jwspId);
 					proxy.init(ws, wspId, eventListener);
 				  	ev.release();
 				  });
@@ -139,6 +139,48 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 
 	}
 
+	/*
+	public WorkspaceDescriptor mount(String address, String remoteWsp, String mountPoint) throws CartagoInfrastructureLayerException, CartagoException {
+		
+		try {
+			
+			int port = getPort(address);
+			if (port == -1) {
+				port = DEFAULT_PORT;
+			}
+
+			HttpClientOptions options = new HttpClientOptions().setDefaultHost(address).setDefaultPort(port);
+			WebClient client = WebClient.create(vertx);
+			
+			AgentBodyProxy proxy = new AgentBodyProxy();
+			
+			Semaphore ev = new Semaphore(0);
+			error = false;
+			
+			client
+			.post(port, address, "/cartago/api/mount")
+			.send( ar -> {
+				
+			});
+
+			ev.acquire();
+			if (!error) {
+				return proxy;
+			} else {
+				throw new CartagoInfrastructureLayerException();
+			}
+			
+		} catch (Exception ex){
+			ex.printStackTrace();
+			throw new CartagoInfrastructureLayerException();
+		}
+		
+		// throw new RuntimeException("not implemented");
+
+	}
+	*/
+	
+	
 	public OpId execRemoteInterArtifactOp(ICartagoCallback callback, long callbackId,
 			AgentId userId, ArtifactId srcId, ArtifactId targetId, String address, Op op,
 			long timeout, IAlignmentTest test)
@@ -212,14 +254,14 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	
 	//
 	
-	public void startService(CartagoNode node, String address) throws CartagoInfrastructureLayerException {
+	public void startService(String address) throws CartagoInfrastructureLayerException {
 		
 		if (service != null){
 			throw new CartagoInfrastructureLayerException();
 		}
 		try {
 			int port = DEFAULT_PORT;
-			service = new CartagoNodeService(node);
+			service = new CartagoEnvironmentService();
 			if (address == null || address.equals("")){
 				address = InetAddress.getLocalHost().getHostAddress();
 			} else {

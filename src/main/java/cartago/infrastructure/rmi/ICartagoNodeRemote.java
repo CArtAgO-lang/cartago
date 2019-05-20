@@ -41,5 +41,5 @@ public interface ICartagoNodeRemote extends Remote {
 
 	String getVersion() throws CartagoException, RemoteException;
 	
-	NodeId getNodeId() throws CartagoException, RemoteException;
+	// NodeId getNodeId() throws CartagoException, RemoteException;
 }

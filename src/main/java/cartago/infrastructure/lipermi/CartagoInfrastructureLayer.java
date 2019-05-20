@@ -9,8 +9,8 @@ import lipermi.net.Client;
 import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
+import cartago.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.CartagoNode;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
 import cartago.ICartagoContext;
@@ -69,7 +69,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
-	@Override
+	/*
 	public NodeId getNodeAt(String fullAddress)
 			throws CartagoInfrastructureLayerException, CartagoException {
 		
@@ -90,7 +90,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			ex.printStackTrace();
 			throw new CartagoInfrastructureLayerException();
 		} 
-	}
+	}*/
 
 	@Override
 	public boolean isServiceRunning() {
@@ -141,7 +141,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
 	@Override
-	public void startService(CartagoNode node, String address)
+	public void startService(String address)
 			throws CartagoInfrastructureLayerException {
 		
 		if (mService != null){
@@ -149,7 +149,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 		try {
 			int port = DEFAULT_PORT;
-			mService = new CartagoNodeRemote(node);
+			mService = new CartagoNodeRemote();
 			if (address!=null && !address.equals("")) {
 				port = Integer.parseInt(address);
 			}

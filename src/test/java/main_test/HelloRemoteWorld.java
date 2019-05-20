@@ -1,14 +1,15 @@
 package main_test;
 
-import cartago.CartagoService;
+import cartago.CartagoEnvironment;
 import cartago.util.BasicLogger;
 
 public class HelloRemoteWorld {
 	
 	public static void main(String[] args) throws Exception {			
-		CartagoService.startNode();
-		CartagoService.installInfrastructureLayer("rmi");
-		CartagoService.startInfrastructureService("rmi");
-		CartagoService.registerLogger("main",new BasicLogger());  
+		CartagoEnvironment env = CartagoEnvironment.getInstance();
+		env.init();
+		env.installInfrastructureLayer("rmi");
+		env.startInfrastructureService("rmi");
+		env.registerLogger("main",new BasicLogger());  
 	}
 }

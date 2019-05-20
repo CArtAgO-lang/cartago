@@ -32,13 +32,82 @@ import java.util.*;
  */
 public class WorkspaceArtifact extends Artifact {
 
-	private WorkspaceKernel wspKernel;
+	private Workspace wsp;
 	private Inspector debug;
 	
-	@OPERATION void init(WorkspaceKernel env){
-		this.wspKernel = env;
+	@OPERATION void init(Workspace env){
+		this.wsp = env;
 	}
 
+	/* wsp management */
+	
+	/**
+	 * Join a workspace
+	 * 
+	 * @param wspName workspace name
+	 * @param res output parameter: workspace id
+	 */
+	@OPERATION void joinWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
+		try {
+		    OpExecutionFrame opFrame = this.getOpFrame();
+			ICartagoContext ctx = wsp.joinWorkspace(wspName, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), null, opFrame.getAgentListener());
+			WorkspaceId wspId = ctx.getWorkspaceId();
+			res.set(wspId);
+			wsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
+			opFrame.setCompletionNotified();			
+		} catch (Exception ex){
+			//ex.printStackTrace();
+			failed("Join Workspace error: "+ex.getMessage());
+		}
+	}	
+	
+	/**
+	 * Create a workspace in the local node.
+	 * 
+	 * @param name name of the workspace
+	 */
+	@OPERATION void createWorkspace(String name){
+		try {
+			WorkspaceDescriptor des = wsp.createWorkspace(name);
+			defineObsProperty("workspace",name,wsp.getId());
+		} catch (Exception ex){
+			failed("Workspace creation error");
+		}
+	}
+
+	/**
+	 * Experimental support for topology
+	 * 
+	 * Create a workspace in the local node.
+	 * 
+	 * @param name name of the workspace
+	 */
+	@OPERATION void createWorkspaceWithTopology(String name, String topologyClassName){
+		try {
+			WorkspaceDescriptor des = wsp.createWorkspace(name);
+			AbstractWorkspaceTopology topology = (AbstractWorkspaceTopology) Class.forName(topologyClassName).newInstance();
+			des.getWorkspace().setWSPTopology(topology);
+			defineObsProperty("workspace",name,wsp.getId());
+		} catch (Exception ex){
+			failed("Workspace creation error");
+		}
+	}
+	
+	/**
+	 * Create a workspace in the local node.
+	 * 
+	 * @param name name of the workspace
+	 */	
+	@OPERATION void mountWorkspace(String targetWsp, String address, String parentWsp, String linkName, String protocol) throws CartagoException {
+		try {
+			wsp.mountWorkspace(targetWsp, address, parentWsp, linkName, protocol);
+			defineObsProperty("workspace",linkName,wsp.getId());
+		} catch (Exception ex){
+			failed("Workspace creation error");
+		}
+	}
+	
+	
 	/**
 	 * Start observing an artifact of the workspace
 	 * 
@@ -48,8 +117,8 @@ public class WorkspaceArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			List<ArtifactObsProperty> props = wspKernel.focus(userId, null, opFrame.getAgentListener(), aid);
-			wspKernel.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -66,8 +135,8 @@ public class WorkspaceArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			List<ArtifactObsProperty> props = wspKernel.focus(userId, filter, opFrame.getAgentListener(), aid);
-			wspKernel.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -86,10 +155,10 @@ public class WorkspaceArtifact extends Artifact {
 			ArtifactId aid = null;
 			while (aid == null){
 				await("artifactAvailable", artName);		
-				aid = wspKernel.getArtifact(artName);
+				aid = wsp.getArtifact(artName);
 			}
-			List<ArtifactObsProperty> props = wspKernel.focus(userId, null, opFrame.getAgentListener(), aid);
-			wspKernel.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -111,10 +180,10 @@ public class WorkspaceArtifact extends Artifact {
 			ArtifactId aid = null;
 			while (aid == null){
 				await("artifactAvailable", artName);		
-				aid = wspKernel.getArtifact(artName);
+				aid = wsp.getArtifact(artName);
 			}
-			List<ArtifactObsProperty> props = wspKernel.focus(userId, filter, opFrame.getAgentListener(), aid);
-			wspKernel.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -122,7 +191,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	@GUARD boolean artifactAvailable(String artName){
-		return wspKernel.getArtifact(artName) != null;
+		return wsp.getArtifact(artName) != null;
 	}
 
 	/**
@@ -133,7 +202,7 @@ public class WorkspaceArtifact extends Artifact {
 		 if (debug == null){
 			 Inspector insp = new Inspector();
 			 insp.start();
-			 wspKernel.getLoggerManager().registerLogger(insp.getLogger());
+			 wsp.getLoggerManager().registerLogger(insp.getLogger());
 		 }
 	}
 	
@@ -143,7 +212,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void disableDebug(){
 		 if (debug != null){
-			 wspKernel.getLoggerManager().unregisterLogger(debug.getLogger());
+			 wsp.getLoggerManager().unregisterLogger(debug.getLogger());
 		 }
 	}
 	
@@ -156,8 +225,8 @@ public class WorkspaceArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			List<ArtifactObsProperty> props = wspKernel.stopFocus(userId, opFrame.getAgentListener(), aid);
-			wspKernel.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
+			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -167,7 +236,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
 		AgentId userId = this.getCurrentOpAgentId();
 		try {
-			wspKernel.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
+			wsp.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
@@ -176,9 +245,9 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void quitWorkspace() {
 		try {
 			OpExecutionFrame opFrame = this.getOpFrame();
-			wspKernel.quitAgent(opFrame.getAgentId());
+			wsp.quitAgent(opFrame.getAgentId());
 			WorkspaceId wspId = getId().getWorkspaceId();
-			wspKernel.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);
+			wsp.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);
 			opFrame.setCompletionNotified();
 		} catch (Exception ex){
 			failed("Quit Workspace failed.");
@@ -198,7 +267,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION @LINK void lookupArtifact(String artifactName, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.lookupArtifact(this.getCurrentOpAgentId(),artifactName);
+			ArtifactId id = wsp.lookupArtifact(this.getCurrentOpAgentId(),artifactName);
 			aid.set(id);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -217,7 +286,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION @LINK void lookupArtifactByType(String artifactType, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.lookupArtifactByType(this.getCurrentOpAgentId(),artifactType);
+			ArtifactId id = wsp.lookupArtifactByType(this.getCurrentOpAgentId(),artifactType);
 			aid.set(id);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -231,7 +300,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION @LINK void getCurrentArtifacts(OpFeedbackParam<String[]> list){
 		try {
-			String[] names = wspKernel.getArtifactList();
+			String[] names = wsp.getArtifactList();
 			list.set(names);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -244,7 +313,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param factory artifact factory
 	 */
 	@OPERATION @LINK void addArtifactFactory(ArtifactFactory factory){
-		wspKernel.addArtifactFactory(factory);
+		wsp.addArtifactFactory(factory);
 	}
 
 
@@ -254,7 +323,7 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param name
 	 */
 	@OPERATION @LINK void removeArtifactFactory(String name){
-		wspKernel.removeArtifactFactory(name);
+		wsp.removeArtifactFactory(name);
 	}
 	
 	/**
@@ -270,7 +339,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
+			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
 			// signal("new_artifact_created",artifactName,templateName,id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
@@ -297,7 +366,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] param){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
+			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
@@ -327,7 +396,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */	
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] params, OpFeedbackParam<ArtifactId> aid){
 		try {
-			ArtifactId id = wspKernel.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
+			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
 			aid.set(id);
 			this.defineObsProperty("artifact", artifactName, templateName, id);
 		} catch (UnknownArtifactTemplateException ex){
@@ -341,7 +410,7 @@ public class WorkspaceArtifact extends Artifact {
 
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
-			wspKernel.disposeArtifact(this.getCurrentOpAgentId(),id);
+			wsp.disposeArtifact(this.getCurrentOpAgentId(),id);
 			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
 		} catch (Exception ex){
 			failed(ex.toString());
@@ -352,8 +421,8 @@ public class WorkspaceArtifact extends Artifact {
 	
 	@OPERATION void setWSPRuleEngine(AbstractWSPRuleEngine man){
 		try {
-			man.setKernel(wspKernel);
-			wspKernel.setWSPRuleEngine(man);
+			man.setKernel(wsp);
+			wsp.setWSPRuleEngine(man);
 		} catch(Exception ex){
 			failed(ex.getMessage());
 		}
@@ -400,7 +469,7 @@ public class WorkspaceArtifact extends Artifact {
 	/* RBAC */
 	
 	@OPERATION void setSecurityManager(IWorkspaceSecurityManager man){
-		wspKernel.setSecurityManager(man);
+		wsp.setSecurityManager(man);
 	}
 	
 	/**
@@ -408,7 +477,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void addRole(String roleName){
 		try {
-			wspKernel.getSecurityManager().addRole(roleName);
+			wsp.getSecurityManager().addRole(roleName);
 		} catch(SecurityException ex){
 			failed("security_exception");
 		}
@@ -420,7 +489,11 @@ public class WorkspaceArtifact extends Artifact {
 	 * @param roleName
 	 */
 	@OPERATION void removeRole(String roleName) {
-		wspKernel.getSecurityManager().removeRole(roleName);
+		try {
+			wsp.getSecurityManager().removeRole(roleName);
+		} catch(SecurityException ex){
+			failed("security_exception");
+		}
 	}
 
 	/**
@@ -429,7 +502,11 @@ public class WorkspaceArtifact extends Artifact {
 	 * @return
 	 */
 	@OPERATION void getRoleList(OpFeedbackParam<String[]> list) {
-		list.set(wspKernel.getSecurityManager().getRoleList());
+		try {
+			list.set(wsp.getSecurityManager().getRoleList());
+		} catch(SecurityException ex){
+			failed("security_exception");
+		}
 	}
 	
 
@@ -439,7 +516,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void addRolePolicy(String roleName, String  artifactName, IArtifactUsePolicy policy){
 		try {
-			wspKernel.getSecurityManager().addRolePolicy(roleName, artifactName, policy);
+			wsp.getSecurityManager().addRolePolicy(roleName, artifactName, policy);
 		} catch(SecurityException ex){
 			failed("security_exception");
 		}
@@ -451,7 +528,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void removeRolePolicy(String roleName, String  artifactName){
 		try {
-			wspKernel.getSecurityManager().removeRolePolicy(roleName, artifactName);
+			wsp.getSecurityManager().removeRolePolicy(roleName, artifactName);
 		} catch(SecurityException ex){
 			failed("security_exception");
 		}
@@ -463,7 +540,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void setDefaultRolePolicy(String roleName, String artName, IArtifactUsePolicy policy) {
 		try {
-			wspKernel.getSecurityManager().setDefaultRolePolicy(roleName, policy);
+			wsp.getSecurityManager().setDefaultRolePolicy(roleName, policy);
 		} catch(SecurityException ex){
 			failed("security_exception");
 		}
@@ -475,6 +552,6 @@ public class WorkspaceArtifact extends Artifact {
 	 * 
 	 */
 	@LINK void getArtifactList(OpFeedbackParam<ArtifactId[]> artifacts) {
-		artifacts.set(wspKernel.getArtifactIdList());
+		artifacts.set(wsp.getArtifactIdList());
 	}
 }

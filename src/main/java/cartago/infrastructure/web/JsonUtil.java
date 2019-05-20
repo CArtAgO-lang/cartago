@@ -3,6 +3,7 @@ package cartago.infrastructure.web;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -137,22 +138,28 @@ public class JsonUtil {
 	static public JsonObject toJson(WorkspaceId id) {
 		JsonObject obj = new JsonObject();
 		obj.put("name", id.getName());
-		obj.put("nodeId", id.getNodeId().getId().toString());
+		WorkspaceId parentId = id.getParentId();
+		if (parentId != null) {
+			obj.put("parentId", toJson(parentId));
+		}
 		return obj;
 	}
 
 	static public WorkspaceId toWorkspaceId(JsonObject obj) {		
 		String name = obj.getString("name");
-		String nodeId = obj.getString("nodeId");
-		NodeId nodeIdObj  = new NodeId(nodeId);
-		return new WorkspaceId(name, nodeIdObj);
+		JsonObject parentId = obj.getJsonObject("parentId");
+		if (parentId == null) {
+			return new WorkspaceId(name);
+		} else {
+			return new WorkspaceId(name, toWorkspaceId(parentId));
+		}
 	}
 	
 	// --
 	
 	static public  JsonObject toJson(ArtifactId id) {
 		JsonObject obj = new JsonObject();
-		obj.put("id", id.getId());
+		obj.put("id", id.getId().toString());
 		obj.put("name", id.getName());
 		obj.put("artifactType", id.getArtifactType());
 		JsonObject wid = toJson(id.getWorkspaceId());
@@ -165,11 +172,11 @@ public class JsonUtil {
 	static public ArtifactId toArtifactId(JsonObject obj) {
 		if (obj != null) {
 			String name = obj.getString("name");
-			int id = obj.getInteger("id");
+			String id = obj.getString("id");
 			String artifactType = obj.getString("artifactType");
 			WorkspaceId workspaceId = toWorkspaceId(obj.getJsonObject("workspaceId"));
 			AgentId creatorId = toAgentId(obj.getJsonObject("creatorId"));
-			return new ArtifactId(name, id, artifactType, workspaceId, creatorId);
+			return new ArtifactId(name, UUID.fromString(id), artifactType, workspaceId, creatorId);
 		} else {
 			return null;
 		}

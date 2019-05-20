@@ -16,10 +16,10 @@ public class AgentBodyArtifact extends Artifact {
 		position = pos;
 		this.observabilityRadius = observabilityRadius;
 		this.observingRadius = observingRadius;
-		kernel.bindAgentBodyArtifact(this.getCreatorId(),this);
+		wsp.bindAgentBodyArtifact(this.getCreatorId(),this);
 		try {
-			kernel.notifyArtifactPositionOrRadiusChange(this.getId());	
-			kernel.notifyAgentPositionOrRadiusChange(getCreatorId());	
+			wsp.notifyArtifactPositionOrRadiusChange(this.getId());	
+			wsp.notifyAgentPositionOrRadiusChange(getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -28,8 +28,8 @@ public class AgentBodyArtifact extends Artifact {
 	protected void updatePosition(AbstractWorkspacePoint pos) {
 		position = pos;
 		try {
-			kernel.notifyArtifactPositionOrRadiusChange(getId());	
-			kernel.notifyAgentPositionOrRadiusChange(getCreatorId());	
+			wsp.notifyArtifactPositionOrRadiusChange(getId());	
+			wsp.notifyAgentPositionOrRadiusChange(getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -42,7 +42,7 @@ public class AgentBodyArtifact extends Artifact {
 	protected void setObservingRadius(double radius){
 		observingRadius = radius;
 		try {
-			kernel.notifyAgentPositionOrRadiusChange(this.getCreatorId());	
+			wsp.notifyAgentPositionOrRadiusChange(this.getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

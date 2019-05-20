@@ -20,8 +20,8 @@ import cartago.ArtifactId;
 import cartago.ArtifactObsProperty;
 import cartago.CartagoEvent;
 import cartago.CartagoException;
-import cartago.CartagoNode;
-import cartago.CartagoService;
+import cartago.Workspace;
+import cartago.CartagoEnvironment;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
 import cartago.ICartagoController;
@@ -32,7 +32,6 @@ import cartago.Op;
 import cartago.OpDescriptor;
 import cartago.Tuple;
 import cartago.WorkspaceId;
-import cartago.WorkspaceKernel;
 import cartago.events.ActionFailedEvent;
 import cartago.events.ActionSucceededEvent;
 import cartago.events.ArtifactObsEvent;
@@ -95,6 +94,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 
 	public CAgentArch() {
 		super();
+		
 		pendingActions = new ConcurrentHashMap<>();
 
 		logger = Logger.getLogger("CAgentArch");
@@ -119,7 +119,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			this.agent = getTS().getAg();
 			this.belBase = agent.getBB();
 
-			envSession = CartagoEnvironment.getInstance().startSession(agentName, this);
+			envSession = jaca.CartagoEnvironment.getInstance().startSession(agentName, this);
 
 			allJoinedWsp.addAll(envSession.getJoinedWorkspaces());
 		} catch (Exception ex) {
@@ -452,15 +452,20 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 			// The Observer is added again
 			if (!aa.isEmpty()) {
 				String wspName = ev1.getTargetArtifact().getWorkspaceId().getName();
-				for (AgentId ag : CartagoService.getController(wspName).getCurrentAgents()) // to get the agentId from agName
+				for (AgentId ag : CartagoEnvironment.getInstance().getController(wspName).getCurrentAgents()) // to get the agentId from agName
 					if (ag.getAgentName().equals(getAgName())) {
-						Field f = CartagoService.class.getDeclaredField("instance"); // 1
+						
+						Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(wspName).getWorkspace();
+						/*
+						Field f = class.getDeclaredField("instance"); // 1
 						f.setAccessible(true); // 2
-						CartagoNode node = (CartagoNode) f.get(CartagoService.class); // 3
+						CartagoNode node = (CartagoNode) f.get(CartagoEnvironment.class); // 3
 						WorkspaceKernel kernel = node.getWorkspace(wspName).getKernel(); // 4
 						f = kernel.getClass().getDeclaredField("artifactMap"); // 5
 						f.setAccessible(true); // 6
 						ArtifactDescriptor des = ((HashMap<String, ArtifactDescriptor>) f.get(kernel)).get(ev1.getTargetArtifact().getName()); // 'des' is what i want!
+						*/
+						ArtifactDescriptor des = wsp.getArtifactDescriptor(ev1.getTargetArtifact().getName());
 						des.addObserver(ag, null, (ICartagoCallback) envSession);
 						break;
 					}

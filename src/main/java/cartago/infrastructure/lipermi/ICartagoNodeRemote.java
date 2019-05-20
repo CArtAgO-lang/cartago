@@ -22,6 +22,6 @@ public interface ICartagoNodeRemote {
 	void quit(String wspName, AgentId id) throws CartagoException;
 	OpId execInterArtifactOp(ICartagoCallbackRemote callback, long callbackId, AgentId userId, ArtifactId srcId, ArtifactId targetId, Op op, long timeout, IAlignmentTest test) throws CartagoException;
 	String getVersion() throws CartagoException;
-	NodeId getNodeId() throws CartagoException;
+	// NodeId getNodeId() throws CartagoException;
 	
 }

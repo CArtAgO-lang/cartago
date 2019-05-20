@@ -70,7 +70,7 @@ public interface ICartagoInfrastructureLayer {
 	 * @throws CartagoInfrastructureLayerException
 	 * @throws CartagoException
 	 */
-	NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException;
+	// NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException;
 
 	/**
 	 * Shutdown the layer
@@ -92,12 +92,12 @@ public interface ICartagoInfrastructureLayer {
 	/**
 	 * Start the infrastructure service to enable the access by remote agents 
 	 * 
-	 * @param node CArtAgO node
+	 * @param node CArtAgO environment
 	 * @param address address of the service
 	 * 
 	 * @throws CartagoInfrastructureLayerException
 	 */
-	void startService(CartagoNode node, String address) throws CartagoInfrastructureLayerException;
+	void startService(String address) throws CartagoInfrastructureLayerException;
 	
 	/**
 	 * Check if the the infrastructure service is running

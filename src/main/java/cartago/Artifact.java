@@ -34,7 +34,7 @@ public abstract class Artifact {
 	// private Logger logger = Logger.getLogger("log");
 
 	private ArtifactId id;
-	WorkspaceKernel kernel;
+	Workspace wsp;
 
 	protected OpId thisOpId;
 	private OpExecutionFrame opExecFrame;
@@ -64,10 +64,10 @@ public abstract class Artifact {
 	/* defines the radius in which the artifact can be perceived*/
 	protected double observabilityRadius;
 	
-	void bind(ArtifactId id, AgentId creatorId, WorkspaceKernel env) throws CartagoException {
+	void bind(ArtifactId id, AgentId creatorId, Workspace env) throws CartagoException {
 		this.id = id;
 		this.creatorId = creatorId;
-		this.kernel = env;
+		this.wsp = env;
 		obsPropId = 0;
 		opIds = new java.util.concurrent.atomic.AtomicInteger(0);
 
@@ -316,7 +316,7 @@ public abstract class Artifact {
 	 * @throws CartagoException
 	 */
 	private void doOperation(OpExecutionFrame info) throws CartagoException {
-		ICartagoLoggerManager log = kernel.getLoggerManager();
+		ICartagoLoggerManager log = wsp.getLoggerManager();
 		try {
 			lock.lock();
 			Op op = info.getOperation();
@@ -547,7 +547,7 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (changed != null || added != null || removed != null){
-				kernel.notifyObsEvent(id, null, changed, added, removed);
+				wsp.notifyObsEvent(id, null, changed, added, removed);
 				guards.signalAll();
 			}
 		} catch (Exception ex){
@@ -566,9 +566,9 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (target == null){
-				kernel.notifyObsEvent(id, signal, changed, added, removed);
+				wsp.notifyObsEvent(id, signal, changed, added, removed);
 			} else {
-				kernel.notifyObsEventToAgent(id, target, signal, changed, added, removed);
+				wsp.notifyObsEventToAgent(id, target, signal, changed, added, removed);
 			}
 			guards.signalAll();
 		} catch (Exception ex){
@@ -621,7 +621,7 @@ public abstract class Artifact {
 	 * 
 	 */
 	protected ArtifactId getCurrentOpAgentBody() {
-		return kernel.getAgentBodyArtifact(opExecFrame.getAgentId());
+		return wsp.getAgentBodyArtifact(opExecFrame.getAgentId());
 	}
 
 
@@ -690,7 +690,7 @@ public abstract class Artifact {
 	 */
 	protected ObsProperty defineObsProperty(String name, Object... values) {			
 			try {
-				String fullId="obs_id_"+this.kernel.getId().getId()+this.id.getId()+"_"+obsPropId;
+				String fullId="obs_id_"+this.wsp.getId().getFullName()+this.id.getId()+"_"+obsPropId;
 				ObsProperty prop = new ObsProperty(obsPropertyMap,obsPropId, fullId, name, values); 
 				obsPropertyMap.add(prop);
 				obsPropId++;
@@ -768,7 +768,7 @@ public abstract class Artifact {
 	 *            - parameters of the method
 	 */
 	protected void await(String guardName, Object... params) {
-		ICartagoLoggerManager log = kernel.getLoggerManager();
+		ICartagoLoggerManager log = wsp.getLoggerManager();
 		OpId id = thisOpId;
 		try {
 			commitObsStateChanges();
@@ -850,7 +850,7 @@ public abstract class Artifact {
 	 */
 	protected void execInternalOp(String opName, Object... params) {
 		try {
-			kernel.doInternalOp(this.id, new Op(opName, params));
+			wsp.doInternalOp(this.id, new Op(opName, params));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new IllegalArgumentException(
@@ -884,7 +884,7 @@ public abstract class Artifact {
 					PendingOp pop = opCallback.createPendingOp();
 					AgentId userId = this.getCurrentOpAgentId();
 					Op op = new Op(opName, params);
-					kernel.getNode().execInterArtifactOp(opCallback, pop.getActionId(),
+					wsp.execInterArtifactOp(opCallback, pop.getActionId(),
 									userId, this.getId(), aid, op,
 									Integer.MAX_VALUE, null);
 					popList.add(pop);
@@ -947,7 +947,7 @@ public abstract class Artifact {
 			PendingOp pop = opCallback.createPendingOp();
 			AgentId userId = this.getCurrentOpAgentId();
 			Op op = new Op(opName, params);
-			kernel.getNode().execInterArtifactOp(opCallback, pop.getActionId(), userId,
+			wsp.execInterArtifactOp(opCallback, pop.getActionId(), userId,
 							this.getId(), aid, op, Integer.MAX_VALUE, null);
 			try {
 				this.commitObsStateChanges();
@@ -980,7 +980,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId makeArtifact(String name, String type, ArtifactConfig params) throws OperationException {
 		try {
-			return kernel.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
+			return wsp.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
 		} catch (Exception ex) {
 			throw new OperationException("makeArtifact failed: " + name + " " + type);
 		}
@@ -996,7 +996,7 @@ public abstract class Artifact {
 	 */
 	protected void dispose(ArtifactId aid) throws OperationException {
 		try {
-			kernel.disposeArtifact(this.getCurrentOpAgentId(),aid);
+			wsp.disposeArtifact(this.getCurrentOpAgentId(),aid);
 		} catch (Exception ex) {
 			throw new OperationException("disposeArtifact failed: " + aid);
 		}
@@ -1012,7 +1012,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId lookupArtifact(String name) throws OperationException {
 		try {
-			return kernel.lookupArtifact(this.getCurrentOpAgentId(),name);
+			return wsp.lookupArtifact(this.getCurrentOpAgentId(),name);
 		} catch (Exception ex) {
 			throw new OperationException("lookupArtifact failed: " + name);
 		}
@@ -1083,7 +1083,7 @@ public abstract class Artifact {
 		position = pos;
 		this.observabilityRadius = observabilityRadius;
 		try {
-			kernel.notifyArtifactPositionOrRadiusChange(id);	
+			wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1092,7 +1092,7 @@ public abstract class Artifact {
 	protected void updatePosition(AbstractWorkspacePoint pos) {
 		position = pos;
 		try {
-			this.kernel.notifyArtifactPositionOrRadiusChange(id);	
+			this.wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1101,7 +1101,7 @@ public abstract class Artifact {
 	protected void updateObservabilityRadius(double radius) {
 		observabilityRadius = radius;
 		try {
-			this.kernel.notifyArtifactPositionOrRadiusChange(id);	
+			this.wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}

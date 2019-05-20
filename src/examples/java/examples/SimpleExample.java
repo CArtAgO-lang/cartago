@@ -5,15 +5,15 @@ import cartago.*;
 public class SimpleExample {
 	
 	public static void main(String[] args) throws Exception {		
-		CartagoService.startNode();
+		CartagoEnvironment.startEnvironment();
 
-		CartagoContext ctx = CartagoService.startSession(new AgentIdCredential("simulator"));
-		WorkspaceId wid = ctx.getJoinedWspId(CartagoService.MAIN_WSP_NAME);
+		CartagoContext ctx = CartagoEnvironment.startSession(new AgentIdCredential("simulator"));
+		WorkspaceId wid = ctx.getJoinedWspId(CartagoEnvironment.MAIN_WSP_NAME);
 		ctx.makeArtifact(wid, "myart", "test.Counter");
 
-		CartagoService.createWorkspace("mywsp");
+		CartagoEnvironment.createWorkspace("mywsp");
 				
-		CartagoService.enableDebug("mywsp");
+		CartagoEnvironment.enableDebug("mywsp");
 
 		/* getting a session to work inside the env */
 		WorkspaceId wid1 = ctx.joinWorkspace("mywsp");

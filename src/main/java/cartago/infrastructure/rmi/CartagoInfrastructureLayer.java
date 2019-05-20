@@ -93,7 +93,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
-
+/*
 	public NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException {
 		try {
 			String fullAddress = address;
@@ -113,6 +113,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			throw new CartagoInfrastructureLayerException();
 		}		
 	}
+	*/
 
 	//
 	
@@ -141,13 +142,13 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	
 	//
 	
-	public void startService(CartagoNode node, String address) throws CartagoInfrastructureLayerException {
+	public void startService(String address) throws CartagoInfrastructureLayerException {
 		if (service != null){
 			throw new CartagoInfrastructureLayerException();
 		}
 		try {
 			int port = DEFAULT_PORT;
-			service = new CartagoNodeRemote(node);
+			service = new CartagoNodeRemote();
 			if (address == null || address.equals("")){
 				address = InetAddress.getLocalHost().getHostAddress();
 			} else {

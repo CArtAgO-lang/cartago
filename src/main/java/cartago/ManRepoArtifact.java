@@ -32,9 +32,9 @@ import java.io.*;
  */
 public class ManRepoArtifact extends Artifact {
 
-	private WorkspaceKernel wspKernel;
+	private Workspace wspKernel;
 
-	@OPERATION void init(WorkspaceKernel env){
+	@OPERATION void init(Workspace env){
 		this.wspKernel = env;
 	}
 
