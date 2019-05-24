@@ -10,7 +10,7 @@ if [ -z $USERSF ] ; then
     exit
 fi
 
-REL=2.4-SNAPSHOT
+REL=2.4
 
 
 # for cartago
