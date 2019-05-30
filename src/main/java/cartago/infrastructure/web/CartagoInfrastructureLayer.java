@@ -45,25 +45,16 @@ import io.vertx.ext.web.client.WebClient;
  */
 public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	
-	// private KeepRemoteBodyAliveManagerAgent keepAliveAgent;
-	// private ConcurrentLinkedQueue<AgentBodyProxy> remoteCtxs;
 	static public final int DEFAULT_PORT = 20100; 
 	private CartagoEnvironmentService service;
 	private Vertx vertx;
 	private boolean error = false;
 	
 	public CartagoInfrastructureLayer(){
-		/*
-		remoteCtxs = new ConcurrentLinkedQueue<AgentBodyProxy>();
-		keepAliveAgent = new KeepRemoteBodyAliveManagerAgent(remoteCtxs,5000);
-		keepAliveAgent.start();
-		*/
-		// throw new RuntimeException("not implemented");
 		vertx = Vertx.vertx();
 	}
 		
 	public void shutdownLayer() throws CartagoException {
-		// keepAliveAgent.shutdown();
 		this.shutdownService();
 	}
 
@@ -148,15 +139,15 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			String pref = remotePath.substring(0, index1 + 2);
 			index2 = withoutPref.indexOf('/');
 			address = withoutPref.substring(0,index2);
-			fullName = withoutPref.substring(index2);
+			fullName = withoutPref.substring(index2 + 1);
 		}
 		int index3 = fullName.indexOf('/');
 		String envName = fullName.substring(0, index3);
-		String wspPath = fullName.substring(index3 + 1);
-		return this.resolveRemoteWSP(wspPath, address);
+		String wspPath = fullName.substring(index3);
+		return this.resolveRemoteWSP(wspPath, address, envName);
 	}
 	
-	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address) throws WorkspaceNotFoundException {
+	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String masName) throws WorkspaceNotFoundException {
 		try {
 			
 			String host = getHost(address);
@@ -171,7 +162,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			
 			WebClient client = WebClient.create(vertx);
 			// String uri = "/" + envName + fullPath;
-			String uri = "/cartago/api/mas";
+			String uri = "/cartago/api/" + masName; 
 			
 			client
 			  .get(port, host, uri)

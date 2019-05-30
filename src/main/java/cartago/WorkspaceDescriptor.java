@@ -13,7 +13,7 @@ public class WorkspaceDescriptor {
 	private Workspace wsp;
 	private WorkspaceId localWspId;
 	private Optional<WorkspaceDescriptor> parent;
-
+	
 	private String protocol;
 	private String address;
 	private String remoteFullName;
@@ -75,7 +75,7 @@ public class WorkspaceDescriptor {
 	public String getRemotePath() {
 		return remoteFullName;
 	}
-	
+		
 	public String getAddress() {
 		return address;
 	}

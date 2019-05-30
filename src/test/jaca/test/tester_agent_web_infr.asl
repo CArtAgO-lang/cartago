@@ -22,8 +22,6 @@
      println("join wsp artifact with relative path name ", Id5);
      lookupArtifact("../w1/my_counter",Id6);
      println("artifact lookup with relative path name ", Id6).
-     
-     // !test_remote.     
 
 +joined_wsp(Name,Id)	
 	<- println("joined wsp: ",Name," ",Id).          
@@ -31,11 +29,10 @@
 -!test_wsp [error_msg(Msg)]
   <- println("OOOPS failed: ",Msg).
 
-// 	@OPERATION void mountWorkspace(String linkName, String address, String envName, String remoteWspPath, String protocol) throws CartagoException {
 
 +!test_remote <-
   println("testing remote..");
-  mountWorkspace("http://localhost/mas/main","/main/b","web");
+  mountWorkspace("http://localhost/myMAS/main","/main/b","web");
   println("mount ok");
   joinWorkspace("/main/b", Wid);
   println("joined the remote ", Wid);
@@ -48,15 +45,13 @@
   makeArtifact(c0,"test.Counter",[],Id);
   focus(Id);
   inc;
-  inc.
+  inc;
+  makeArtifact("/main/c1","test.Counter", [], Id4); 
+  .println(Id4);
+  lookupArtifact("c0",Id5);
+  .println(Id5).
   
 
-+!test_remote <-
-  println("testing remote..");
-  mountWorkspace("/main","localhost","/main","b","web");
-  joinWorkspace("/main/b", Wid);
-  println("hello, remote world!");
-  !use_remote.  
 
 +!use_remote <-
   makeArtifact(c0,"test.Counter",[],Id);

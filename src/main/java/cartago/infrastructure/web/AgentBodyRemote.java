@@ -123,8 +123,12 @@ public class AgentBodyRemote  implements ICartagoCallback {
 						evo.put("evType", "actionFailed");
 						ActionFailedEvent evAct = (ActionFailedEvent) ev;
 						writeActionEventInfo(evo, evAct);
-						evo.put("failureMsg", evAct.getFailureMsg());
-						evo.put("failureReason", toJson(evAct.getFailureDescr()));
+						if (evAct.getFailureMsg() != null) {
+							evo.put("failureMsg", evAct.getFailureMsg());
+						}
+						if (evAct.getFailureDescr() != null) {
+							evo.put("failureReason", toJson(evAct.getFailureDescr()));
+						}
 					} else if (ev instanceof FocussedArtifactDisposedEvent) {
 						evo.put("evType", "focussedArtifactDisposed");
 						FocussedArtifactDisposedEvent evFoc = (FocussedArtifactDisposedEvent) ev;

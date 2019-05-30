@@ -94,6 +94,8 @@ public class Workspace {
 	private HashMap<String,WorkspaceDescriptor> linkedWsp;
 	
 	private WorkspaceDescriptor desc;
+	private ArtifactId wspArtifactId;
+	
 
 	/* v. 3.0 */
 	
@@ -148,7 +150,7 @@ public class Workspace {
 		// creating the basic set of artifacts
 
 		try {
-			makeArtifact(wspManager.getAgentId(),"workspace", "cartago.WorkspaceArtifact", new ArtifactConfig(this));
+			wspArtifactId = makeArtifact(wspManager.getAgentId(),"workspace", "cartago.WorkspaceArtifact", new ArtifactConfig(this));
 			makeArtifact(wspManager.getAgentId(),"system", "cartago.SystemArtifact", new ArtifactConfig());
 			makeArtifact(wspManager.getAgentId(),"manrepo","cartago.ManRepoArtifact",new ArtifactConfig(this));
 			makeArtifact(wspManager.getAgentId(),"console","cartago.tools.Console",ArtifactConfig.DEFAULT_CONFIG);
@@ -165,6 +167,9 @@ public class Workspace {
 		}
 	}
 		
+	public ArtifactId getWspArtifactId() {
+		return wspArtifactId;
+	}
 	
 	public   void registerLogger(ICartagoLogger logger){
 		this.logManager.registerLogger(logger);

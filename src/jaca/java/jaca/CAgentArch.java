@@ -312,7 +312,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									if (des.isLocal()) {
 										/* use only the name */
 										params[1] = linkName;
-										actId = envSession.doAction(op, des.getId(), test, timeout);
+										/* invoke the op on the wsp artifact of that wsp */
+										actId = envSession.doAction(des.getWorkspace().getWspArtifactId(), op, test, timeout);
+										
 									} else {
 										wspId = CartagoEnvironment.getInstance().getRootWSP().getId();
 										actId = envSession.doAction(op, wspId, test, timeout);

@@ -115,7 +115,7 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 		// router.post(API_BASE_PATH + "/exec-ia-op").handler(this::handleExecIAOP);
 		// router.post(API_BASE_PATH + "/do-action").handler(this::handleJoinWSP);
 
-		router.get(API_BASE_PATH + "/mas").handler(this::handleResolveWSP);
+		router.get(API_BASE_PATH + "/:masName").handler(this::handleResolveWSP);
 		/*
 		router.get(API_BASE_PATH + "/state").handler(new GetVersionHandler(this));
 		
@@ -290,6 +290,7 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 
 	private void handleResolveWSP(RoutingContext routingContext) {
 		log("Handling ResolveWSP from "+routingContext.request().absoluteURI());
+		String envName = routingContext.request().getParam("masName");
 		String fullPath = routingContext.request().getParam("wsp");
 		JsonObject obj = new JsonObject();
 		try {

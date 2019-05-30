@@ -44,7 +44,7 @@ public interface ICartagoInfrastructureLayer {
 	 */
 	ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws CartagoInfrastructureLayerException, CartagoException;
 
-	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address) throws WorkspaceNotFoundException;
+	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String masName) throws WorkspaceNotFoundException;
 
 	WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException;
 	

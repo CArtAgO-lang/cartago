@@ -7,7 +7,7 @@ public class SetupRemoteNodeWebInfr {
 	
 	public static void main(String[] args) throws Exception {			
 		CartagoEnvironment env = CartagoEnvironment.getInstance();
-		env.init();
+		env.init("myMAS");
 		env.installInfrastructureLayer("web");
 		env.startInfrastructureService("web");
 		env.registerLogger("/main",new BasicLogger());  

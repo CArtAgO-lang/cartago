@@ -48,7 +48,7 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void createWorkspace(String name){
 		try {
-			WorkspaceDescriptor des = wsp.createWorkspace(name);
+			wsp.createWorkspace(name);
 			defineObsProperty("workspace",name,wsp.getId());
 		} catch (Exception ex){
 			failed("Workspace creation error");
@@ -368,6 +368,17 @@ public class WorkspaceArtifact extends Artifact {
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
+		}
+	}
+	
+	
+	
+	@OPERATION void mountWorkspace(String remoteWspPath, String wspName,  String protocol)  {
+		try {
+			wsp.mountWorkspace(remoteWspPath, wspName, protocol);			
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			failed("Mount Workspace error: "+ex.getMessage());
 		}
 	}
 	

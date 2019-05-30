@@ -43,7 +43,9 @@ public class CartagoEnvironment {
 	
 	/* set of available infrastructure layers */
 	private	Map<String,ICartagoInfrastructureLayer> infraLayers;
-	private String defaultInfraLayer = "rmi";
+	private String defaultInfraLayer = "web";
+
+	public final String DEFAULT_MAS_NAME = "mas";
 	
 	private HashMap<String,Inspector> debuggers;
 	
@@ -81,7 +83,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public void init() throws CartagoException {
-		this.init((ICartagoLogger) null);
+		this.init(DEFAULT_MAS_NAME, (ICartagoLogger) null);
 	}
 
 	/**
@@ -91,8 +93,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public void init(ICartagoLogger logger) throws CartagoException {
-		UUID uuid = UUID.randomUUID();
-		this.init(uuid.toString(), logger);
+		this.init(DEFAULT_MAS_NAME, logger);
 	}
 
 	/**
@@ -214,7 +215,7 @@ public class CartagoEnvironment {
 				}
 			} else {
 				ICartagoInfrastructureLayer layer = infraLayers.get(current.getProtocol());
-				current  = layer.resolveRemoteWSP(current.getRemotePath() + "/" + p, current.getAddress());
+				current  = layer.resolveRemoteWSP(current.getRemotePath() + "/" + p, current.getAddress(),current.getEnvName());
 			}
 			i++;
 		}
@@ -223,9 +224,9 @@ public class CartagoEnvironment {
 	}
 	
 	
-	public WorkspaceDescriptor resolveRemoteWSP(String remoteWspPath, String address, String protocol) throws WorkspaceNotFoundException  {
+	public WorkspaceDescriptor resolveRemoteWSP(String remoteWspPath, String address, String masName, String protocol) throws WorkspaceNotFoundException  {
 		ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
-		return layer.resolveRemoteWSP(remoteWspPath, address);
+		return layer.resolveRemoteWSP(remoteWspPath, address, masName);
 	}
 
 	public WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath, String protocol) throws WorkspaceNotFoundException  {
