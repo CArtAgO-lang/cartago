@@ -2,7 +2,9 @@ package cartago.infrastructure.web;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.Version;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import cartago.AgentId;
 import cartago.ArtifactId;
 import cartago.ArtifactObsProperty;
+import cartago.CartagoException;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpFeedbackParam;
@@ -124,7 +127,7 @@ public class JsonUtil {
 		return obj;
 	}
 	
-	static public AgentId toAgentId(JsonObject obj) {
+	static public AgentId toAgentId(JsonObject obj) throws CartagoException {
 		String agentName = obj.getString("agentName");
 		String agentRole = obj.getString("agentRole");
 		int localId = obj.getInteger("localId");
@@ -137,26 +140,22 @@ public class JsonUtil {
 	
 	static public JsonObject toJson(WorkspaceId id) {
 		JsonObject obj = new JsonObject();
-		obj.put("name", id.getName());
-		WorkspaceId parentId = id.getParentId();
-		if (parentId != null) {
-			obj.put("parentId", toJson(parentId));
-		}
+		obj.put("fullName", id.getFullName());
+		UUID envId = id.getUUID();
+		obj.put("uuid", envId.toString());
 		return obj;
 	}
 
-	static public WorkspaceId toWorkspaceId(JsonObject obj) {		
-		String name = obj.getString("name");
-		JsonObject parentId = obj.getJsonObject("parentId");
-		if (parentId == null) {
-			return new WorkspaceId(name);
-		} else {
-			return new WorkspaceId(name, toWorkspaceId(parentId));
-		}
+	static public WorkspaceId toWorkspaceId(JsonObject obj) throws CartagoException {		
+		String fullName = obj.getString("fullName");
+		String uuid = obj.getString("uuid");
+		return new WorkspaceId(fullName, UUID.fromString(uuid));
 	}
 	
 	// --
 	
+	// 	public ArtifactId(String name, UUID id, String artifactType, WorkspaceId wspId, AgentId creatorId){
+
 	static public  JsonObject toJson(ArtifactId id) {
 		JsonObject obj = new JsonObject();
 		obj.put("id", id.getId().toString());
@@ -169,7 +168,7 @@ public class JsonUtil {
 		return obj;
 	}
 	
-	static public ArtifactId toArtifactId(JsonObject obj) {
+	static public ArtifactId toArtifactId(JsonObject obj) throws CartagoException {
 		if (obj != null) {
 			String name = obj.getString("name");
 			String id = obj.getString("id");
@@ -189,15 +188,17 @@ public class JsonUtil {
 		obj.put("name", t.getLabel());
 		JsonArray params = new JsonArray();
 		for (Object p: t.getContents()) {
-			JsonObject param = new JsonObject();
-			param.put("paramClass", p.getClass().getName());
-			try {
-				String ser = objectMapper.writeValueAsString(p);
-				param.put("paramValue", ser);
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			if (p != null) {
+				JsonObject param = new JsonObject();
+				param.put("paramClass", p.getClass().getName());
+				try {
+					String ser = objectMapper.writeValueAsString(p);
+					param.put("paramValue", ser);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				params.add(param);
 			}
-			params.add(param);
 		}
 		obj.put("params", params);
 		return obj;
@@ -295,6 +296,7 @@ public class JsonUtil {
 	
 	// 
 	
+	
 	static public  JsonArray toJson(Collection<ArtifactObsProperty> props) {
 		JsonArray obj = new JsonArray();
 		for (ArtifactObsProperty prop: props) {
@@ -314,5 +316,61 @@ public class JsonUtil {
 			return null;
 		}
 	}
+	
+	//
+	/*
+	static public  JsonObject toJson(GlobalWorkspaceInfo info) {
+		JsonObject obj = new JsonObject();
+		obj.put("envName", info.getEnvName());
+		obj.put("envId", info.getEnvId().toString());
+		obj.put("fullName", info.getFullName());
+		obj.put("address", info.getAddress());
+		obj.put("protocol", info.getProtocol());
+		JsonArray array = new JsonArray();
+		for (Entry<String, GlobalWorkspaceInfo> elem: info.getLinkedWsps().entrySet()) {
+			JsonObject entry = new JsonObject();
+			entry.put("link", elem.getKey());
+			JsonObject wsp = new JsonObject();
+			wsp.put("envName", elem.getValue().getEnvName());
+			wsp.put("envId", elem.getValue().getEnvId().toString());
+			wsp.put("fullName", elem.getValue().getFullName());
+			wsp.put("address", elem.getValue().getAddress());
+			wsp.put("protocol", elem.getValue().getProtocol());
+			entry.put("wspInfo", wsp);
+			array.add(entry);
+		}
+		obj.put("linked", array);
+		return obj;
+	}
 
+	static public GlobalWorkspaceInfo toGlobalWorkspaceInfo(JsonObject obj) throws CartagoException {
+		if (obj != null) {
+			String envName = obj.getString("envName");
+			String envId = obj.getString("envId");
+			String fullName = obj.getString("fullName");
+			String address = obj.getString("address");
+			String protocol = obj.getString("protocol");
+			HashMap<String, GlobalWorkspaceInfo> map = new HashMap<>();
+			JsonArray entries = obj.getJsonArray("linked");
+			for (int i = 0; i < entries.size(); i++) {
+				JsonObject entry = entries.getJsonObject(i);
+				
+				String link = entry.getString("link");
+				JsonObject wsp = entry.getJsonObject("wspInfo");
+				
+				String envName2 = wsp.getString("envName");
+				String envId2 = wsp.getString("envId");
+				String fullName2 = wsp.getString("fullName");
+				String address2 = wsp.getString("address");
+				String protocol2 = wsp.getString("protocol");
+
+				GlobalWorkspaceInfo winfo = new GlobalWorkspaceInfo(envName2, UUID.fromString(envId2), fullName2, address2, protocol2);
+				map.put(link, winfo);
+			}
+			return new GlobalWorkspaceInfo(envName, UUID.fromString(envId), fullName, address, protocol, map);
+		} else {
+			return null;
+		}
+	}
+		*/
 }

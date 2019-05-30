@@ -18,6 +18,7 @@
 package cartago;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Identifier of a workspace
@@ -27,33 +28,39 @@ import java.io.Serializable;
 public class WorkspaceId implements Serializable {
 
 	/* this is the local name, unique in the scope of the parent */
-	private String name;	
-	private WorkspaceId parentId; 
-
+	private String name;
+	
+	/* this is the full name - e.g.  /main/w0/w1 */
+	private String fullName;
+	
+	/* this is the unique identifier of the wsp */
+	private UUID uuid;
 	
 	WorkspaceId(){}
 	
 	/**
-	 * Workspace identifier.
+	 * Workspace identifier for Local environment.
 	 * 
-	 * @param name local name, in the scope of the parent wsp
-	 * @param parentId parent id
+	 * @param fullName full name of the workspace: e.g. /main/w0
+	 * @param wspId unique UUID identifying the workspace
+	 * 
 	 */
-	public WorkspaceId(String name, WorkspaceId parentId){
-		this.name = name;
-		this.parentId = parentId;
+	public WorkspaceId(String fullName, UUID wspId) throws InvalidWorkspaceNameException {
+		this.fullName = fullName;
+		this.uuid = wspId;
+		int index = fullName.lastIndexOf('/');
+		if (index == -1) {
+			name = fullName;
+			fullName = "/"+fullName;
+		} else {
+			name = fullName.substring(index + 1);
+		}
 	}
 	
-	/**
-	 * 
-	 * Workspace identifier for a root workspace.
-	 * 
-	 * @param name local name of root
-	 */
-	public WorkspaceId(String name){
-		this.name = name;
+	public WorkspaceId(String fullName) throws InvalidWorkspaceNameException {
+		this(fullName, UUID.randomUUID());
 	}
-
+	
 	/**
 	 * Get the local name of the workspace
 	 * 
@@ -63,35 +70,30 @@ public class WorkspaceId implements Serializable {
 		return name;
 	}
 	
-	/**
-	 * Get the workspace identifier of the parent workspace.
-	 * 
-	 * @return
-	 */
-	public WorkspaceId getParentId() {
-		return parentId;
-	}
-	
+
 	/**
 	 * Get the full name, including path from root
 	 * 
 	 * @return
 	 */
 	public String getFullName(){
-		if (parentId != null) {
-			return parentId.getFullName() + "/" + name;
-		} else {
-			return "/" + name;
-		}
+		return fullName;
 	}
 	
-
+	/**
+	 * Get the wsp UUID
+	 * @return
+	 */
+	public UUID getUUID() {
+		return this.uuid;
+	}
+	
 	public int hashCode(){
-		return getFullName().hashCode();
+		return uuid.hashCode();
 	}
 	
 	public boolean equals(Object obj){
-		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).getFullName().equals(this.getFullName()); 
+		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).uuid.equals(uuid); 
 	}
 	
 	public String toString(){

@@ -82,7 +82,7 @@ public interface ICartagoSession {
 	 * @return unique action identifier 
 	 * @throws CartagoException
 	 */
-	long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException;
+	// long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException;
 	
 	/**
 	 * Executing an action, implicit artifact
@@ -120,6 +120,12 @@ public interface ICartagoSession {
 	List<WorkspaceId> getJoinedWorkspaces() throws CartagoException;
 	
 	/**
+	 * Get the identifier of the unique agent context artifact
+	 * @return
+	 */
+	ArtifactId getAgentContextArtifactId();
+
+	/**
 	 * Fetch the next percept from the percept queue.
 	 * 
 	 * @return null if no percepts are available.
@@ -127,5 +133,10 @@ public interface ICartagoSession {
 	CartagoEvent fetchNextPercept();
 	
 
-	
+	/**
+	 * Get env name
+	 * 
+	 * @return
+	 */
+	String getEnvName();
 }

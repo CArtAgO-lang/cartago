@@ -93,6 +93,9 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
+	public GlobalWorkspaceInfo getRemoteWorkspaceInfo(String address, String envName, String fullPath) throws WorkspaceNotFoundException {
+		throw new RuntimeException("not implemented.");
+	}
 /*
 	public NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException {
 		try {
@@ -164,6 +167,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			throw new CartagoInfrastructureLayerException();
 		}
 	}
+	
 
 	public void shutdownService() throws CartagoException {
 		if (service != null){

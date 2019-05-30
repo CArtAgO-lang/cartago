@@ -38,9 +38,10 @@ public class SystemArtifact extends Artifact {
 	 * @param support
 	 * @param address
 	 */
+	/*
 	@OPERATION void enableLinkingWithNode(NodeId id, String support, String address){
 		CartagoEnvironment.getInstance().enableLinkingWithNode(id, support, address);
-	}
+	}*/
 	
 	/**
 	 * Shutdown gracefully the node.

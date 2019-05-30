@@ -88,16 +88,10 @@ public class AgentBody implements ICartagoContext {
 		wsp.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
 	
-	/*
-	public ArtifactId getArtifactIdFromOp(Op op){
-		return wspKernel.getArtifactIdFromOp(id, op);
+	public void updateAgentCallback(ICartagoCallback callback) {
+		this.agentCallback = callback;
 	}
-
-	public ArtifactId getArtifactIdFromOp(String name, Op op){
-		return wspKernel.getArtifactIdFromOp(id, name, op);
-	}
-	*/
-
+	
 	// called by the kernel
 	
 	public void addFocusedArtifacts(ArtifactDescriptor des){

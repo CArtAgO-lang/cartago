@@ -27,6 +27,7 @@ import static cartago.infrastructure.web.JsonUtil.*;
 
 public class AgentBodyRemote  implements ICartagoCallback {
     
+	private CartagoEnvironmentService service;
 	private ServerWebSocket websocket;
     private  AgentBody ctx;  
 	private long lastPingFromMind;
@@ -36,9 +37,10 @@ public class AgentBodyRemote  implements ICartagoCallback {
         lastPingFromMind = System.currentTimeMillis();
     }
 
-    public void init(AgentBody ctx, ServerWebSocket websocket) {
+    public void init(AgentBody ctx, ServerWebSocket websocket, CartagoEnvironmentService service) {
     	this.ctx = ctx;
         this.websocket = websocket;
+        this.service = service;
         websocket.handler(this::handleData);
     }
     
@@ -62,13 +64,7 @@ public class AgentBodyRemote  implements ICartagoCallback {
     			} catch (Exception ex) {
     				ex.printStackTrace();
     			}
-    		} else if (reqType.equals("ping")) {
-    			ping();
-    		} else if (reqType.equals("getAgentId")) {
-    			
-    		} else if (reqType.equals("getWorkspaceId")) {
-    			
-    		}
+    		} 
     	}
     }
 
@@ -82,7 +78,9 @@ public class AgentBodyRemote  implements ICartagoCallback {
 		writeEventInfo(obj,ev);
 		obj.put("actionId", ev.getActionId());
 		obj.put("timestamp", ev.getTimestamp());
-		obj.put("op", toJson(ev.getOp()));
+		if (ev.getOp() != null) {
+			obj.put("op", toJson(ev.getOp()));
+		}
 	}
 
 	
@@ -92,7 +90,29 @@ public class AgentBodyRemote  implements ICartagoCallback {
 			try {
 				if (websocket != null) {
 					JsonObject evo = new JsonObject();
-					if (ev instanceof ActionSucceededEvent) {
+					if (ev instanceof FocusSucceededEvent) {
+						evo.put("evType", "focusSucceeded");
+						FocusSucceededEvent evFoc = (FocusSucceededEvent) ev;
+						writeActionEventInfo(evo, evFoc);						
+						evo.put("targetArtifact", toJson(evFoc.getTargetArtifact()));
+						evo.put("props", toJson(evFoc.getObsProperties()));
+					} else if (ev instanceof StopFocusSucceededEvent) {
+						evo.put("evType", "stopFocusSucceeded");
+						StopFocusSucceededEvent evFoc = (StopFocusSucceededEvent) ev;
+						writeActionEventInfo(evo, evFoc);						
+						evo.put("targetArtifactId", toJson(evFoc.getArtifactId()));
+						evo.put("artifactId", toJson(evFoc.getTargetArtifact()));
+						evo.put("props", toJson(evFoc.getObsProperties()));
+					} else if (ev instanceof JoinWSPSucceededEvent) {
+						evo.put("evType", "joinWSPSucceeded");
+						JoinWSPSucceededEvent wspEv = (JoinWSPSucceededEvent) ev;
+						writeActionEventInfo(evo, wspEv);						
+						evo.put("workspaceId", toJson(wspEv.getWorkspaceId()));
+						String bodyId = "body-"+ev.getId();
+						evo.put("bodyId", bodyId);
+						service.registerNewJoin(bodyId, (AgentBody) wspEv.getContext());
+						
+					} else if (ev instanceof ActionSucceededEvent) {
 						evo.put("evType", "actionSucceeded");
 						ActionSucceededEvent evAct = (ActionSucceededEvent) ev;
 						writeActionEventInfo(evo, evAct);		
@@ -105,37 +125,6 @@ public class AgentBodyRemote  implements ICartagoCallback {
 						writeActionEventInfo(evo, evAct);
 						evo.put("failureMsg", evAct.getFailureMsg());
 						evo.put("failureReason", toJson(evAct.getFailureDescr()));
-					} else if (ev instanceof ArtifactObsEvent) {
-						evo.put("evType", "artifactObs");
-						writeEventInfo(evo, ev);
-						ArtifactObsEvent evObs = (ArtifactObsEvent) ev;
-						evo.put("src", toJson(evObs.getArtifactId()));
-						if (evObs.getSignal() != null) {
-							evo.put("signal", toJson(evObs.getSignal()));
-						}
-						if (evObs.getChangedProperties() != null) {
-							evo.put("propsChanged", toJson(evObs.getChangedProperties()));
-						}
-						if (evObs.getAddedProperties() != null) {
-							evo.put("propsAdded", toJson(evObs.getAddedProperties()));
-						}
-						if (evObs.getRemovedProperties() != null) {
-							evo.put("propsRemoved", toJson(evObs.getRemovedProperties()));
-						}
-					} else if (ev instanceof FocusSucceededEvent) {
-						evo.put("evType", "focusSucceeded");
-						FocusSucceededEvent evFoc = (FocusSucceededEvent) ev;
-						writeActionEventInfo(evo, evFoc);						
-						evo.put("targetArtifactId", toJson(evFoc.getArtifactId()));
-						evo.put("artifactId", toJson(evFoc.getTargetArtifact()));
-						evo.put("props", toJson(evFoc.getObsProperties()));
-					} else if (ev instanceof StopFocusSucceededEvent) {
-						evo.put("evType", "stopFocusSucceeded");
-						StopFocusSucceededEvent evFoc = (StopFocusSucceededEvent) ev;
-						writeActionEventInfo(evo, evFoc);						
-						evo.put("targetArtifactId", toJson(evFoc.getArtifactId()));
-						evo.put("artifactId", toJson(evFoc.getTargetArtifact()));
-						evo.put("props", toJson(evFoc.getObsProperties()));
 					} else if (ev instanceof FocussedArtifactDisposedEvent) {
 						evo.put("evType", "focussedArtifactDisposed");
 						FocussedArtifactDisposedEvent evFoc = (FocussedArtifactDisposedEvent) ev;
@@ -154,7 +143,24 @@ public class AgentBodyRemote  implements ICartagoCallback {
 							evo.put("propsRemoved", toJson(evFoc.getRemovedProperties()));
 						}
 						evo.put("props", toJson(evFoc.getObsProperties()));
-					}
+					} else if (ev instanceof ArtifactObsEvent) {
+						evo.put("evType", "artifactObs");
+						writeEventInfo(evo, ev);
+						ArtifactObsEvent evObs = (ArtifactObsEvent) ev;
+						evo.put("src", toJson(evObs.getArtifactId()));
+						if (evObs.getSignal() != null) {
+							evo.put("signal", toJson(evObs.getSignal()));
+						}
+						if (evObs.getChangedProperties() != null) {
+							evo.put("propsChanged", toJson(evObs.getChangedProperties()));
+						}
+						if (evObs.getAddedProperties() != null) {
+							evo.put("propsAdded", toJson(evObs.getAddedProperties()));
+						}
+						if (evObs.getRemovedProperties() != null) {
+							evo.put("propsRemoved", toJson(evObs.getRemovedProperties()));
+						}
+					} 
 
 					websocket.writeTextMessage(evo.encode());
 				}
@@ -164,19 +170,7 @@ public class AgentBodyRemote  implements ICartagoCallback {
 		}
 	}
 
-	private synchronized void  ping()  {
-		lastPingFromMind = System.currentTimeMillis();
-	}
-	
-	synchronized long getLastPing(){
-		return lastPingFromMind;
-	}	
-	
 	AgentBody getContext(){
 		return ctx;
 	}
-
-
-	
-
 }

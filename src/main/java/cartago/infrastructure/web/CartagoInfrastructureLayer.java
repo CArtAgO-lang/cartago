@@ -18,6 +18,7 @@
 package cartago.infrastructure.web;
 
 import java.net.*;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -32,6 +33,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
 
@@ -65,57 +67,47 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		this.shutdownService();
 	}
 
-	public ICartagoContext joinRemoteWorkspace(String wspName, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException {
+	public ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws CartagoInfrastructureLayerException, CartagoException {
 		
 		try {
 			
+			String host = getHost(address);
 			int port = getPort(address);
 			if (port == -1) {
 				port = DEFAULT_PORT;
 			}
 
-			HttpClientOptions options = new HttpClientOptions().setDefaultHost(address).setDefaultPort(port);
+			HttpClientOptions options = new HttpClientOptions().setDefaultHost(host).setDefaultPort(port);
 			HttpClient client = vertx.createHttpClient(options);
 			
-			AgentBodyProxy proxy = new AgentBodyProxy();
+			AgentBodyProxy proxy = new AgentBodyProxy(vertx, port);
 			
 			Semaphore ev = new Semaphore(0);
 			error = false;
 			
 			client.websocket("/cartago/api/join", (WebSocket ws) -> {
 				  
-				  System.out.println("Connected!");
-
-				  // sending
-				  
 				  JsonObject params = new JsonObject();
-				  params.put("wspName", wspName);
-				  
+				  params.put("wspFullName", wspFullNameRemote);
 				  JsonObject ac = new JsonObject();
 				  ac.put("userName", cred.getId());
-				  ac.put("roleName", cred.getRoleName());
-				  
+				  ac.put("roleName", cred.getRoleName());				  
 				  params.put("agent-cred", ac);
 				  
 				  ws.handler((Buffer b) -> {
-					JsonObject jwspId = b.toJsonObject();  
-					// String nodeUUID = jwspId.getString("nodeUUID");
-					// NodeId nodeId = new NodeId(nodeUUID);
-					WorkspaceId wspId = JsonUtil.toWorkspaceId(jwspId);
-					proxy.init(ws, wspId, eventListener);
-				  	ev.release();
+					  try {
+						JsonObject msg = b.toJsonObject();  
+						String wspUUID = msg.getString("wspUUID");
+						WorkspaceId wspId = new WorkspaceId(wspNameLocal, UUID.fromString(wspUUID));						
+						proxy.init(address, ws, wspId, eventListener);
+					  } catch (Exception ex) { 
+						ex.printStackTrace();  
+					  } finally {
+					  	ev.release();
+					  }
 				  });
 				   
 				  ws.writeTextMessage(params.encode());
-				  
-				  /*
-					ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+fullAddress+"/cartago_node");
-					CartagoCallbackRemote srv = new CartagoCallbackRemote(eventListener);
-					CartagoCallbackProxy proxy = new CartagoCallbackProxy(srv);
-					System.out.println("Looking for "+"rmi://"+address+"/cartago_node");
-					ICartagoContext ctx = env.join(wspName, cred, proxy);
-					remoteCtxs.add((AgentBodyProxy)ctx);
-					*/
 			}, err -> {
 				  System.out.println("Error!");
 				  error = true;
@@ -138,48 +130,100 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		// throw new RuntimeException("not implemented");
 
 	}
-
-	/*
-	public WorkspaceDescriptor mount(String address, String remoteWsp, String mountPoint) throws CartagoInfrastructureLayerException, CartagoException {
-		
+	
+	/**
+	 * remote path: <host>{:<port>}/<masName>/<wspPath>
+	 */
+	public WorkspaceDescriptor resolveRemoteWSP(String remotePath) throws WorkspaceNotFoundException {
+		int index1 = remotePath.indexOf("//");
+		String address = null;
+		String fullName = null;
+		int index2;
+		if (index1 == -1) {
+			index2 = remotePath.indexOf('/');
+			address = remotePath.substring(0, index2);
+			fullName = remotePath.substring(index2 + 1);
+		} else {
+			String withoutPref = remotePath.substring(index1 + 2);
+			String pref = remotePath.substring(0, index1 + 2);
+			index2 = withoutPref.indexOf('/');
+			address = withoutPref.substring(0,index2);
+			fullName = withoutPref.substring(index2);
+		}
+		int index3 = fullName.indexOf('/');
+		String envName = fullName.substring(0, index3);
+		String wspPath = fullName.substring(index3 + 1);
+		return this.resolveRemoteWSP(wspPath, address);
+	}
+	
+	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address) throws WorkspaceNotFoundException {
 		try {
 			
+			String host = getHost(address);
 			int port = getPort(address);
 			if (port == -1) {
 				port = DEFAULT_PORT;
 			}
 
-			HttpClientOptions options = new HttpClientOptions().setDefaultHost(address).setDefaultPort(port);
-			WebClient client = WebClient.create(vertx);
-			
-			AgentBodyProxy proxy = new AgentBodyProxy();
-			
 			Semaphore ev = new Semaphore(0);
-			error = false;
+			
+			Holder<WorkspaceDescriptor> result = new Holder<WorkspaceDescriptor>();
+			
+			WebClient client = WebClient.create(vertx);
+			// String uri = "/" + envName + fullPath;
+			String uri = "/cartago/api/mas";
 			
 			client
-			.post(port, address, "/cartago/api/mount")
-			.send( ar -> {
-				
-			});
-
-			ev.acquire();
-			if (!error) {
-				return proxy;
-			} else {
-				throw new CartagoInfrastructureLayerException();
+			  .get(port, host, uri)
+			  .addQueryParam("wsp", fullPath)
+			  .send(ar -> {
+			    try {
+					if (ar.succeeded()) {
+				      HttpResponse<Buffer> response = ar.result();
+				      // System.out.println("Received response with status code" + response.statusCode());
+				      JsonObject ws = response.bodyAsJsonObject();
+				      // GlobalWorkspaceInfo info = JsonUtil.toGlobalWorkspaceInfo(ws);
+				      String envName = ws.getString("envName");
+				      String envId = ws.getString("envId");
+				      UUID uuid = UUID.fromString(envId);
+				      JsonObject id = ws.getJsonObject("id");
+				      WorkspaceDescriptor des = null;
+				      if (id != null) {
+				    	  /* local for the remote => remote for this node */
+				    	  WorkspaceId wid = JsonUtil.toWorkspaceId(id);
+				    	  des = new WorkspaceDescriptor(envName, uuid, wid, fullPath, address, "web");
+				      } else {
+				    	  String remotePath = ws.getString("remotePath");
+				    	  String addr = ws.getString("address");
+				    	  String protocol = ws.getString("protocol");
+				    	  des = new WorkspaceDescriptor(envName, uuid, null, remotePath, addr, protocol);
+				      }
+			    	  result.set(des);	
+				    } else {
+				      System.out.println("Something went wrong " + ar.cause().getMessage());
+				    }
+			    } catch (Exception ex) {
+			    	ex.printStackTrace();
+			    } finally {
+				    ev.release();
+			    }
+			  });
+			
+			try {
+				ev.acquire();
+			} catch(Exception ex) {
+				ex.printStackTrace();
 			}
 			
-		} catch (Exception ex){
-			ex.printStackTrace();
-			throw new CartagoInfrastructureLayerException();
+			if (result.isPresent()) {
+				return result.getValue();
+			} else {
+				throw new WorkspaceNotFoundException();
+			}
+		} catch (Exception ex) {
+			throw new WorkspaceNotFoundException();
 		}
-		
-		// throw new RuntimeException("not implemented");
-
 	}
-	*/
-	
 	
 	public OpId execRemoteInterArtifactOp(ICartagoCallback callback, long callbackId,
 			AgentId userId, ArtifactId srcId, ArtifactId targetId, String address, Op op,
@@ -202,28 +246,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
 
-	public NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException {
-		/*
-		try {
-			String fullAddress = address;
-			if (getPort(address)==-1){
-				fullAddress = address+":"+DEFAULT_PORT;
-			}
-			ICartagoNodeRemote env = (ICartagoNodeRemote)Naming.lookup("rmi://"+fullAddress+"/cartago_node");
-			return env.getNodeId();		
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-			throw new CartagoInfrastructureLayerException();
-		} catch (NotBoundException ex) {
-			ex.printStackTrace();
-			throw new CartagoInfrastructureLayerException();
-		} catch (MalformedURLException ex){
-			ex.printStackTrace();
-			throw new CartagoInfrastructureLayerException();
-		}	*/
-		throw new RuntimeException("not implemented");
 
-	}
 
 	//
 	
@@ -271,7 +294,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 					address = address.substring(0, address.indexOf(':'));
 				}
 			}
-			service.install(address,port);
+			service.install(address, port);
 		} catch (Exception ex){
 			ex.printStackTrace();
 			throw new CartagoInfrastructureLayerException();
@@ -302,5 +325,14 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		
 	}
 	
+	private static String getHost(String address){
+		int index = address.indexOf(":");
+		if (index != -1){
+			return address.substring(0,index);
+		} else {
+			return address;
+		}
+		
+	}
 
 }

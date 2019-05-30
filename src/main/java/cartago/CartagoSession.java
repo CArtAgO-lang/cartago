@@ -29,7 +29,8 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 
 	private static AgentCredential credential;
 	private static String agentRole;
-		
+	private ArtifactId agentContextId;	
+	
 	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
 		contextOrderedList = new java.util.LinkedList<WorkspaceId>();
@@ -40,10 +41,22 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		actionId = new AtomicLong(0);
 	}
 
-	void setInitialWorkspace(WorkspaceId wspId, ICartagoContext startContext) {
-		contexts.put(wspId, startContext);
+	void init(ArtifactId agentContextId, WorkspaceId initialWspId, ICartagoContext startContext) {
+		this.agentContextId = agentContextId;
+		contexts.put(initialWspId, startContext);
+		synchronized (contextOrderedList) {
+			contextOrderedList.addFirst(initialWspId);
+		}
 	}
 
+	public ArtifactId getAgentContextArtifactId() {
+		return agentContextId;
+	}
+
+	public String getEnvName() {
+		return CartagoEnvironment.getInstance().getName();
+	}
+	
 	public long doAction(ArtifactId aid, Op op, IAlignmentTest test, long timeout) throws CartagoException  {
 		long actId = actionId.incrementAndGet();
 		ICartagoContext ctx = null;
@@ -93,24 +106,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		}
 	}
 
-	public long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException {
-		long actId = actionId.incrementAndGet();
-		ICartagoContext ctx = null;
-		synchronized (this){
-			if (!contextOrderedList.isEmpty()) {
-				ctx = contexts.get(contextOrderedList.getFirst());
-				if (ctx != null) {
-					ctx.doAction(actId, op, test, timeout);
-					return actId;
-				} else {
-					throw new CartagoException("Artifact not found.");
-				}
-			} else {
-				throw new CartagoException("No Workspaces joined.");
-			}
-		}
-	}
-
 	public long doAction(Op op, WorkspaceId wspId, IAlignmentTest test, long timeout) throws CartagoException {
 		long actId = actionId.incrementAndGet();
 		ICartagoContext ctx = null;
@@ -144,68 +139,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		}
 	}
 
-	/*
-	public long doAction(String wspName, Op op, IAlignmentTest test, long timeout) throws CartagoException {
-		long actId = actionId.incrementAndGet();
-		ICartagoContext ctx = null;
-		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
-			if (c.getKey().getName().equals(wspName)) {
-				ctx = c.getValue();
-				break;
-			}
-		}
-		if (ctx != null) {
-			ArtifactId aid = ctx.getArtifactIdFromOp(op);
-			if (aid != null){
-				ctx.doAction(actId, aid, op, test, timeout);
-				return actId;
-			}
-		} 
-		throw new CartagoException("Wrong workspace.");
-	}
-*/
-	/*
-	public long doAction(String wspName, Op op, String artName, IAlignmentTest test, long timeout)
-			throws CartagoException {
-		long actId = actionId.incrementAndGet();
-		ICartagoContext ctx = null;
-		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
-			if (c.getKey().getName().equals(wspName)) {
-				ctx = c.getValue();
-				break;
-			}
-		}
-		if (ctx != null) {
-			ctx.doAction(actId, artName, op, test, timeout);
-			return actId;
-		} else {
-			throw new CartagoException("Wrong workspace.");
-		}		
-	}*/
-
-
-	/*
-	public long doAction(Op op, String artName, IAlignmentTest test, long timeout) throws CartagoException {
-		long actId = actionId.incrementAndGet();
-		boolean found = false;
-		synchronized (contextOrderedList){
-			for (WorkspaceId wid : contextOrderedList) {
-				ICartagoContext ctx = null;
-				ctx = contexts.get(wid);
-				if (ctx != null){
-					ArtifactId aid = ctx.getArtifactIdFromOp(artName, op);
-					if (aid != null){
-						ctx.doAction(actId, aid, op, test, timeout);
-						return actId;
-					}
-				}
-			}
-		}
-		throw new CartagoException("Wrong workspace.");
-	}*/
-
-	// local
-
 	public List<WorkspaceId> getJoinedWorkspaces() throws CartagoException {
 		List<WorkspaceId> wsps = new LinkedList<WorkspaceId>();
 		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {
@@ -225,63 +158,11 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		throw new CartagoException("Workspace not joined.");
 	}
 	
-	
-	/**
-	 * Join a workspace
-	 * 
-	 * @param wspName wsp name
-	 * @param cred agent credential
-	 */
-	public WorkspaceId joinWorkspace(String wspName) throws CartagoException {
-		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
-		try{
-			doAction(new Op("joinWorkspace", wspName, credential, res), null, -1);
-		} catch (Exception ex){
-			throw new CartagoException();
+	public WorkspaceId getCurrentWorkspace() {
+		synchronized (contextOrderedList) {
+			return this.contextOrderedList.getFirst();
 		}
-		return res.get();
 	}
-
-	/**
-	 * Join a remote workspace
-	 * 
-	 * @param wspName wsp name
-	 * @param address address
-	 * @param roleName role
-	 * @param cred agent credentials
-	 * @return
-	 * @throws CartagoException
-	 */
-	public WorkspaceId joinRemoteWorkspace(String wspName, String address)  throws CartagoException {
-		OpFeedbackParam<WorkspaceId> res = new OpFeedbackParam<WorkspaceId>();
-		try{
-			doAction(new Op("joinRemoteWorkspace", address, wspName, agentRole, credential, res), null, -1);
-		} catch (Exception ex){
-			throw new CartagoException();
-		}
-		return res.get();
-	}
-
-
-	/**
-	 * Make a new artifact instance
-	 * 
-	 * @param artifactName logic name
-	 * @param templateName type
-	 * @return
-	 * @throws CartagoException
-	 */
-	public ArtifactId makeArtifact(WorkspaceId wid, String artifactName, String templateName) throws CartagoException {
-		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
-		try{
-			doAction(new Op("makeArtifact", artifactName, templateName, new Object[0], wid, res), null,-1);
-		} catch (Exception ex){
-			ex.printStackTrace();
-			throw new CartagoException();
-		}
-		return res.get();
-	}
-
 	
 	/**
 	 * Make a new artifact instance
@@ -314,22 +195,20 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		return perceptQueue.poll();
 	}
 
+	
 	private void checkWSPEvents(CartagoEvent ev) {
 		if (ev instanceof JoinWSPSucceededEvent) {
-			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;
-			synchronized (this){
-				contexts.put(wspev.getWorkspaceId(), wspev.getContext());
-				synchronized(contextOrderedList){
-					contextOrderedList.addFirst(wspev.getWorkspaceId());
-				}
+			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;				
+			WorkspaceId wid = wspev.getWorkspaceId();		
+			contexts.put(wspev.getWorkspaceId(), wspev.getContext());
+			synchronized (contextOrderedList) {
+				contextOrderedList.addFirst(wspev.getWorkspaceId());
 			}
 		} else if (ev instanceof QuitWSPSucceededEvent) {
 			QuitWSPSucceededEvent wspev = (QuitWSPSucceededEvent) ev;
-			synchronized (this){
-				contexts.remove(wspev.getWorkspaceId());
-				synchronized(contextOrderedList){
-					contextOrderedList.remove(wspev.getWorkspaceId());
-				}
+			contexts.remove(wspev.getWorkspaceId());
+			synchronized (contextOrderedList) {
+				contextOrderedList.remove(wspev.getWorkspaceId());
 			}
 		}
 	}

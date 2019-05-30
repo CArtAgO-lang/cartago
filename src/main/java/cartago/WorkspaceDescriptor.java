@@ -1,27 +1,44 @@
 package cartago;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class WorkspaceDescriptor {
 
-	private Workspace wsp;
-	private Optional<WorkspaceDescriptor> parent;
 	private boolean isLocal;
+	
+	private String envName;
+	private UUID envId;
+	
+	private Workspace wsp;
+	private WorkspaceId localWspId;
+	private Optional<WorkspaceDescriptor> parent;
+
 	private String protocol;
 	private String address;
-	private WorkspaceId id;
-	private String remotePath;
+	private String remoteFullName;
 	
-	public WorkspaceDescriptor(WorkspaceId wspId, WorkspaceDescriptor parent) {
+	public WorkspaceDescriptor(String envName, UUID envId, WorkspaceId wspId) {
+		this.localWspId = wspId;
+		this.envName = envName;
+		this.envId = envId;
+		this.parent = Optional.empty();
+		this.isLocal = true;
+	}
+	
+	public WorkspaceDescriptor(String envName, UUID envId, WorkspaceId wspId, WorkspaceDescriptor parent) {
+		this(envName, envId, wspId);
 		this.parent = Optional.of(parent);
-		this.id = wspId;
 		this.isLocal = true;
 	}
 
-	public WorkspaceDescriptor(WorkspaceId wspId) {
-		this.id = wspId;
+	public WorkspaceDescriptor(String envName, UUID envId, WorkspaceId wspId, String remotePath, String address, String protocol) {
+		this(envName, envId, wspId);
 		this.parent = Optional.empty();
-		this.isLocal = true;
+		this.isLocal = false;
+		this.address = address;
+		this.protocol = protocol;
+		this.remoteFullName = remotePath;
 	}
 
 	public void setWorkspace(Workspace wsp) {
@@ -32,7 +49,7 @@ public class WorkspaceDescriptor {
 		this.isLocal = false;
 		this.protocol = protocol;
 		this.address = address;
-		this.remotePath = remotePath;
+		this.remoteFullName = remotePath;
 	}
 	
 	public boolean isLocal() {
@@ -40,7 +57,15 @@ public class WorkspaceDescriptor {
 	}
 	
 	public WorkspaceId getId() {
-		return id;
+		return localWspId;
+	}
+	
+	public String getEnvName() {
+		return envName;
+	}
+	
+	public UUID getEnvId() {
+		return envId;
 	}
 		
 	public String getProtocol() {
@@ -48,7 +73,7 @@ public class WorkspaceDescriptor {
 	}
 	
 	public String getRemotePath() {
-		return remotePath;
+		return remoteFullName;
 	}
 	
 	public String getAddress() {

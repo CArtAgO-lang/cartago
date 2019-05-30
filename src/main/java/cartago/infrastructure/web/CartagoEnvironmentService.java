@@ -18,13 +18,13 @@
 package cartago.infrastructure.web;
 
 import java.rmi.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cartago.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
@@ -50,23 +50,24 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 	private Router router;
 	private HttpServer server;
 	
+	private String envName;
+	
 	private Logger logger = LoggerFactory.getLogger(CartagoEnvironmentService.class);
 	
 	private static final String API_BASE_PATH = "/cartago/api";
 
 	private ConcurrentLinkedQueue<AgentBodyRemote> remoteCtxs;
 	// private GarbageBodyCollectorAgent garbageCollector;
+	private ConcurrentHashMap<String, AgentBody> pendingBodies;
+	
 	
 	public CartagoEnvironmentService() throws Exception {
 		remoteCtxs = new ConcurrentLinkedQueue<AgentBodyRemote>();	
 		// garbageCollector = new GarbageBodyCollectorAgent(remoteCtxs,1000,10000);
 		// garbageCollector.start();
+		pendingBodies = new  ConcurrentHashMap<String, AgentBody>();
 	}	
 		
-	public String getAddress(){
-		return fullAddress;
-	}
-	
 	public void install(String address, int port) throws Exception {
 		/* WARNING: the  timeout - 1000 - must be greater than the 
 		   delay used by the KeepRemoteContextAliveManager
@@ -87,6 +88,7 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 	
 
 	private void initWS() {
+		
 		router = Router.router(vertx);
 		
 		router.route().handler(CorsHandler.create("*")
@@ -102,14 +104,18 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 				.allowedHeader("Content-Type"));
 
 		router.route().handler(BodyHandler.create());
+		
 
+
+		
 		router.get(API_BASE_PATH + "/version").handler(this::handleGetVersion);
-		router.get(API_BASE_PATH + "/node-id").handler(this::handleGetNodeId);
-		// router.post(API_BASE_PATH + "/join-wsp").handler(this::handleJoinWSP);
+		// router.get(API_BASE_PATH + "/node-id").handler(this::handleGetNodeId);
+		// router.post(API_BASE_PATH + "/connect").handler(this::handleConnect);
 		// router.post(API_BASE_PATH + "/quit-wsp").handler(this::handleQuitWSP);
-		router.post(API_BASE_PATH + "/exec-ia-op").handler(this::handleExecIAOP);
+		// router.post(API_BASE_PATH + "/exec-ia-op").handler(this::handleExecIAOP);
 		// router.post(API_BASE_PATH + "/do-action").handler(this::handleJoinWSP);
 
+		router.get(API_BASE_PATH + "/mas").handler(this::handleResolveWSP);
 		/*
 		router.get(API_BASE_PATH + "/state").handler(new GetVersionHandler(this));
 		
@@ -145,11 +151,15 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 		 
 		// Router router = routerFactory.getRouter();
 
-		server = vertx.createHttpServer();		
-		
-		server
-		.websocketHandler(this::handleJoinWSP)
+		server = vertx.createHttpServer()
 		.requestHandler(router)
+		.websocketHandler(ws -> {
+			 if (ws.path().equals(API_BASE_PATH + "/join")) {
+				 this.handleJoinWSP(ws);
+			 } else {
+				 ws.reject();
+			 }
+		})
 		.listen(port, result -> {
 			if (result.succeeded()) {
 				log("Ready.");
@@ -178,12 +188,12 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 	
 	private void handleJoinWSP(ServerWebSocket ws) {
 		log("Handling Join WSP from "+ws.remoteAddress() + " - " + ws.path());
+		CartagoEnvironmentService service = this;
 		
-		if (ws.path().equals(API_BASE_PATH + "/join")){
-			ws.handler(buffer -> {
+		ws.handler(buffer -> {
 				JsonObject joinParams = buffer.toJsonObject();
 		
-				String wspName = joinParams.getString("wspName");
+				String wspName = joinParams.getString("wspFullName");
 				JsonObject agentCred = joinParams.getJsonObject("agent-cred");
 				
 				String userName = agentCred.getString("userName");
@@ -199,27 +209,22 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 					ICartagoContext ctx = wsp.joinWorkspace(cred, rbody);
 					remoteCtxs.add(rbody);
 		
-					rbody.init((AgentBody) ctx, ws);	
-					
-					// JsonObject uuid = new JsonObject().put("nodeUUID", wsp.getId().getNodeId().getFullName().toString());
+					rbody.init((AgentBody) ctx, ws, service);	
 
-					JsonObject wspId = new JsonObject().put("wspId", JsonUtil.toJson(wsp.getId()));
-					ws.writeTextMessage(wspId.encode());
-					
-					// HttpServerResponse response = routingContext.response();
-					// response.putHeader("content-type", "application/text").end(reply.encode());
+					JsonObject reply = new JsonObject()
+							.put("wspUUID", wsp.getId().getUUID().toString());
+					ws.writeTextMessage(reply.encode());
+										
 				} catch (Exception ex) {
 					ex.printStackTrace();
 					ws.reject();
 				}
 			});
-		} else {
-			ws.reject();
-		}
 	}
 
-
-	
+	public void registerNewJoin(String bodyId, AgentBody body) {
+		this.pendingBodies.put(bodyId, body);
+	}
 	
 	/* QUIT */
 	
@@ -281,26 +286,29 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 		response.putHeader("content-type", "application/text").end(CARTAGO_VERSION.getID());
 	}
 
-	/*
-	public String getVersion() throws CartagoException, RemoteException {
-		return CARTAGO_VERSION.getID();
-	}*/
-	
-	
-	/* GET Node ID */
+	/* GET WORKSPACE INFO */
 
-
-	private void handleGetNodeId(RoutingContext routingContext) {
-		log("Handling Get NodeId from "+routingContext.request().absoluteURI());
-		HttpServerResponse response = routingContext.response();
-		response.putHeader("content-type", "application/text").end("Not implemented.");
+	private void handleResolveWSP(RoutingContext routingContext) {
+		log("Handling ResolveWSP from "+routingContext.request().absoluteURI());
+		String fullPath = routingContext.request().getParam("wsp");
+		JsonObject obj = new JsonObject();
+		try {
+			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(fullPath);
+			obj.put("envName", des.getEnvName());
+			obj.put("envId", des.getEnvId().toString());
+			if (des.isLocal()) {
+				obj.put("id", JsonUtil.toJson(des.getId()));
+			} else {
+				obj.put("remotePath", des.getRemotePath());
+				obj.put("address", des.getAddress());
+				obj.put("protocol", des.getProtocol());
+			}
+			routingContext.response().putHeader("content-type", "application/text").end(obj.encode());
+		} catch (Exception ex) {
+			HttpServerResponse response = routingContext.response();
+			response.setStatusCode(404).end();
+		}
 	}
 
-	/*
-	public NodeId getNodeId() throws CartagoException, RemoteException {
-		return node.getId();
-	}
-	*/
-	
 
 }

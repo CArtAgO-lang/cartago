@@ -7,7 +7,7 @@ public class TestController {
 	
 	public static void main(String[] args) throws Exception {		
 		CartagoEnvironment env = CartagoEnvironment.getInstance();
-		env.init();
+		env.initRoot();
 		
 		//CartagoService.registerLogger("main",new BasicLogger());
 		new HelloAgent("Michelangelo1","c1").start(); 

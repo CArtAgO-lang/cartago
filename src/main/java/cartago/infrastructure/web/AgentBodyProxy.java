@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+1 * CArtAgO - DEIS, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,8 +26,13 @@ import cartago.events.ActionSucceededEvent;
 import cartago.events.ArtifactObsEvent;
 import cartago.events.FocusSucceededEvent;
 import cartago.events.FocussedArtifactDisposedEvent;
+import cartago.events.JoinWSPSucceededEvent;
 import cartago.events.StopFocusSucceededEvent;
+import cartago.infrastructure.CartagoInfrastructureLayerException;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
 
@@ -44,49 +49,25 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 	private WorkspaceId wspId;
 	private WebSocket ws;
 	private ICartagoCallback eventListener;
-    
+    private String address;
+	private Vertx vertx;
+	private int port;
+	private AgentId aid;
 	
-	AgentBodyProxy() {
+	AgentBodyProxy(Vertx vertx, int port) {
+		this.vertx = vertx;
+		this.port = port;
 	}
 
-	public void init(WebSocket ws, WorkspaceId wspId, ICartagoCallback eventListener) {
+	public void init(String address, WebSocket ws, WorkspaceId wspId, ICartagoCallback eventListener) {
 		this.ws = ws;
+		this.address = address;
 		this.eventListener = eventListener;
 		this.wspId = wspId;
 		ws.handler(this::handleEvent);
 	}
 	
-/*
-	private void writeEventInfo(JsonObject obj, CartagoEvent ev) {
-		obj.put("id", ev.getId());
-		obj.put("timestamp", ev.getTimestamp());
-	}
-
-	private void writeActionEventInfo(JsonObject obj, CartagoActionEvent ev) {
-		writeEventInfo(obj,ev);
-		obj.put("actionId", ev.getActionId());
-		obj.put("timestamp", ev.getTimestamp());
-		obj.put("op", toJson(ev.getOp()));
-	}
-
- */
-
 	private void readEventInfo(JsonObject obj, CartagoEvent ev) {
-		
-		/*
-		this.id = id;
-		timestamp = ts;
-
-	private long actionId;
-	private Op op;
-
-	private ArtifactId artifactId;
-	
-	private String failureMsg;
-	private Tuple failureReason;
-	
-
-		 */
 		obj.put("id", ev.getId());
 		obj.put("timestamp", ev.getTimestamp());
 	}
@@ -118,7 +99,8 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 				ev = new ArtifactObsEvent(id, src, signal, propsChanged, propsAdded, propsRemoved, ts);
 			} else if (evType.equals("focusSucceeded")) {
 				long actionId = evobj.getLong("actionId");
-				Op op = toOp(evobj.getJsonObject("op"));
+				JsonObject jop = evobj.getJsonObject("op");
+				Op op = jop != null ? toOp(jop) : null;
 				ArtifactId aid = toArtifactId(evobj.getJsonObject("artifactId"));
 				ArtifactId targetArtifact = toArtifactId(evobj.getJsonObject("targetArtifact"));
 				List<ArtifactObsProperty> props = toArtifactObsPropertyList(evobj.getJsonArray("props"));
@@ -135,7 +117,7 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 				List<ArtifactObsProperty> props = toArtifactObsPropertyList(evobj.getJsonArray("props"));
 				ev = new FocussedArtifactDisposedEvent(id, src, props, ts);
 			} else {
-				log("Unknown event type " + evType);
+				log("Event not to be handled: " + evType);
 				return;
 			}	
 			
@@ -146,20 +128,7 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		}
 	}
 	
-	public AgentId getAgentId() throws CartagoException {
-		/*
-		try {
-			return ctx.getAgentId();
-		} catch (RemoteException ex) {
-			throw new CartagoException(ex.getMessage());
-		}*/
-		throw new CartagoException("not implemented.");
-	}
-
-	public WorkspaceId getWorkspaceId() throws CartagoException {
-		return wspId;
-	}
-
+	
 	
 	private JsonObject makeJsonObjForAct(long agentCallbackId, Op op,long timeout) {
 		JsonObject req = new JsonObject();
@@ -202,18 +171,19 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 
 	}
 	
-	/*
-	public void ping() throws CartagoException {
-		try {
-			ctx.ping();
-		} catch (RemoteException ex) {
-			throw new CartagoException(ex.getMessage());
-		}
-	}
-	*/
-		
 	
 	private void log(String msg) {
 		System.out.println("[AgentBodyProxy | web infra layer]  " + msg);
+	}
+
+	@Override
+	public WorkspaceId getWorkspaceId() throws CartagoException {
+		return wspId;
+	}
+
+	@Override
+	public AgentId getAgentId() throws CartagoException {
+		// TODO Auto-generated method stub
+		return aid;
 	}
 }

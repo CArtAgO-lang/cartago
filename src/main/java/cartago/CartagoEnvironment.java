@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
@@ -35,23 +38,25 @@ import cartago.tools.inspector.Inspector;
  */
 public class CartagoEnvironment {
 
-	public static String MAIN_WSP_NAME = "main";
-
+	/* singleton design */
 	private static CartagoEnvironment instance;
-
-	/* set of available infrastructure layers */
-	private	Map<String,ICartagoInfrastructureLayer> infraLayers = new HashMap<String,ICartagoInfrastructureLayer>();
-	private String defaultInfraLayer = "rmi";
-	private HashMap<String,Inspector> debuggers = new HashMap<String,Inspector>();
 	
-	/* set of information about linked nodes - for linkability with remote artifacts */
-	private List<LinkedNodeInfo> linkedNodes = new LinkedList<LinkedNodeInfo>();
-
+	/* set of available infrastructure layers */
+	private	Map<String,ICartagoInfrastructureLayer> infraLayers;
+	private String defaultInfraLayer = "rmi";
+	
+	private HashMap<String,Inspector> debuggers;
+	
 	/* root workspace */
 	private WorkspaceDescriptor rootWsp;
+	public static String ROOT_WSP_DEFAULT_NAME = "main";
+
 	
-	/* wsp name */
-	private HashMap<String, WorkspaceDescriptor> wspMap;
+	/* environment name (aka MAS name) */
+	private String envName;
+	
+	/* unique env id */
+	private UUID envId;
 	
 	/* singleton design */
 	
@@ -64,8 +69,11 @@ public class CartagoEnvironment {
 	
 	
 	private CartagoEnvironment() {
-		wspMap = new HashMap<String, WorkspaceDescriptor>();
+		debuggers = new HashMap<String,Inspector>();
+		infraLayers = new HashMap<String,ICartagoInfrastructureLayer>();
+		envId = UUID.randomUUID();
 	}
+	
 
 	/**
 	 * Init the Environment.
@@ -73,7 +81,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public void init() throws CartagoException {
-		this.init(null);
+		this.init((ICartagoLogger) null);
 	}
 
 	/**
@@ -83,12 +91,42 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public void init(ICartagoLogger logger) throws CartagoException {
+		UUID uuid = UUID.randomUUID();
+		this.init(uuid.toString(), logger);
+	}
+
+	/**
+	 * Init the Environment.
+	 * 
+	 * @throws CartagoException
+	 */
+	public void init(String envName) throws CartagoException {
+		this.init(envName, null);
+	}
+
+	/**
+	 * Init the environment.
+	 * 
+	 * @param logger
+	 * @throws CartagoException
+	 */
+	public void init(String envName, ICartagoLogger logger) throws CartagoException {
+		this.init("/"+ROOT_WSP_DEFAULT_NAME, envName, logger); 
+	}
+
+	/**
+	 * Init the environment.
+	 * 
+	 * @param logger
+	 * @throws CartagoException
+	 */
+	public void init(String rootWspName, String envName, ICartagoLogger logger) throws CartagoException {
+		this.envName = envName; 
 		if (rootWsp == null) {
-			WorkspaceId wid = new WorkspaceId(MAIN_WSP_NAME); 
-			rootWsp = new WorkspaceDescriptor(wid);
+			WorkspaceId wid = new WorkspaceId(rootWspName); 
+			rootWsp = new WorkspaceDescriptor(envName, this.envId, wid);
 			Workspace wsp = new Workspace(wid, rootWsp, logger);
 			rootWsp.setWorkspace(wsp);
-			this.registerWSP("/"+MAIN_WSP_NAME, rootWsp);
 		}
 	}
 	
@@ -101,7 +139,20 @@ public class CartagoEnvironment {
 		return CARTAGO_VERSION.getID();
 	}
 	
-
+	
+	public String getName() {
+		return envName;
+	}
+	
+	public UUID getId() {
+		return envId;
+	}
+	
+	/**
+	 * Get root workspace
+	 * 
+	 * @return
+	 */
 	public WorkspaceDescriptor getRootWSP() {
 		return rootWsp;
 	}
@@ -126,18 +177,7 @@ public class CartagoEnvironment {
 	}
 	
 	/* wsp management */
-	
-	/**
-	 * 
-	 * Register a workspace.
-	 * 
-	 * @param logicalPath
-	 * @param des
-	 */
-	public synchronized void registerWSP(String logicalPath, WorkspaceDescriptor des) {
-		wspMap.put(logicalPath, des);
-	}
-	
+		
 	/**
 	 * 
 	 * Lookup for a workspace.
@@ -147,14 +187,52 @@ public class CartagoEnvironment {
 	 * @throws WorkspaceNotFoundException
 	 */
 	public synchronized WorkspaceDescriptor resolveWSP(String logicalPath) throws WorkspaceNotFoundException {
-		WorkspaceDescriptor des = this.wspMap.get(logicalPath);
-		if (des != null) {
-			return des;
-		} else {
+		String[] path = logicalPath.split("/");
+		// path[0] = "", since paths are "/..."
+		
+		if (path == null || path.length < 2) {
 			throw new WorkspaceNotFoundException();
 		}
+		
+		/* check root */
+		WorkspaceDescriptor current = this.rootWsp;
+				
+		if (!path[1].equals(current.getId().getName())){
+			throw new WorkspaceNotFoundException();
+		}
+		
+		int i = 2;
+		while (i < path.length) {
+			String p = path[i];
+			if (current.isLocal()) {
+				Optional<WorkspaceDescriptor> res = current.getWorkspace().resolveWSP(p);
+				if (res.isPresent()) {
+					WorkspaceDescriptor des = res.get();
+					current = res.get();
+				} else {
+					throw new WorkspaceNotFoundException();
+				}
+			} else {
+				ICartagoInfrastructureLayer layer = infraLayers.get(current.getProtocol());
+				current  = layer.resolveRemoteWSP(current.getRemotePath() + "/" + p, current.getAddress());
+			}
+			i++;
+		}
+		
+		return current;		
 	}
 	
+	
+	public WorkspaceDescriptor resolveRemoteWSP(String remoteWspPath, String address, String protocol) throws WorkspaceNotFoundException  {
+		ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+		return layer.resolveRemoteWSP(remoteWspPath, address);
+	}
+
+	public WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath, String protocol) throws WorkspaceNotFoundException  {
+		ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+		return layer.resolveRemoteWSP(remoteFullPath);
+	}
+
 	// agent session 
 	
 	/**
@@ -167,12 +245,18 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public synchronized ICartagoSession startSession(String wspName, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
-		Workspace wsp = this.resolveWSP("/"+wspName).getWorkspace();
-		CartagoSession session = new CartagoSession(cred,null,eventListener);
-		ICartagoContext startContext = wsp.joinWorkspace(cred, null, session);
-		WorkspaceId wspId = startContext.getWorkspaceId();
-		session.setInitialWorkspace(wspId, startContext);
-		return session;
+			Workspace wsp = this.resolveWSP("/"+wspName).getWorkspace();
+			CartagoSession session = new CartagoSession(cred,null,eventListener);
+			ICartagoContext startContext = wsp.joinWorkspace(cred, null, session);
+			WorkspaceId wspId = startContext.getWorkspaceId();
+			ArtifactId agentContextArtifact = null;
+			try {
+				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "context-"+cred.getId(), "cartago.AgentContextArtifact", new ArtifactConfig(cred, session, session, wsp));
+			} catch (Exception ex){
+				ex.printStackTrace();
+			}
+			session.init(agentContextArtifact, wspId, startContext);		
+			return session;
 	}
 
 	/**
@@ -185,7 +269,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public synchronized ICartagoSession startSession(AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
-		return this.startSession(CartagoEnvironment.MAIN_WSP_NAME, cred, eventListener);
+		return this.startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, cred, eventListener);
 	}
 	
 
@@ -212,7 +296,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public synchronized ICartagoSession startSession(AgentCredential cred) throws CartagoException {
-		return startSession(CartagoEnvironment.MAIN_WSP_NAME,cred);
+		return startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME,cred);
 	}
 	
 	/**
@@ -224,7 +308,7 @@ public class CartagoEnvironment {
 	 * @param cred agent  credential
 	 * @param eventListener listener to workspace events to be perceived by the agent
 	 * @return a context for working inside the workspace
-	 */
+	 *//*
 	public synchronized ICartagoSession startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 		if (wspName==null){
 			wspName = "default";
@@ -241,9 +325,9 @@ public class CartagoEnvironment {
 		CartagoSession session = new CartagoSession(cred,null,eventListener);
 		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, session);
 		WorkspaceId wspId = startContext.getWorkspaceId();
-		session.setInitialWorkspace(wspId, startContext);
+		session.init(null, wspId, startContext);
 		return session;
-	}
+	}*/
 
 	/**
 	 * Start a working session in a remote workspace, returning a context
@@ -254,7 +338,7 @@ public class CartagoEnvironment {
 	 * @param cred agent  credential
 	 * @param eventListener listener to workspace events to be perceived by the agent
 	 * @return a context for working inside the workspace
-	 */
+	 *//*
 	public synchronized CartagoContext startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
 		if (wspName==null){
 			wspName = "default";
@@ -272,9 +356,9 @@ public class CartagoEnvironment {
 		CartagoContext context = new CartagoContext(cred);
 		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, context.getCartagoSession());
 		WorkspaceId wspId = startContext.getWorkspaceId();
-		context.getCartagoSession().setInitialWorkspace(wspId, startContext);
+		context.getCartagoSession().init(null, wspId, startContext);
 		return context;
-	}
+	}*/
 	
 
 	
@@ -293,98 +377,20 @@ public class CartagoEnvironment {
 	 * @throws cartago.security.SecurityException
 	 * @throws CartagoException
 	 */
-	synchronized ICartagoContext joinRemoteWorkspace(String wspName, String address, String protocol, AgentCredential cred, ICartagoCallback eventListener) throws cartago.security.SecurityException, CartagoException{
+	public synchronized ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, String protocol,  AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws cartago.security.SecurityException, CartagoException{
 		try {
 			if ((protocol == null) || (protocol.equals("default"))){
 				protocol = defaultInfraLayer;
 			} 
-			ICartagoInfrastructureLayer service = infraLayers.get(protocol);
-			ICartagoContext ctx = service.joinRemoteWorkspace(wspName, address, cred, eventListener);
-			/*
-			LinkedNodeInfo nodeInfo = new LinkedNodeInfo(ctx.getWorkspaceId().getNodeId(), protocol, address);
-			boolean exists = false;
-			for(LinkedNodeInfo tempNodeInfo : linkedNodes) {
-				if(tempNodeInfo.equals(nodeInfo)) {
-					exists = true;
-					break;
-				}
-			}
-			if(!exists) {
-				linkedNodes.add(nodeInfo);
-				// System.out.println("[CartagoService] ADDED NODE INFO: "+nodeInfo.getAddress());
-			}
-			*/
+			ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+			ICartagoContext ctx = layer.joinRemoteWorkspace(envName, address, wspFullNameRemote, cred, eventListener, wspNameLocal);
 			return ctx;
 		} catch (CartagoInfrastructureLayerException ex) {
 			ex.printStackTrace();
-			throw new CartagoException("Join "+wspName+"@"+address+" failed ");
+			throw new CartagoException("Join " + wspFullNameRemote + "@"+address+" failed ");
 		}
 	}
-	
-	synchronized ICartagoContext joinRemoteWorkspace(WorkspaceDescriptor wdes, AgentCredential cred, ICartagoCallback eventListener) throws cartago.security.SecurityException, CartagoException{
-		String wspName = wdes.getId().getFullName();
-		String protocol = wdes.getProtocol();
-		String address = wdes.getAddress();
-		try {
-			if ((protocol == null) || (protocol.equals("default"))){
-				protocol = defaultInfraLayer;
-			} 
-			ICartagoInfrastructureLayer service = infraLayers.get(protocol);
-			ICartagoContext ctx = service.joinRemoteWorkspace(wspName, address, cred, eventListener);
-			/*
-			LinkedNodeInfo nodeInfo = new LinkedNodeInfo(ctx.getWorkspaceId()., protocol, address);
-			boolean exists = false;
-			for(LinkedNodeInfo tempNodeInfo : linkedNodes) {
-				if(tempNodeInfo.equals(nodeInfo)) {
-					exists = true;
-					break;
-				}
-			}
-			if(!exists) {
-				linkedNodes.add(nodeInfo);
-				// System.out.println("[CartagoService] ADDED NODE INFO: "+nodeInfo.getAddress());
-			}
-			*/
-			return ctx;
-		} catch (CartagoInfrastructureLayerException ex) {
-			ex.printStackTrace();
-			throw new CartagoException("Join "+wspName+"@"+address+" failed ");
-		}
-	}	
-
-	synchronized WorkspaceDescriptor createRemoteWorkspace(String wspName, WorkspaceDescriptor parent) throws cartago.security.SecurityException, CartagoException{
-		/*
-		String wspName = wdes.getId().getFullName();
-		String protocol = wdes.getProtocol();
-		String address = wdes.getAddress();
-		try {
-			if ((protocol == null) || (protocol.equals("default"))){
-				protocol = defaultInfraLayer;
-			} 
-			ICartagoInfrastructureLayer service = infraLayers.get(protocol);
-			ICartagoContext ctx = service.joinRemoteWorkspace(wspName, address, cred, eventListener);
-			LinkedNodeInfo nodeInfo = new LinkedNodeInfo(ctx.getWorkspaceId()., protocol, address);
-			boolean exists = false;
-			for(LinkedNodeInfo tempNodeInfo : linkedNodes) {
-				if(tempNodeInfo.equals(nodeInfo)) {
-					exists = true;
-					break;
-				}
-			}
-			if(!exists) {
-				linkedNodes.add(nodeInfo);
-				// System.out.println("[CartagoService] ADDED NODE INFO: "+nodeInfo.getAddress());
-			}
-			return ctx;
-		} catch (CartagoInfrastructureLayerException ex) {
-			ex.printStackTrace();
-			throw new CartagoException("Join "+wspName+"@"+address+" failed ");
-		}*/
-		throw new IllegalArgumentException("Not implemented");
-	}	
-	
-	
-	
+		
 	
 	/**
 	 * Exec a linked operation - called by artifacts
@@ -551,10 +557,10 @@ public class CartagoEnvironment {
 	 * @param id node id
 	 * @param support
 	 * @param address
-	 */
+	 *//*
 	public synchronized void enableLinkingWithNode(NodeId id, String support, String address){
 		linkedNodes.add(new LinkedNodeInfo(id,support,address));
-	}
+	}*/
 
 	/**
 	 * Getting a controller.
@@ -705,21 +711,21 @@ public class CartagoEnvironment {
 	 * @author aricci
 	 *
 	 */
-	static class LinkedNodeInfo {
+	static class NodeInfo {
 
-		NodeId nodeId;
+		String envName;
 		String protocol;
 		String address;
 		
-		public LinkedNodeInfo(NodeId nodeId, String protocol, String address){
-			this.nodeId = nodeId;
+		public NodeInfo(String envName, String protocol, String address){
+			this.envName = envName;
 			this.protocol = protocol;
 			this.address = address;
 		}
 	
 		
-		public NodeId getNodeId() {
-			return nodeId;
+		public String getEnvName() {
+			return envName;
 		}
 
 		public String getProtocol() {
@@ -732,9 +738,9 @@ public class CartagoEnvironment {
 		
 		@Override
 		public boolean equals(Object obj) {
-			if (obj != null  && (obj instanceof LinkedNodeInfo)){
-				LinkedNodeInfo node = ((LinkedNodeInfo) obj);
-				if (node.getNodeId().equals(getNodeId()) && node.getProtocol().equals(this.getProtocol())){
+			if (obj != null  && (obj instanceof NodeInfo)){
+				NodeInfo node = ((NodeInfo) obj);
+				if (node.getEnvName().equals(getEnvName()) && node.getProtocol().equals(this.getProtocol())){
 					return true;
 				} else {
 					return false;

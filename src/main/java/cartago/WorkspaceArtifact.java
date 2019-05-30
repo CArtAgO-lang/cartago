@@ -40,27 +40,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/* wsp management */
-	
-	/**
-	 * Join a workspace
-	 * 
-	 * @param wspName workspace name
-	 * @param res output parameter: workspace id
-	 */
-	@OPERATION void joinWorkspace(String wspName, OpFeedbackParam<WorkspaceId> res) {
-		try {
-		    OpExecutionFrame opFrame = this.getOpFrame();
-			ICartagoContext ctx = wsp.joinWorkspace(wspName, new cartago.AgentIdCredential(this.getCurrentOpAgentId().getGlobalId()), null, opFrame.getAgentListener());
-			WorkspaceId wspId = ctx.getWorkspaceId();
-			res.set(wspId);
-			wsp.notifyJoinWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
-			opFrame.setCompletionNotified();			
-		} catch (Exception ex){
-			//ex.printStackTrace();
-			failed("Join Workspace error: "+ex.getMessage());
-		}
-	}	
-	
+
 	/**
 	 * Create a workspace in the local node.
 	 * 
@@ -93,102 +73,6 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 	
-	/**
-	 * Create a workspace in the local node.
-	 * 
-	 * @param name name of the workspace
-	 */	
-	@OPERATION void mountWorkspace(String targetWsp, String address, String parentWsp, String linkName, String protocol) throws CartagoException {
-		try {
-			wsp.mountWorkspace(targetWsp, address, parentWsp, linkName, protocol);
-			defineObsProperty("workspace",linkName,wsp.getId());
-		} catch (Exception ex){
-			failed("Workspace creation error");
-		}
-	}
-	
-	
-	/**
-	 * Start observing an artifact of the workspace
-	 * 
-	 * @param aid the artifact id
-	 */
-	@OPERATION void focus(ArtifactId aid){
-		AgentId userId = this.getCurrentOpAgentId();
-		OpExecutionFrame opFrame = this.getOpFrame();
-		try {
-			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
-			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			opFrame.setCompletionNotified();
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
-		}
-	}
-
-	/**
-	 * Start observing an artifact of the workspace
-	 * 
-	 * @param aid the artifact id
-	 * @param filter filter to select which events to perceive
-	 */
-	@OPERATION void focus(ArtifactId aid, IEventFilter filter){
-		AgentId userId = this.getCurrentOpAgentId();
-		OpExecutionFrame opFrame = this.getOpFrame();
-		try {
-			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
-			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			opFrame.setCompletionNotified();
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
-		}
-	}
-	
-	/**
-	 * Start observing an artifact as soon as it is available
-	 * 
-	 * @param artName artifact name
-	 */
-	@OPERATION void focusWhenAvailable(String artName){
-		AgentId userId = this.getCurrentOpAgentId();
-		OpExecutionFrame opFrame = this.getOpFrame();
-		try {
-			ArtifactId aid = null;
-			while (aid == null){
-				await("artifactAvailable", artName);		
-				aid = wsp.getArtifact(artName);
-			}
-			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
-			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			opFrame.setCompletionNotified();
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
-		}
-	}
-
-	
-	
-	/**
-	 * Start observing an artifact as soon as it is available
-	 * 
-	 * @param artName artifact name
-	 * @param filter a filter to select the events to perceive
-	 */
-	@OPERATION void focusWhenAvailable(String artName, IEventFilter filter){
-		AgentId userId = this.getCurrentOpAgentId();
-		OpExecutionFrame opFrame = this.getOpFrame();
-		try {
-			ArtifactId aid = null;
-			while (aid == null){
-				await("artifactAvailable", artName);		
-				aid = wsp.getArtifact(artName);
-			}
-			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
-			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			opFrame.setCompletionNotified();
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
-		}
-	}
 
 	@GUARD boolean artifactAvailable(String artName){
 		return wsp.getArtifact(artName) != null;
@@ -215,24 +99,7 @@ public class WorkspaceArtifact extends Artifact {
 			 wsp.getLoggerManager().unregisterLogger(debug.getLogger());
 		 }
 	}
-	
-	/**
-	 * Stop observing an artifact
-	 * 
-	 * @param aid
-	 */
-	@OPERATION void stopFocus(ArtifactId aid){
-		AgentId userId = this.getCurrentOpAgentId();
-		OpExecutionFrame opFrame = this.getOpFrame();
-		try {
-			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
-			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			opFrame.setCompletionNotified();
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
-		}
-	}
-	
+		
 	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
 		AgentId userId = this.getCurrentOpAgentId();
 		try {
@@ -242,19 +109,6 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
-	@OPERATION void quitWorkspace() {
-		try {
-			OpExecutionFrame opFrame = this.getOpFrame();
-			wsp.quitAgent(opFrame.getAgentId());
-			WorkspaceId wspId = getId().getWorkspaceId();
-			wsp.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);
-			opFrame.setCompletionNotified();
-		} catch (Exception ex){
-			failed("Quit Workspace failed.");
-		}
-	}
-
-	
 	/**
 	 * <p>Discover an artifact by name</p>
 	 * 
@@ -416,6 +270,107 @@ public class WorkspaceArtifact extends Artifact {
 			failed(ex.toString());
 		}
 	}
+	
+	
+	/**
+	 * Start observing an artifact of the workspace
+	 * 
+	 * @param aid the artifact id
+	 */
+	@OPERATION void focus(ArtifactId aid){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	/**
+	 * Start observing an artifact of the workspace
+	 * 
+	 * @param aid the artifact id
+	 * @param filter filter to select which events to perceive
+	 */
+	@OPERATION void focus(ArtifactId aid, IEventFilter filter){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
+	/**
+	 * Start observing an artifact as soon as it is available
+	 * 
+	 * @param artName artifact name
+	 */
+	@OPERATION void focusWhenAvailable(String artName){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			ArtifactId aid = null;
+			while (aid == null){
+				await("artifactAvailable", artName);		
+				aid = wsp.getArtifact(artName);
+			}
+			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	
+	
+	/**
+	 * Start observing an artifact as soon as it is available
+	 * 
+	 * @param artName artifact name
+	 * @param filter a filter to select the events to perceive
+	 */
+	@OPERATION void focusWhenAvailable(String artName, IEventFilter filter){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			ArtifactId aid = null;
+			while (aid == null){
+				await("artifactAvailable", artName);		
+				aid = wsp.getArtifact(artName);
+			}
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	/**
+	 * Stop observing an artifact
+	 * 
+	 * @param aid
+	 */
+	@OPERATION void stopFocus(ArtifactId aid){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
+			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
 	
 	/* WSP Rule management */
 	

@@ -42,8 +42,12 @@ public interface ICartagoInfrastructureLayer {
 	 * @throws CartagoInfrastructureLayerException
 	 * @throws CartagoException
 	 */
-	ICartagoContext joinRemoteWorkspace(String wspName, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException;
-		
+	ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws CartagoInfrastructureLayerException, CartagoException;
+
+	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address) throws WorkspaceNotFoundException;
+
+	WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException;
+	
 	/**
 	 * Execute an linked operation from a local artifact to a target remote artifact using this service
 	 * 
@@ -62,15 +66,6 @@ public interface ICartagoInfrastructureLayer {
 	 */
 	OpId execRemoteInterArtifactOp(ICartagoCallback callback, long callbackId, AgentId userId, ArtifactId srcId, ArtifactId targetId, String address, Op op, long timeout, IAlignmentTest test) throws CartagoInfrastructureLayerException, CartagoException;
 	
-	/**
-	 * Get the identifier of the CArtAgO node running at the specified address
-	 * 
-	 * @param address address of the node
-	 * @return
-	 * @throws CartagoInfrastructureLayerException
-	 * @throws CartagoException
-	 */
-	// NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException;
 
 	/**
 	 * Shutdown the layer

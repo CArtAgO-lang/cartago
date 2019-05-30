@@ -7,7 +7,7 @@ public class HelloRemoteWorld {
 	
 	public static void main(String[] args) throws Exception {			
 		CartagoEnvironment env = CartagoEnvironment.getInstance();
-		env.init();
+		env.initRoot();
 		env.installInfrastructureLayer("rmi");
 		env.startInfrastructureService("rmi");
 		env.registerLogger("main",new BasicLogger());  

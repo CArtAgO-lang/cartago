@@ -35,13 +35,14 @@ public class Agent extends Thread {
 	
 	public Agent(String agentName) {
 		super(agentName);
-		ctx = new CartagoBasicContext(agentName,CartagoEnvironment.MAIN_WSP_NAME);
+		ctx = new CartagoBasicContext(agentName,CartagoEnvironment.ROOT_WSP_DEFAULT_NAME);
 	}
 
+	/*
 	public Agent(String agentName, String workspaceName, String workspaceHost) {
 		super(agentName);
 		ctx = new CartagoBasicContext(agentName, workspaceName, workspaceHost);
-	}
+	}*/
 	
 	protected String getAgentName(){
 		return ctx.getName();

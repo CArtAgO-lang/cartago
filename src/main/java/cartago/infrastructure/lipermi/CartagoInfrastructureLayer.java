@@ -18,8 +18,10 @@ import cartago.ICartagoLogger;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpId;
+import cartago.WorkspaceNotFoundException;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
+import cartago.infrastructure.GlobalWorkspaceInfo;
 
 /**
  * 
@@ -125,6 +127,10 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			//e.printStackTrace();
 			throw new CartagoInfrastructureLayerException();
 		} 
+	}
+
+	public GlobalWorkspaceInfo getRemoteWorkspaceInfo(String address, String envName, String fullPath) throws WorkspaceNotFoundException {
+		throw new RuntimeException("not implemented.");
 	}
 
 	@Override

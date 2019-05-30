@@ -35,7 +35,7 @@ public class CartagoEnvironment extends Environment {
 
 	public void init(String[] args) {
 		logger.setLevel(Level.WARNING);
-		wspName = cartago.CartagoEnvironment.MAIN_WSP_NAME;
+		wspName = cartago.CartagoEnvironment.ROOT_WSP_DEFAULT_NAME;
 		
 		infrastructure = false;
 		local = false;
@@ -70,6 +70,7 @@ public class CartagoEnvironment extends Environment {
 
 		/* current supported options:
 		 * -debug
+		 * -name
 		 */
 		for (String opt: args){
 			if (opt.startsWith("-")){
@@ -78,7 +79,7 @@ public class CartagoEnvironment extends Environment {
 				} else {
 					throw new IllegalArgumentException("Unknown option: "+opt);
 				}
-			}
+			} 
 		}
 		
 		cartago.CartagoEnvironment env = cartago.CartagoEnvironment.getInstance();
@@ -243,8 +244,9 @@ public class CartagoEnvironment extends Environment {
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {
-			ICartagoSession context = cartago.CartagoEnvironment.getInstance().startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
-			return context;
+			// ICartagoSession context = cartago.CartagoEnvironment.getInstance().startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
+			// return context;
+			throw new RuntimeException("not implemented.");
 		}
 	}
 

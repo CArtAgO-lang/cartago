@@ -23,6 +23,7 @@ public class CartagoBasicContext {
 	private ObsEventQueue obsEventQueue; 
 
 	private ObsPropMap obsPropMap;
+	private WorkspaceId implicitWspId;
 
 	private final static IEventFilter firstEventFilter = new IEventFilter(){
 		public boolean select(ArtifactObsEvent ev){
@@ -43,7 +44,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoEnvironment.getInstance().startSession(CartagoEnvironment.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -75,7 +76,7 @@ public class CartagoBasicContext {
 	 * @param name agent name
 	 * @param workspaceName workspace name
 	 * @param workspaceHost workspace host
-	 */
+	 *//*
 	public CartagoBasicContext(String name, String workspaceName, String workspaceHost) {
 		super();
 		this.name = name;
@@ -88,7 +89,7 @@ public class CartagoBasicContext {
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
-	}
+	}*/
 	
 	public WorkspaceId getJoinedWspId(String wspName) throws CartagoException {
 		
@@ -118,7 +119,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public ActionFeedback doActionAsync(Op op) throws CartagoException {
-		long id = session.doAction(op, null, -1);
+		long id = session.doAction(op, implicitWspId, null, -1);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		return res;
 	}
@@ -147,7 +148,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public ActionFeedback doActionAsync(Op op, long timeout) throws CartagoException {
-		long id = session.doAction(op, null, timeout);
+		long id = session.doAction(op, implicitWspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		return res;
 	}
@@ -162,7 +163,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public void doAction(Op op, long timeout) throws ActionFailedException, CartagoException {
-		long id = session.doAction(op, null, timeout);
+		long id = session.doAction(op, implicitWspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		try {
 			res.waitForCompletion();

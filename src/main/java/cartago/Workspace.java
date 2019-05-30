@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -184,7 +185,7 @@ public class Workspace {
 	
 	
 	/**
-	 * Create a workspace inside the node.
+	 * Create a child workspace 
 	 * 
 	 * @param name workspace name
 	 * @return
@@ -194,63 +195,63 @@ public class Workspace {
 	}
 
 	/**
-	 * Create a workspace inside the node.
+	 * Create a child workspace
 	 * 
-	 * @param name workspace name
-	 * @param log logger
+	 * @param name
+	 * @param log
 	 * @return
+	 * @throws CartagoException
 	 */
-	public synchronized WorkspaceDescriptor createWorkspace(String logicalPath, ICartagoLogger log) throws CartagoException {
-		int index = logicalPath.lastIndexOf('/');
-		if (index == -1) {
-			return createLocalWorkspace(logicalPath, log);
-		} else {
-			String parentPath = null;
-			String name = logicalPath.substring(0,index);
-			if (logicalPath.startsWith("/")) {
-				/* from root */
-				parentPath = logicalPath.substring(0,index);
-			} else {
-				/* from this */
-				parentPath = this.id.getFullName()+"/"+logicalPath.substring(0,index);
-			}
-			try {
-				WorkspaceDescriptor wspParent = this.resolveWSP(parentPath);
-				if (wspParent.isLocal()) {
-					return wspParent.getWorkspace().createLocalWorkspace(name, log);
-				} else {
-					return CartagoEnvironment.getInstance().createRemoteWorkspace(name, wspParent);
-				}
-			} catch (Exception ex) {
-				throw new CartagoException("Parent workspace not found");
-			}
-		} 
-	}
-
-	public synchronized WorkspaceDescriptor createLocalWorkspace(String name, ICartagoLogger log) throws CartagoException {
-			WorkspaceDescriptor des = this.resolveLocalWSP(name);
-			if (des == null){
-				WorkspaceId wid = new WorkspaceId(name, this.getId()); 
-				WorkspaceDescriptor winfo = new WorkspaceDescriptor(wid, this.desc);
+	public synchronized WorkspaceDescriptor createWorkspace(String name, ICartagoLogger log) throws CartagoException {
+			Optional<WorkspaceDescriptor> res = this.resolveWSP(name);
+			if (!res.isPresent()){	
+				String envName = CartagoEnvironment.getInstance().getName();
+				UUID envId = CartagoEnvironment.getInstance().getInstance().getId();
+				WorkspaceId wid = new WorkspaceId(desc.getId().getFullName() + "/" + name); 
+				WorkspaceDescriptor winfo = new WorkspaceDescriptor(envName, envId, wid, this.desc);
 				Workspace wsp = new Workspace(wid, winfo, log);
 				winfo.setWorkspace(wsp);
 				this.childWsp.put(name, winfo);
-				CartagoEnvironment.getInstance().registerWSP(wid.getFullName().toString(), winfo);
 				return winfo;
 			} else {
 				throw new CartagoException("workspace already created");
 			}
 	}
 	
-	public synchronized WorkspaceDescriptor mountWorkspace(String targetWsp, String address, String parentWsp, String linkName, String protocol) throws CartagoException {
-		WorkspaceDescriptor des = this.resolveLocalWSP(linkName);
-		if (des == null){
-			WorkspaceDescriptor pwsp = this.resolveWSP(parentWsp);
-			WorkspaceId wid = new WorkspaceId(linkName, pwsp.getId());		
-			des = new WorkspaceDescriptor(wid, pwsp);
-			des.setRemote(targetWsp, address, protocol);
+	/**
+	 * Link an existing workspace
+	 * 
+	 * @param toBeLinked
+	 * @param linkedName
+	 * @return
+	 * @throws CartagoException
+	 */
+	public synchronized WorkspaceDescriptor linkWorkspace(WorkspaceDescriptor toBeLinked, String linkedName) throws CartagoException {
+		Optional<WorkspaceDescriptor> res = this.resolveWSP(linkedName);
+		if (!res.isPresent()){
+			WorkspaceDescriptor winfo = new WorkspaceDescriptor(toBeLinked.getEnvName(), toBeLinked.getEnvId(), toBeLinked.getId(), this.desc);
+			winfo.setWorkspace(toBeLinked.getWorkspace());
+			this.childWsp.put(linkedName, winfo);
+			return winfo;
+		} else {
+			throw new CartagoException("workspace already created");
+		}
+	}
+	
+	/**
+	 * Link an existing workspace belonging to another MAS
+	 * 
+	 * @param targetWsp
+	 * @param linkName
+	 * @param protocol
+	 * @return
+	 * @throws CartagoException
+	 */
+	public synchronized WorkspaceDescriptor mountWorkspace(String remoteWspPath, String linkName, String protocol) throws CartagoException {
+		Optional<WorkspaceDescriptor> res = this.resolveWSP(linkName);
+		if (!res.isPresent()){
+			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveRemoteWSP(remoteWspPath, protocol);			
 			this.linkedWsp.put(linkName, des);
-			CartagoEnvironment.getInstance().registerWSP(wid.getFullName().toString(), des);
 			return des;
 		} else {
 			throw new CartagoException("workspace already created");
@@ -269,27 +270,6 @@ public class Workspace {
 		} else {
 			throw new CartagoException("workspace already created");
 		}
-	}*/
-	
-	
-	/**
-	 * Get the reference to a workspace of the node.
-	 * 
-	 * @param wspName workspace name
-	 * @return
-	 * @throws CartagoException
-	 *//*
-	public synchronized CartagoWorkspace getWorkspace(String wspName) throws CartagoException {
-		CartagoWorkspace env = wsps.get(wspName);		
-		if (env==null){
-			throw new CartagoException("Workspace not found.");
-		}
-		return env;
-	}*/
-	
-	/*
-	public Collection<String> getWorkspaces() {
-		return wsps.keySet();
 	}*/
 	
 	
@@ -346,44 +326,32 @@ public class Workspace {
 		return logManager;
 	}
 
-	public WorkspaceDescriptor resolveWSP(String logicalPath) throws WorkspaceNotFoundException {
-		int index = logicalPath.lastIndexOf('/');
-		if (index == -1) {
-			WorkspaceDescriptor des = resolveLocalWSP(logicalPath);
-			if (des == null) {
-				throw new WorkspaceNotFoundException();
-			} else {
-				return des;
-			}
-		} else {
-			
-			String fullPath = null;
-			if (logicalPath.startsWith("/")) {
-				/* from root */
-				fullPath = logicalPath;
-			} else {
-				/* from this */
-				fullPath = this.id.getFullName()+"/"+logicalPath;
-			}
-			
-			return CartagoEnvironment.getInstance().resolveWSP(fullPath); 
-		} 
-	}
-
 	
-	public WorkspaceDescriptor resolveLocalWSP(String name) {
+	public Optional<WorkspaceDescriptor> resolveWSP(String name) {
 		WorkspaceDescriptor wsp = this.childWsp.get(name);
 		if (wsp != null) {
-			return wsp;
+			return Optional.of(wsp);
 		} else {
-			return this.linkedWsp.get(name);
+			wsp = this.linkedWsp.get(name);
+			if (wsp == null) {
+				return Optional.empty();
+			} else {
+				return Optional.of(wsp);
+			}
 		}
 	}
 	
-	public WorkspaceDescriptor getChildWSP(String name) {
-		return this.childWsp.get(name);
+	public Optional<WorkspaceDescriptor> getChildWSP(String name) {
+		WorkspaceDescriptor des = childWsp.get(name);
+		if (des == null) {
+			return Optional.empty();
+		} else {
+			return Optional.of(des);
+		}
 	}
-
+	
+	
+	
 	/**
 	 * Join a workspace
 	 * 
@@ -393,7 +361,7 @@ public class Workspace {
 	 * @param eventListener
 	 * @return
 	 * @throws CartagoException
-	 */
+	 *//*
 	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, String artBodyClassName, ICartagoCallback eventListener) throws CartagoException {
 		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
 		if (wdes.isLocal()) {
@@ -401,7 +369,7 @@ public class Workspace {
 		} else {
 			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
 		}
-	}
+	}*/
 	
 	/**
 	 * Join a workspace
@@ -412,7 +380,7 @@ public class Workspace {
 	 * @param eventListener
 	 * @return
 	 * @throws CartagoException
-	 */
+	 *//*
 	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
 		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
 		if (wdes.isLocal()) {
@@ -420,7 +388,7 @@ public class Workspace {
 		} else {
 			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
 		}
-	}	
+	}*/	
 
 	/**
 	 * Join this workspace
@@ -856,11 +824,16 @@ public class Workspace {
 			String wspName = name.substring(0, index);
 			String artName = name.substring(index + 1);
 			try {
-				WorkspaceDescriptor wdes = this.resolveWSP(wspName);
-				if (wdes.isLocal()) {
-					return wdes.getWorkspace().lookupLocalArtifact(userId, artName);
+				Optional<WorkspaceDescriptor> res = this.resolveWSP(wspName);
+				if (res.isPresent()) {
+					WorkspaceDescriptor des = res.get();
+					if (des.isLocal()) {
+						return des.getWorkspace().lookupLocalArtifact(userId, artName);
+					} else {
+						throw new RuntimeException("not implemented yet.");
+					}
 				} else {
-					throw new RuntimeException("not implemented yet.");
+					throw new WorkspaceNotFoundException();
 				}
 			} catch (Exception ex) {
 				throw new WorkspaceNotFoundException();
