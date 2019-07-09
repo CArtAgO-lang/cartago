@@ -19,6 +19,7 @@ package cartago.infrastructure.rmi;
 
 import java.rmi.*;
 import java.net.*;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cartago.*;
@@ -93,10 +94,11 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
+/*
 	public GlobalWorkspaceInfo getRemoteWorkspaceInfo(String address, String envName, String fullPath) throws WorkspaceNotFoundException {
 		throw new RuntimeException("not implemented.");
 	}
-/*
+
 	public NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException {
 		try {
 			String fullAddress = address;
@@ -189,6 +191,40 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		} else {
 			return -1;
 		}
+		
+	}
+
+	@Override
+	public ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote,
+			AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal)
+			throws CartagoInfrastructureLayerException, CartagoException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String envName)
+			throws WorkspaceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor createRemoteWorkspace(String wspName, String address, String envName)
+			throws CartagoException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void spawnNode(String address, String masName, UUID envId, String rootWspName) {
+		// TODO Auto-generated method stub
 		
 	}
 
