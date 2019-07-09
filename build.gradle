@@ -163,3 +163,8 @@ artifacts {
     archives cartagoJar
     archives jacaJar
 }
+
+task execute(type:JavaExec) {
+   main = mainClass
+   classpath = sourceSets.main.runtimeClasspath
+}
