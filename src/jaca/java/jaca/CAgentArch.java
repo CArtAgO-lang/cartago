@@ -226,23 +226,23 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 						} else if (op.getName().equals("createWorkspace")) {
 							Object[] params = op.getParamValues();
 							if (params.length > 0) {
-								String artRef = (String) params[0];
+								String wspRef = (String) params[0];
 								try {
-									int index = artRef.indexOf('/');
+									int index = wspRef.indexOf('/');
 									if (index == -1) {
 										/* action on the workspace artifact of the implicit workspace */
 										actId = envSession.doAction(op, this.implicitWspId, test, timeout);
 									} else {
-										String fullPath = artRef;
-										if (!artRef.startsWith("/")) {
-											fullPath = this.implicitWspId.getFullName() + "/" + artRef;
+										String fullPath = wspRef;
+										if (!wspRef.startsWith("/")) {
+											fullPath = this.implicitWspId.getFullName() + "/" + wspRef;
 										}
 										fullPath = resolveRelativePath(fullPath);
 										int index2 = fullPath.lastIndexOf('/');
-										String wspRef = fullPath.substring(0, index2);
+										String wspRef2 = fullPath.substring(0, index2);
 										artName = fullPath.substring(index2 + 1);
 										
-										WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef);
+										WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef2);
 										
 										/* override the workspace full name in the op with the simple name */
 										params[0] = artName;

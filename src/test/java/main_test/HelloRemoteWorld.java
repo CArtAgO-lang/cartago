@@ -1,7 +1,7 @@
 package main_test;
 
 import cartago.CartagoEnvironment;
-import cartago.util.BasicLogger;
+import cartago.utils.BasicLogger;
 
 public class HelloRemoteWorld {
 	
