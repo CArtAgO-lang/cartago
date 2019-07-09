@@ -46,6 +46,7 @@ import io.vertx.ext.web.client.WebClient;
 public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	
 	static public final int DEFAULT_PORT = 20100; 
+	static public final int DAEMON_PORT = 10000; 
 	private CartagoEnvironmentService service;
 	private Vertx vertx;
 	private boolean error = false;
@@ -145,8 +146,82 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		String envName = fullName.substring(0, index3);
 		String wspPath = fullName.substring(index3);
 		return this.resolveRemoteWSP(wspPath, address, envName);
-	}
+	}	
 	
+	public WorkspaceDescriptor createRemoteWorkspace(String fullWspName, String address, String envName) throws CartagoException {
+		try {
+			
+			String addr = address;
+			if (addr.startsWith("http://")) {
+				addr = addr.substring(7);
+			}
+			
+			String host = getHost(addr);
+			int port = getPort(addr);
+			if (port == -1) {
+				port = DEFAULT_PORT;
+			}
+
+			Semaphore ev = new Semaphore(0);
+			
+			Holder<WorkspaceDescriptor> result = new Holder<WorkspaceDescriptor>();
+			
+			WebClient client = WebClient.create(vertx);
+			// String uri = "/" + envName + fullPath;
+			String uri = "/cartago/api/envs"; 
+			
+			int index = fullWspName.lastIndexOf("/");
+			String rootWspName = fullWspName.substring(index + 1);
+			
+			JsonObject msg = new JsonObject();
+			msg.put("wspRootName", rootWspName);
+			msg.put("envName", CartagoEnvironment.getInstance().getName());
+			msg.put("envPort", port);
+			
+			Buffer buffer = msg.toBuffer();
+
+			client
+			  .post(22000, host, uri)
+			  .sendBuffer(buffer, ar -> {
+			    try {
+					if (ar.succeeded()) {
+				      HttpResponse<Buffer> response = ar.result();
+				      // System.out.println("Received response with status code" + response.statusCode());
+				      JsonObject ws = response.bodyAsJsonObject();
+				      // GlobalWorkspaceInfo info = JsonUtil.toGlobalWorkspaceInfo(ws);
+				      // String envName = ws.getString("envName");
+				      String envId = ws.getString("envId");
+				      UUID uuid = UUID.fromString(envId);
+				      JsonObject id = ws.getJsonObject("wspId");
+				      WorkspaceId wid = JsonUtil.toWorkspaceId(id);
+				      WorkspaceDescriptor des = new WorkspaceDescriptor(envName, uuid, wid, fullWspName, address, "web");
+				      result.set(des);	
+				    } else {
+				      System.out.println("Something went wrong " + ar.cause().getMessage());
+				    }
+			    } catch (Exception ex) {
+			    	ex.printStackTrace();
+			    } finally {
+				    ev.release();
+			    }
+			  });
+			
+			try {
+				ev.acquire();
+			} catch(Exception ex) {
+				ex.printStackTrace();
+			}
+			
+			if (result.isPresent()) {
+				return result.getValue();
+			} else {
+				throw new WorkspaceNotFoundException();
+			}
+		} catch (Exception ex) {
+			throw new WorkspaceNotFoundException();
+		}		
+	}
+
 	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String masName) throws WorkspaceNotFoundException {
 		try {
 			
@@ -215,6 +290,51 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			throw new WorkspaceNotFoundException();
 		}
 	}
+
+	
+	public void spawnNode(String address, String masName, UUID envId, String rootWspName) {
+		try {
+			
+			String host = getHost(address);
+			int port = getPort(address);
+			if (port == -1) {
+				port = DEFAULT_PORT;
+			}
+			
+			WebClient client = WebClient.create(vertx);
+			String uri = "/cartago/api/envs"; 
+			
+			JsonObject msg = new JsonObject();
+			msg.put("envName", masName);
+			msg.put("envPort", port);
+			msg.put("wspRootName", rootWspName);
+			Buffer buffer = msg.toBuffer(); 
+				
+			Semaphore done = new Semaphore(0);
+			
+			client
+			  .post(DAEMON_PORT, host, uri)
+			  .sendBuffer(buffer, ar -> {
+			    try {
+					if (ar.succeeded()) {
+				      HttpResponse<Buffer> response = ar.result();
+				      System.out.println("Spawn succeeded: " + masName + " at " + address);
+				    } else {
+				      System.out.println("Something went wrong " + ar.cause().getMessage());
+				    }
+			    } catch (Exception ex) {
+			    	ex.printStackTrace();
+			    } finally {
+			    	done.release();
+			    }
+			  });
+			
+			  done.acquire();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
 	
 	public OpId execRemoteInterArtifactOp(ICartagoCallback callback, long callbackId,
 			AgentId userId, ArtifactId srcId, ArtifactId targetId, String address, Op op,

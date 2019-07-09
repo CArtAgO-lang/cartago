@@ -56,6 +56,20 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
+	 * Create a workspace on a remote node
+	 * 
+	 * @param name name of the workspace
+	 */
+	@OPERATION void createWorkspace(String name, String address){
+		try {
+			wsp.createWorkspaceOnRemoteNode(name, address, CartagoEnvironment.getInstance().getDefaultInfrastructureLayer(), null);
+			defineObsProperty("workspace",name,wsp.getId());
+		} catch (Exception ex){
+			failed("Workspace creation error");
+		}
+	}
+
+	/**
 	 * Experimental support for topology
 	 * 
 	 * Create a workspace in the local node.

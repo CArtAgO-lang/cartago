@@ -200,6 +200,27 @@ public class Workspace {
 	}
 
 	/**
+	 * Create a child workspace on a remote node
+	 * 
+	 * @param name
+	 * @param log
+	 * @return
+	 * @throws CartagoException
+	 */
+	public synchronized WorkspaceDescriptor createRemoteWorkspace(String name, String address, String protocol) throws CartagoException {
+			Optional<WorkspaceDescriptor> res = this.resolveWSP(name);
+			if (!res.isPresent()){	
+				String envName = CartagoEnvironment.getInstance().getName();				
+				String fullName = desc.getId().getFullName() + "/" + name; 
+				WorkspaceDescriptor des = CartagoEnvironment.getInstance().createRemoteWorkspace(fullName, address, envName, protocol);			
+				this.childWsp.put(name, des);
+				return des;
+			} else {
+				throw new CartagoException("workspace already created");
+			}
+	}
+
+	/**
 	 * Create a child workspace
 	 * 
 	 * @param name
@@ -219,9 +240,33 @@ public class Workspace {
 				this.childWsp.put(name, winfo);
 				return winfo;
 			} else {
-				throw new CartagoException("workspace already created");
+				throw new CartagoException("workspace already present");
 			}
 	}
+	
+	/**
+	 * Create a child workspace on a remote note
+	 * 
+	 * @param wspName
+	 * @param log
+	 * @return
+	 * @throws CartagoException
+	 */
+	public  WorkspaceDescriptor createWorkspaceOnRemoteNode(String wspName, String address, String protocol, ICartagoLogger log) throws CartagoException {
+			Optional<WorkspaceDescriptor> res = this.resolveWSP(wspName);
+			if (!res.isPresent()){	
+				String envName = CartagoEnvironment.getInstance().getName();
+				String rootWspName = desc.getId().getFullName() + "/" + wspName; 
+				WorkspaceDescriptor winfo = CartagoEnvironment.getInstance().createRemoteWorkspace(rootWspName, address, envName, protocol);
+				synchronized (this) {
+					this.childWsp.put(wspName, winfo);
+					return winfo;
+				}
+			} else {
+				throw new CartagoException("workspace already present");
+			}
+	}
+	
 	
 	/**
 	 * Link an existing workspace

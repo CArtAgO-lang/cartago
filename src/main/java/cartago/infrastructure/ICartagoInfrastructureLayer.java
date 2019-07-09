@@ -17,6 +17,8 @@
  */
 package cartago.infrastructure;
 
+import java.util.UUID;
+
 import cartago.*;
 
 /**
@@ -43,10 +45,15 @@ public interface ICartagoInfrastructureLayer {
 	 * @throws CartagoException
 	 */
 	ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws CartagoInfrastructureLayerException, CartagoException;
-
-	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String masName) throws WorkspaceNotFoundException;
+	
+	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String envName) throws WorkspaceNotFoundException;
 
 	WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException;
+	
+	WorkspaceDescriptor createRemoteWorkspace(String wspName, String address, String envName) throws CartagoException;
+	
+	void spawnNode(String address, String masName, UUID envId, String rootWspName);
+	
 	
 	/**
 	 * Execute an linked operation from a local artifact to a target remote artifact using this service

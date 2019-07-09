@@ -69,7 +69,19 @@ public class CartagoEnvironment {
 		return instance;
 	}
 	
-	
+	public static synchronized void createFromRemote(String envName, String address, String wspRootName, WorkspaceId parentId, String parentAddress) throws CartagoException {			
+		if (instance != null) {
+			throw new CartagoException();
+		}		
+		WorkspaceDescriptor parent = new WorkspaceDescriptor(envName, instance.getId(), parentId, null, parentAddress, null);		
+		instance = new CartagoEnvironment();
+		instance.initFromRemote(envName, wspRootName, parent);			
+		instance.installInfrastructureLayer("web");
+		instance.startInfrastructureService("web", address);
+		// env.registerLogger("/main",new BasicLogger());  
+		System.out.println("CArtAgO Node " + envName + "Ready at " + address);
+	}
+		
 	private CartagoEnvironment() {
 		debuggers = new HashMap<String,Inspector>();
 		infraLayers = new HashMap<String,ICartagoInfrastructureLayer>();
@@ -102,7 +114,7 @@ public class CartagoEnvironment {
 	 * @throws CartagoException
 	 */
 	public void init(String envName) throws CartagoException {
-		this.init(envName, null);
+		this.init(envName, (ICartagoLogger) null);
 	}
 
 	/**
@@ -121,6 +133,16 @@ public class CartagoEnvironment {
 	 * @param logger
 	 * @throws CartagoException
 	 */
+	public void init(String rootWspName, String envName) throws CartagoException {
+		this.init("/"+rootWspName, envName); 
+	}
+
+	/**
+	 * Init the environment.
+	 * 
+	 * @param logger
+	 * @throws CartagoException
+	 */
 	public void init(String rootWspName, String envName, ICartagoLogger logger) throws CartagoException {
 		this.envName = envName; 
 		if (rootWsp == null) {
@@ -130,7 +152,24 @@ public class CartagoEnvironment {
 			rootWsp.setWorkspace(wsp);
 		}
 	}
+
+	/**
+	 * Init the environment
+	 * 
+	 * @param logger
+	 * @throws CartagoException
+	 */
+	public void initFromRemote(String fullName, String envName, WorkspaceDescriptor parent) throws CartagoException {
+		this.envName = envName; 
+		if (rootWsp == null) {
+			WorkspaceId wid = new WorkspaceId(fullName); 
+			rootWsp = new WorkspaceDescriptor(envName, this.envId, wid, parent);
+			Workspace wsp = new Workspace(wid, rootWsp, null);
+			rootWsp.setWorkspace(wsp);
+		}
+	}
 	
+
 	/**
 	 * Get version.
 	 * 
@@ -138,6 +177,10 @@ public class CartagoEnvironment {
 	 */
 	public String getVersion() {
 		return CARTAGO_VERSION.getID();
+	}
+	
+	public String getDefaultInfrastructureLayer() {
+		return this.defaultInfraLayer;
 	}
 	
 	
@@ -233,6 +276,13 @@ public class CartagoEnvironment {
 		ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
 		return layer.resolveRemoteWSP(remoteFullPath);
 	}
+	
+	
+	public void spawnNode(String address, String rootWspName, String protocol) {
+		ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+		layer.spawnNode(address, this.envName, this.envId, rootWspName);
+	}
+
 
 	// agent session 
 	
@@ -391,8 +441,40 @@ public class CartagoEnvironment {
 			throw new CartagoException("Join " + wspFullNameRemote + "@"+address+" failed ");
 		}
 	}
+
+
+	/*
+	public synchronized WorkspaceDescriptor createRemoteWSP(String wspName, String address, String envName, String protocol) throws CartagoException {
+		try {
+			if ((protocol == null) || (protocol.equals("default"))){
+				protocol = defaultInfraLayer;
+			} 
+			ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+			WorkspaceDescriptor des = layer.createRemoteWSP(wspName, address, envName);
+			return des;
+		} catch (CartagoInfrastructureLayerException ex) {
+			ex.printStackTrace();
+			throw new CartagoException("CreateWorkspace" + wspName + "@"+address+" failed ");
+		}
+	}*/
+
+
+	public WorkspaceDescriptor createRemoteWorkspace(String fullName, String address, String envName, String protocol) throws CartagoException {
+		try {
+			if ((protocol == null) || (protocol.equals("default"))){
+				protocol = defaultInfraLayer;
+			} 
+			ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
+			WorkspaceDescriptor des = layer.createRemoteWorkspace(fullName, address, envName);
+			return des;
+		} catch (CartagoInfrastructureLayerException ex) {
+			ex.printStackTrace();
+			throw new CartagoException("CreateWorkspace" + fullName + "@"+address+" failed ");
+		}
 		
+	}
 	
+
 	/**
 	 * Exec a linked operation - called by artifacts
 	 * 

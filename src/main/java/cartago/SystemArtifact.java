@@ -49,6 +49,20 @@ public class SystemArtifact extends Artifact {
 	 * The dispose routine of all artifacts is called.
 	 * 
 	 */
+	@OPERATION void spawnNode(String address, String wspRootName, String protocol){
+		try {
+			CartagoEnvironment.getInstance().spawnNode(address, wspRootName, protocol);
+		} catch (Exception ex){
+			ex.printStackTrace();
+			failed("spwan failed.");
+		}
+	}
+	/**
+	 * Shutdown gracefully the node.
+	 * 
+	 * The dispose routine of all artifacts is called.
+	 * 
+	 */
 	@OPERATION void shutdownNode(){
 		try {
 			CartagoEnvironment.getInstance().shutdown();
