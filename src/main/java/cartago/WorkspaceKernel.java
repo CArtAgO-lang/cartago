@@ -758,9 +758,8 @@ public class WorkspaceKernel  {
 				try {
 					opTodo.put(info);
 					return true;
-				} catch (Exception ex){
-					ex.printStackTrace();
-					throw new CartagoException("exec op exception.");
+				} catch (InterruptedException ex){
+					throw new CartagoException(ex.toString());
 				}
 			} else {
 				try {
