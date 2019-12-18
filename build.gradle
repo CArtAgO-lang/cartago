@@ -21,7 +21,7 @@ sourceSets {
         srcDir 'src/main/java'
       }
 
-      output.classesDir = 'build/classes/main'
+      java.outputDir = file('build/classes/main')
   }
 
   jaca {
@@ -30,7 +30,7 @@ sourceSets {
         srcDir 'src/jaca/java'
       }
 
-      output.classesDir = 'build/classes/jaca'
+      java.outputDir = file('build/classes/jaca')
       compileClasspath = files ('build/classes/main','build/classes/jaca') + configurations.compile
   }
 }

@@ -84,14 +84,16 @@ public class CartagoEnvironment extends Environment {
 		
 		if (standalone){
 			try {
-				 if (debug){
-					 Inspector insp = new Inspector();
-					 insp.start();
-					 CartagoService.startNode(insp.getLogger());
-				 }
-				 CartagoService.startNode();
-				
-				CartagoService.installInfrastructureLayer("default");
+				if (debug) {
+					Inspector insp = new Inspector();
+					insp.start();
+					CartagoService.startNode(insp.getLogger());
+				}
+				CartagoService.startNode();
+
+				if (!CartagoService.isInfrastructureLayerInstalled("default"))
+					CartagoService.installInfrastructureLayer("default");
+
 				checkProtocols(args);
 				logger.info("CArtAgO Environment - standalone setup succeeded.");
 			} catch (Exception ex){
