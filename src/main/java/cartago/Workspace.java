@@ -1794,8 +1794,8 @@ public class Workspace {
 					env.serveOperation(item);
 					//nfailures = 0;
 				} catch (Exception ex){
-					//ex.printStackTrace();
-					//env.log("[ENV-CONTROLLER] uncaught operation exception: "+ex);
+					ex.printStackTrace();
+					env.log("[ENV-CONTROLLER] uncaught operation exception: "+ex);
 					/*
 					 nfailures++;
 					if (nfailures>10){

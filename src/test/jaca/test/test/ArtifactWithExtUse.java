@@ -15,9 +15,7 @@ public class ArtifactWithExtUse extends Artifact {
 		prop.updateValue(0);
 	}
 
-	/* ext API */
-	
-	private void externalInc(){
+	void externalInc(){
 		ObsProperty prop = this.getObsProperty("a");
 		prop.updateValue(prop.intValue()+1);
 	}
@@ -34,11 +32,10 @@ public class ArtifactWithExtUse extends Artifact {
 			while (true){
 				try {
 					Thread.sleep(1000);
-					art.beginExternalSession();
+					art.beginExtSession();
 					art.externalInc();
-					art.endExternalSession(true);
+					art.endExtSession();
 				} catch (Exception ex){
-					art.endExternalSession(false);
 				}
 			}
 		}

@@ -1121,15 +1121,15 @@ public abstract class Artifact {
 	
 	
 	/* Direct API interface for external use by ext threads */
+
 	
 	/**
-	 * Begins an external use session of the artifact.
+	 * Begins a session of the artifact.
 	 * 
-	 * Method to be called by external threads (not agents) before
-	 * starting calling methods on the artifact.
+	 * Internal use, for kernel.
 	 * 
 	 */
-	public void beginExternalSession(){
+	public void beginExtSession(){
 		try {
 			lock.lock();
 		} catch (Exception ex) {
@@ -1140,18 +1140,31 @@ public abstract class Artifact {
 	/**
 	 * Ends an external use session.
 	 * 
-	 * Method to be called to close a session started by a thread
-	 * to finalize the state.
+	 * Internal use, for kernel.
 	 * 
 	 * @param success
 	 */
-	public void endExternalSession(boolean success){
+	public void endExtSession(){
 		try {
-			if (success){
-				commitObsStateChanges();
-			} else {
-				obsPropertyMap.rollbackChanges();
-			}
+			commitObsStateChanges();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			guards.signalAll();
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Ends an external use session.
+	 * 
+	 * Internal use, for kernel.
+	 * 
+	 * @param success
+	 */
+	public void endExtSessionWithFailure(){
+		try {
+			obsPropertyMap.rollbackChanges();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -1359,4 +1372,88 @@ public abstract class Artifact {
 
 		
 	}
+	
+	/**
+	 * Interface for external threads.
+	 * 
+	 * @author aricci
+	 *
+	 *//*
+	public class ArtifactExternalInterface {
+
+		private Artifact art;
+		
+		ArtifactExternalInterface(Artifact art){
+			this.art = art;
+		}
+		
+		public void execInternalOp(String opName, Object... params) {
+			try {
+				art.execInternalOp(opName, params);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw new IllegalArgumentException("Error in executing internal op.");
+			}
+		}
+		
+		protected void updateObsProperty(String name, Object... values){
+			try {
+				lock.lock();
+				art.updateObsProperty(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void defineObsProperty(String name, Object... values){
+			try {
+				lock.lock();
+				art.defineObsProperty(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+		
+		protected void removeObsProperty(String name){
+			try {
+				lock.lock();
+				art.removeObsProperty(name);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void removeObsPropertyByTemplate(String name, Object... values){
+			try {
+				lock.lock();
+				art.removeObsPropertyByTemplate(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void generateSignal(String type, Object... objs){
+			try {
+				lock.lock();
+				art.commitObsStateChangesAndSignal(null, new Tuple(type, objs));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+		
+	}*/
 }

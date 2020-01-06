@@ -50,7 +50,7 @@ public class AgentBodyArtifact extends Artifact {
 	
 	/* called directly by the kernel */
 	
-	void addFocusedArtifact(String wspName, String artName, ArtifactId id){
+	public  void addFocusedArtifact(String wspName, String artName, ArtifactId id){
 		defineObsProperty("focused",wspName,artName,id);
 	}
 	

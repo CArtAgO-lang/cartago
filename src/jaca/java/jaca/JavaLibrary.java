@@ -154,13 +154,14 @@ public class JavaLibrary {
 	            if (obtype.equals("boolean")) {
 	                boolean[] array = new boolean[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Boolean)list[i];
+	                	// @TODO to be fixed
+	                	array[i] = (Boolean)list[i]; 
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("byte")) {
 	                byte[] array = new byte[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Byte)list[i];
+	                	array[i] = ((byte)((NumberTerm)list[i]).solve());
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("char")) {
@@ -172,31 +173,31 @@ public class JavaLibrary {
 	            } else if (obtype.equals("short")) {
 	                short[] array = new short[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Short)list[i];
+	                	array[i] = ((short)((NumberTerm)list[i]).solve());
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("int")) {
 	                int[] array = new int[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Integer)list[i];
+	                	array[i] = ((int)((NumberTerm)list[i]).solve());
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("long")) {
 	                long[] array = new long[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Long)list[i];
+	                	array[i] = ((long)((NumberTerm)list[i]).solve());
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("float")) {
 	                float[] array = new float[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Float)list[i];
+	                	array[i] = ((float)((NumberTerm)list[i]).solve());
 	                }
 	                newArray = array;
 	            } else if (obtype.equals("double")) {
 	                double[] array = new double[nargs];
 	                for (int i = 0; i < array.length; i++){
-	                	array[i] = (Double)list[i];
+	                	array[i] = ((NumberTerm)list[i]).solve();
 	                }
 	                newArray = array;
 	            } else {

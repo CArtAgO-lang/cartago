@@ -17,12 +17,8 @@
  */
 package cartago;
 
-import cartago.*;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.time.Instant;
+
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -36,5 +32,92 @@ public class JsonObj implements java.io.Serializable {
 
 	private JsonObject obj;
 	
+	public JsonObj() {
+		obj = new JsonObject();
+	}
+	
+	public double getDouble(String key) {
+		return obj.getDouble(key);
+	}
+
+	public void putDouble(String key, double value) {
+		obj.put(key, value);
+	}
+
+	public boolean getBoolean(String key) {
+		return obj.getBoolean(key);
+	}
+
+	public void putBoolean(String key, boolean value) {
+		obj.put(key, value);
+	}
+
+	public byte[] getBinary(String key) {
+		return obj.getBinary(key);
+	}
+
+	public void putBinary(String key, byte[] value) {
+		obj.put(key, value);
+	}
+ 
+	public float getFloat(String key) {
+		return obj.getFloat(key);
+	}
+
+	public void putFloat(String key, float value) {
+		obj.put(key, value);
+	}
+
+	public Instant getInstant(String key) {
+		return obj.getInstant(key);
+	}
+	
+	public void putInstant(String key, Instant value) {
+		obj.put(key, value);
+	}
+
+	public int getInteger(String key) {
+		return obj.getInteger(key);
+	}
+
+	public void putInteger(String key, int value) {
+		obj.put(key, value);
+	}
+	
+	public JsonArray getJsonArray(String key) {
+		return obj.getJsonArray(key);
+	}
+
+	public void putJsonArray(String key, JsonArray value) {
+		obj.put(key, value);
+	}
+
+	public JsonObject getJsonObject(String key) {
+		return obj.getJsonObject(key);
+	}
+	
+	public void putJsonObject(String key, JsonObject obj) {
+		obj.put(key, obj);
+	}
+
+	public long getLong(String key) {
+		return obj.getLong(key);
+	}
+
+	public void put(String key, long value) {
+		obj.put(key, value);
+	}
+	
+	public String getString(String key) {
+		return obj.getString(key);
+	}
+
+	public void putString(String key, String value) {
+		obj.put(key, value);
+	}
+
+	public JsonObject getImplementation() {
+		return obj;
+	}
 	
 }

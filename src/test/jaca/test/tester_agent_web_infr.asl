@@ -1,4 +1,4 @@
-// !test_wsp.  // OK
+!test_wsp.  // OK
 
 // !test_link. // OK
 
@@ -9,7 +9,7 @@
  * then launch LaunchJasonTestWebInfr 
  */
 
-!test_remote.  // OK 
+// !test_remote.  // OK 
 
 /* 
  * to !test_remote 

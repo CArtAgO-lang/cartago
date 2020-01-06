@@ -48,7 +48,7 @@ public class new_array extends DefaultInternalAction {
         
 		if (args.length != 3) {
 			throw new JasonException(
-					"Invalid number of arguments:  new_obj(+ClassName,+Params,-ObjRef)");
+					"Invalid number of arguments:  new_array(+ClassName,+Params,-ObjRef)");
 		}
 
 		StringTerm clName = null;
