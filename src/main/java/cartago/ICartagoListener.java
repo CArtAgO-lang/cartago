@@ -17,13 +17,15 @@
  */
 package cartago;
 
+import java.io.Serializable;
+
 /**
  * User interface to handle CArtAgO Events.
  * 
  * @author aricci
  *
  */
-public interface ICartagoListener {
+public interface ICartagoListener extends Serializable {
 	
 	/**
 	 * Notify a CArtAgO event occurred inside a workspace.

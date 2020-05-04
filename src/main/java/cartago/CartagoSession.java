@@ -1,5 +1,6 @@
 package cartago;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +15,7 @@ import cartago.util.agent.ArtifactObsProperty;
  * @author aricci
  *
  */
-public class CartagoSession implements ICartagoSession, ICartagoCallback {
+public class CartagoSession implements ICartagoSession, ICartagoCallback, Serializable {
 
 	// one context for workspace, the agent can work in multiple workspaces
 	private ConcurrentHashMap<WorkspaceId, ICartagoContext> contexts;

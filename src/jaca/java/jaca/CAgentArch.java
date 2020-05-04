@@ -1,5 +1,7 @@
 package jaca;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,10 +65,10 @@ import jason.asSyntax.Trigger.TEType;
 import jason.asSyntax.parser.ParseException;
 import jason.bb.BeliefBase;
 
-public class CAgentArch extends AgArch implements cartago.ICartagoListener {
+public class CAgentArch extends AgArch implements cartago.ICartagoListener, Serializable {
 
 	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_prop"));
-	static protected final Term OBS_EV_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
+	static protected final Term OBS_EV_PERCEPT   = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
 	private HashMap<ArtifactId, Set<Atom>> mappings = new HashMap<>();
 	static private final List<String> DEF_OPS = Arrays.asList( 
@@ -75,7 +77,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		      "addRole","removeRole","addRolePolicy","removeRolePolicy","setDefaultRolePolicy","out","in","inp","rd","rdp","joinRemoteWorkspace",
 		      "getNodeId","enableLinkingWithNode","shutdownNode","crash","joinWorkspace","createWorkspace","print","println");
 
-	protected ICartagoSession envSession;
+	protected transient ICartagoSession envSession;
 
 	// actions that have been executed and wait for a completion events
 	protected ConcurrentHashMap<Long, PendingAction> pendingActions;
@@ -83,7 +85,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	// each agent has its own Java object map
 	protected JavaLibrary lib;
 
-	protected Logger logger;
+	protected transient Logger logger;
 
 	// private boolean firstManualFetched;
 
@@ -105,6 +107,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		return envSession;
 	}
 
+	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		initBridge();
+	}
+	
 	/**
 	 * Creates the agent class defined by <i>agClass</i>, default is jason.asSemantics.Agent. The agent class will parse the source code, create the transition system (TS), ...
 	 */

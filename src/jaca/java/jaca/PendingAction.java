@@ -1,10 +1,11 @@
 package jaca;
 
-import jason.asSemantics.ActionExec;
-import jason.asSyntax.*;
-import cartago.*;
+import java.io.Serializable;
 
-public class PendingAction {
+import jason.asSemantics.ActionExec;
+import jason.asSyntax.Structure;
+
+public class PendingAction implements Serializable {
 
 	private long actionId;
 	private Structure action;

@@ -19,7 +19,7 @@ import jason.asSyntax.*;
  * @author aricci
  *
  */
-public class JavaLibrary {
+public class JavaLibrary implements Serializable {
 
     private HashMap<String,Object> currentObjects;
     private HashMap<Object,Atom> currentObjects_inverse;

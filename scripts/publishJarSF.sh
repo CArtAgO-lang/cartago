@@ -1,8 +1,5 @@
 #/bin/sh
 
-# use gradle 4
-export PATH=$HOME/bin/gradle-4.10.2/bin:$PATH
-
 
 # check user at sourceforge
 if [ -z $USERSF ] ; then
@@ -10,12 +7,12 @@ if [ -z $USERSF ] ; then
     exit
 fi
 
-REL=2.4
+REL=2.5-SNAPSHOT
 
 
 # for cartago
 
-gradle cartagoJar
+./gradlew cartagoJar
 
 MAVEN=$HOME/.m2/repository/org/jacamo/cartago
 
@@ -37,7 +34,7 @@ scp -r $MAVEN/$REL $USERSF,jacamo@web.sf.net:/home/project-web/jacamo/htdocs/mav
 
 # for Jaca
 
-gradle jacaJar
+./gradlew jacaJar
 MAVEN=$HOME/.m2/repository/org/jacamo/jaca
 
 mkdir -p $MAVEN/$REL
