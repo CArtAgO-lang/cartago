@@ -20,6 +20,7 @@ import cartago.AgentBodyArtifact;
 import cartago.AgentId;
 import cartago.ArtifactDescriptor;
 import cartago.ArtifactId;
+import cartago.ArtifactInfo;
 import cartago.ArtifactObsProperty;
 import cartago.CartagoEvent;
 import cartago.CartagoException;
@@ -110,10 +111,34 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		return envSession;
 	}
 
+	private List<ArtifactId> focusedArts = null;
+	
+	private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        try {
+        	focusedArts = new ArrayList<>();
+        	for (WorkspaceId w: envSession.getJoinedWorkspaces()) {
+        		for (ArtifactId aid : CartagoService.getController(w.getName()).getCurrentArtifacts()) {
+        			ArtifactInfo info = CartagoService.getController(w.getName()).getArtifactInfo(aid.getName());
+                    info.getObservers().forEach(y -> {
+                        if (y.getAgentId().getAgentName().equals(getAgName())) {
+                        	focusedArts.add(info.getId());
+                        }
+                    });
+                }
+        	}
+        } catch (CartagoException e) {
+            e.printStackTrace();
+        }
+        
+        stream.defaultWriteObject();
+    }
+	public List<ArtifactId> getFocusedArtsBeforeSerialization() {
+		return focusedArts;
+	}
+	
 	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-		logger = Logger.getLogger("CAgentArch");
-		//initBridge();
+		logger = Logger.getLogger("CAgentArch");		
 	}
 	
 	/**
@@ -126,17 +151,20 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 
 	@Override
 	public void stop() {
-		for (WorkspaceId wid: allJoinedWsp) {
-            try {
-                envSession.doAction(wid, new Op("quitWorkspace"), null, -1);
-                //getTS().getLogger().info("quit "+wid.getName());
-            } catch (CartagoException e) {
-            } catch (Exception e) {
-                if (! (e instanceof InterruptedException)) {
-                    e.printStackTrace();
-                }
-            }
-        }
+		if (envSession != null) {
+			for (WorkspaceId wid: allJoinedWsp) {
+	            try {
+	                envSession.doAction(wid, new Op("quitWorkspace"), null, -1);
+	                //getTS().getLogger().info("quit "+wid.getName());
+	            } catch (CartagoException e) {
+	            } catch (Exception e) {
+	                if (! (e instanceof InterruptedException)) {
+	                    e.printStackTrace();
+	                }
+	            }
+	
+			}
+		}
 		allJoinedWsp.clear();
 	}
 	
@@ -145,13 +173,10 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		try {			
 			this.agent = getTS().getAg();
 			this.belBase = agent.getBB();
-			System.out.println("***me="+agentName);
-
 
 			envSession = CartagoEnvironment.getInstance().startSession(agentName, this);
 
 			allJoinedWsp = new HashSet<>(envSession.getJoinedWorkspaces());
-			System.out.println("**"+allJoinedWsp);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.warning("[CARTAGO] WARNING: No default workspace found for " + agentName);
@@ -442,7 +467,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				perceiveStopFocus((StopFocusSucceededEvent) ev);
 			} else if (ev instanceof JoinWSPSucceededEvent) {
 				allJoinedWsp.add(((JoinWSPSucceededEvent) ev).getWorkspaceId());
-				System.out.println("ok for "+ev);
 			} else if (ev instanceof ConsultManualSucceededEvent) {
 				this.consultManual(((ConsultManualSucceededEvent) ev).getManual());
 			}
