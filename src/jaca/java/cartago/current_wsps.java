@@ -17,16 +17,15 @@
  */
 package cartago;
 
+import java.util.Set;
+
+import jaca.CAgentArch;
 import jason.JasonException;
+import jason.asSemantics.DefaultInternalAction;
 import jason.asSemantics.TransitionSystem;
 import jason.asSemantics.Unifier;
-import jason.asSemantics.DefaultInternalAction;
-import jason.asSyntax.*;
-
-import java.lang.reflect.Array;
-import java.util.List;
-
-import jaca.*;
+import jason.asSyntax.ListTermImpl;
+import jason.asSyntax.Term;
 
 /**
  * <p>Internal action: <b><code>cartago.current_wsps</code></b>.</p>
@@ -47,7 +46,7 @@ public class current_wsps extends DefaultInternalAction {
 		}
 
 		try {
-			List<WorkspaceId> wlist = agent.getAllJoinedWsps();
+			Set<WorkspaceId> wlist = agent.getAllJoinedWsps();
 			ListTermImpl list = new ListTermImpl();
 		    for (WorkspaceId id: wlist){
 		    		 list.add(agent.getJavaLib().registerDynamic(id));

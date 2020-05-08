@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -67,6 +68,8 @@ import jason.bb.BeliefBase;
 
 public class CAgentArch extends AgArch implements cartago.ICartagoListener, Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	static protected final Term OBS_PROP_PERCEPT = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_prop"));
 	static protected final Term OBS_EV_PERCEPT   = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
@@ -80,7 +83,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	protected transient ICartagoSession envSession;
 
 	// actions that have been executed and wait for a completion events
-	protected ConcurrentHashMap<Long, PendingAction> pendingActions;
+	protected Map<Long, PendingAction> pendingActions;
 
 	// each agent has its own Java object map
 	protected JavaLibrary lib;
@@ -90,10 +93,10 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	// private boolean firstManualFetched;
 
 	// short cuts
-	protected jason.bb.BeliefBase belBase;
-	protected jason.asSemantics.Agent agent;
+	protected transient jason.bb.BeliefBase belBase;
+	protected transient jason.asSemantics.Agent agent;
 
-	List<WorkspaceId> allJoinedWsp = new ArrayList<>(); // used in stopAg to quit this workspaces
+	protected Set<WorkspaceId> allJoinedWsp; // used in stopAg to quit this workspaces
 
 	public CAgentArch() {
 		super();
@@ -109,7 +112,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 
 	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-		initBridge();
+		logger = Logger.getLogger("CAgentArch");
+		//initBridge();
 	}
 	
 	/**
@@ -120,15 +124,34 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		initBridge();
 	}
 
+	@Override
+	public void stop() {
+		for (WorkspaceId wid: allJoinedWsp) {
+            try {
+                envSession.doAction(wid, new Op("quitWorkspace"), null, -1);
+                //getTS().getLogger().info("quit "+wid.getName());
+            } catch (CartagoException e) {
+            } catch (Exception e) {
+                if (! (e instanceof InterruptedException)) {
+                    e.printStackTrace();
+                }
+            }
+        }
+		allJoinedWsp.clear();
+	}
+	
 	protected void initBridge() {
 		String agentName = getTS().getUserAgArch().getAgName();
-		try {
+		try {			
 			this.agent = getTS().getAg();
 			this.belBase = agent.getBB();
+			System.out.println("***me="+agentName);
+
 
 			envSession = CartagoEnvironment.getInstance().startSession(agentName, this);
 
-			allJoinedWsp.addAll(envSession.getJoinedWorkspaces());
+			allJoinedWsp = new HashSet<>(envSession.getJoinedWorkspaces());
+			System.out.println("**"+allJoinedWsp);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.warning("[CARTAGO] WARNING: No default workspace found for " + agentName);
@@ -419,6 +442,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				perceiveStopFocus((StopFocusSucceededEvent) ev);
 			} else if (ev instanceof JoinWSPSucceededEvent) {
 				allJoinedWsp.add(((JoinWSPSucceededEvent) ev).getWorkspaceId());
+				System.out.println("ok for "+ev);
 			} else if (ev instanceof ConsultManualSucceededEvent) {
 				this.consultManual(((ConsultManualSucceededEvent) ev).getManual());
 			}
@@ -693,7 +717,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		return envSession;
 	}
 
-	public List<WorkspaceId> getAllJoinedWsps() {
+	public Set<WorkspaceId> getAllJoinedWsps() {
 		return allJoinedWsp;
 	}
 
