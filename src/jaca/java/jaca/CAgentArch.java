@@ -318,6 +318,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			notifyActionFailure(actionExec, reason, msg);
 		}
 	}
+	
+	private int nbEventsPerCycle = 0;
 
 	@Override
 	public Collection<Literal> perceive() {
@@ -326,8 +328,10 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 
 		try {
 			CartagoEvent evt = envSession.fetchNextPercept();
-
+			nbEventsPerCycle = 0;
 			while (evt != null) {
+				nbEventsPerCycle++;
+				
 				if (evt instanceof ActionSucceededEvent) {
 					perceiveActionSucceeded((ActionSucceededEvent) evt);
 				} else if (evt instanceof ActionFailedEvent) {
@@ -361,7 +365,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			logger.severe("Exception in fetching events from the context.");
 		}
 		// THE METHOD MUST RETURN NULL: since the percept semantics is different (event vs. state), all the the percepts from the env must be managed here, not by the BUF
+		// JH: change to return the normal answer in case other environment is being used
 		return super.perceive();
+	}
+	
+    public Map<String,Object> getStatus() {
+    	Map<String,Object> r = super.getStatus();
+    	r.put("nbPercepts", this.nbEventsPerCycle);
+    	return r;
 	}
 
 	private void perceiveAddedOP(ArtifactObsEvent ev) {
