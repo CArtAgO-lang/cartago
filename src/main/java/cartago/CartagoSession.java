@@ -1,13 +1,11 @@
 package cartago;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.*;
 import cartago.events.*;
-import cartago.util.agent.ArtifactObsProperty;
 
 /**
  * Class to manage a working session of an agent inside a workspace
@@ -30,7 +28,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	private static AgentCredential credential;
 	private static String agentRole;
 	private ArtifactId agentContextId;	
-	
+		
 	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
 		contextOrderedList = new java.util.LinkedList<WorkspaceId>();

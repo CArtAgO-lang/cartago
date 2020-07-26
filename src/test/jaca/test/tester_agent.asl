@@ -1,10 +1,10 @@
 //!test_double_join.
 
-//!main_test.
+!main_test.
 
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
-!test_wsp.
+//!test_wsp.
 //!test2.
 //!test3.
 //!test_gui.
@@ -89,7 +89,7 @@
   println("artifact created ",Id);
   makeArtifact("my_counter2","test.Counter",[],Id2);
   println("artifact2 created ",Id2);
-  stopFocus(Id2);
+  // stopFocus(Id2);
   disposeArtifact(Id2);
   println("artifact2 disposed.").
 

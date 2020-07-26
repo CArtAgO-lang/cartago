@@ -133,6 +133,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 	@Override
 	public void act(ActionExec actionExec) {
 		// logger.info("NEW ACTION  "+actionExec.getActionTerm()+" agent: "+this.getAgName());
+			
 		Structure action = actionExec.getActionTerm();
 
 		ArtifactId aid = null;
@@ -737,7 +738,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 		super.actionExecuted(actionExec);
 	}
 
-	public boolean notifyCartagoEvent(CartagoEvent ev) {
+	public boolean notifyCartagoEvent(CartagoEvent ev) {		
 		// System.out.println("NOTIFIED "+ev.getId()+" "+ev.getClass().getCanonicalName());
 		// logger.info("Notified event "+ev);
 		getFirstAgArch().wake();

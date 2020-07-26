@@ -19,6 +19,7 @@ package cartago;
 
 import java.util.concurrent.atomic.AtomicLong;
 import cartago.events.*;
+
 import java.util.*;
 
 /**
@@ -52,6 +53,7 @@ public class EventRegistry {
 	}
 
 	public FocussedArtifactDisposedEvent makeFocussedArtifactDisposedEvent(ArtifactId target, List<ArtifactObsProperty> props){
+
 		long id = nextTimestamp.incrementAndGet();
 		FocussedArtifactDisposedEvent ev = new FocussedArtifactDisposedEvent(id, target, props);
 		return ev;
@@ -63,7 +65,7 @@ public class EventRegistry {
 		return ev;
 	}
 
-	public ActionFailedEvent makeActionFailedEvent(long actionId, String failureMsg, Tuple failureReason, Op op){
+	public ActionFailedEvent makeActionFailedEvent(ArtifactId aid, long actionId, String failureMsg, Tuple failureReason, Op op){
 		long id = nextTimestamp.incrementAndGet();
 		ActionFailedEvent ev = new ActionFailedEvent(id, actionId, op, failureMsg, failureReason);
 		return ev;

@@ -105,9 +105,6 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 
 		router.route().handler(BodyHandler.create());
 		
-
-
-		
 		router.get(API_BASE_PATH + "/version").handler(this::handleGetVersion);
 		// router.get(API_BASE_PATH + "/node-id").handler(this::handleGetNodeId);
 		// router.post(API_BASE_PATH + "/connect").handler(this::handleConnect);
@@ -116,38 +113,6 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 		// router.post(API_BASE_PATH + "/do-action").handler(this::handleJoinWSP);
 
 		router.get(API_BASE_PATH + "/:masName").handler(this::handleResolveWSP);
-		/*
-		router.get(API_BASE_PATH + "/state").handler(new GetVersionHandler(this));
-		
-		// reports
-		router.get(API_BASE_PATH + "/reports").handler(new GetReportsHandler(this));
-		router.post(API_BASE_PATH + "/reports").handler(new AddReportHandler(this));
-		router.delete(API_BASE_PATH + "/reports").handler(new DeleteReportHandler(this));
-		router.put(API_BASE_PATH + "/reports/:reportID").handler(new UpdateReportHandler(this));
-		router.get(API_BASE_PATH + "/reports/:reportID").handler(new GetReportInfoHandler(this));
-		router.delete(API_BASE_PATH + "/reports/:reportID").handler(new DeleteReportHandler(this));
-		router.delete(API_BASE_PATH + "/reports/:reportID/events/:eventID").handler(new DeleteEventInReportHandler(this));
-		
-		// users
-		router.get(API_BASE_PATH + "/users").handler(new GetUsersHandler(this));
-		router.get(API_BASE_PATH + "/members").handler(new GetMembersHandler(this));
-		router.post(API_BASE_PATH + "/users").handler(new AddUserHandler(this));
-		router.delete(API_BASE_PATH + "/users/:userId").handler(new DeleteUserHandler(this));
-		router.delete(API_BASE_PATH + "/users").handler(new DeleteAllUsersHandler(this));
-		router.put(API_BASE_PATH+"/users/:userID").handler(new UpdateUserHandler(this));
-		
-		// setting dir upload for multimedia files
-		router.post("/gt2/traumatracker/photo").handler(new UploadPhotoHandler(this));	
-		router.post("/gt2/traumatracker/video").handler(new UploadVideoHandler(this));	
-		router.post("/gt2/traumatracker/audio").handler(new UploadAudioHandler(this));	
-		
-		// sessions
-		router.post(API_BASE_PATH + "/login").handler(new LoginHandler(this));
-		router.post(API_BASE_PATH + "/login/pwd-recovery").handler(new EmailPwdHandler(this));
-				
-		router.route("/gt2/traumatracker/static/*")
-			.handler(StaticHandler.create()); 
-		*/
 		 
 		// Router router = routerFactory.getRouter();
 

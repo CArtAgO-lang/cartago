@@ -985,9 +985,9 @@ public class Workspace {
 	}*/
 	
 	
-	private void notifyFailure(ICartagoCallback ctx, long actionId, Op op, String msg, Tuple t) {
+	private void notifyFailure(ICartagoCallback ctx, ArtifactId aid, long actionId, Op op, String msg, Tuple t) {
 		try {
-			ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, msg, t,op); 					
+			ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(aid, actionId, msg, t,op); 					
 			ctx.notifyCartagoEvent(ev);
 			return;
 		} catch (Exception ex){
@@ -999,7 +999,7 @@ public class Workspace {
 	private void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) /* throws CartagoException */ {
 		
 		if (isShutdown){
-			notifyFailure(ctx, actionId, op, "Workspace shutdown", new Tuple("wsp_shutdown", this.getId().getName()));
+			notifyFailure(ctx, arId, actionId, op, "Workspace shutdown", new Tuple("wsp_shutdown", this.getId().getName()));
 			return;
 		}
 
@@ -1012,7 +1012,7 @@ public class Workspace {
 			synchronized(artifactMap){
 				des = artifactMap.get(name);
 				if (des == null){
-					notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",name));
+					notifyFailure(ctx, arId, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",name));
 					return;
 				}
 			}
@@ -1026,7 +1026,7 @@ public class Workspace {
 					//log("use - try with varags: "+opsign+" -- "+op);
 					list = opMap.get(opsign);
 					if (list == null){
-						notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+						notifyFailure(ctx, arId, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
 						return;
 					}
 				}
@@ -1055,7 +1055,7 @@ public class Workspace {
 					}
 				}
 				if (des == null){
-					notifyFailure(ctx, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+					notifyFailure(ctx, arId, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
 					return;
 				} 
 			}
@@ -1078,11 +1078,11 @@ public class Workspace {
 					return;
 				} catch (Exception ex){
 					ex.printStackTrace();
-					notifyFailure(ctx, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					notifyFailure(ctx, arId, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
 					return;
 				}
 			} else {
-				notifyFailure(ctx, actionId, op, "Security exception.", new Tuple("security_exception",userId,aid));
+				notifyFailure(ctx, arId, actionId, op, "Security exception.", new Tuple("security_exception",userId,aid));
 				return;
 			}
 		} else {
@@ -1096,11 +1096,11 @@ public class Workspace {
 					return;
 				} catch (Exception ex){
 					//ex.printStackTrace();
-					notifyFailure(ctx, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					notifyFailure(ctx, arId, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
 					return;
 				}
 			} else {
-				notifyFailure(ctx, actionId, op, "Internal Failure: wsp-rule exception.", new Tuple("internal_failure","wsp-rule"));
+				notifyFailure(ctx, arId, actionId, op, "Internal Failure: wsp-rule exception.", new Tuple("internal_failure","wsp-rule"));
 				return;
 			}
 		}
@@ -1432,8 +1432,9 @@ public class Workspace {
 
 	// artifact side	
 
-	private void serveOperation(OpExecutionFrame info) {
+	private void serveOperation(OpExecutionFrame info) {		
 		ArtifactId aid = info.getTargetArtifactId();
+
 		IArtifactAdapter adapter = null;
 		ArtifactDescriptor des;
 		//log("here1 "+info);
@@ -1568,8 +1569,8 @@ public class Workspace {
 		listener.notifyCartagoEvent(ev);						
 	}
 
-	public void notifyActionFailed(ICartagoCallback listener, long actionId, Op op, String failureMsg, Tuple failureReason) {
-		ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(actionId, failureMsg, failureReason, op);
+	public void notifyActionFailed(ICartagoCallback listener, ArtifactId id, long actionId, Op op, String failureMsg, Tuple failureReason) {
+		ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(id, actionId, failureMsg, failureReason, op);
 		listener.notifyCartagoEvent(ev);
 	}
 

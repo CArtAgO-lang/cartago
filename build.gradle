@@ -6,9 +6,15 @@
  * Task to create the distribution: makeDist
  *
  */
+plugins {
+  id 'application'
+  id 'org.openjfx.javafxplugin' version '0.0.8'
+}
+
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+
 
 version '2.4-SNAPSHOT'
 sourceCompatibility = 1.8
@@ -39,7 +45,7 @@ sourceSets {
 /* still using local dep */
 dependencies {
   compile files('libs/lipermi-0.4.jar')
-  compile group: 'org.jason-lang', name: 'jason'    , version: '2.4-SNAPSHOT'  , changing: true , transitive: false
+ // compile group: 'org.jason-lang', name: 'jason'    , version: '2.4-SNAPSHOT'  , changing: true , transitive: false
 
 	// used in web infrastructure
   	implementation "io.vertx:vertx-core:3.7.0"
@@ -48,6 +54,13 @@ dependencies {
   	implementation "io.vertx:vertx-web:3.7.0"
   	implementation "io.vertx:vertx-web-client:3.7.0"
 	implementation "com.fasterxml.jackson.core:jackson-databind:2.9.8"
+
+	// for book examples
+	implementation "org.apache.commons:commons-math3:3.4"
+    implementation "org.apache.httpcomponents:httpclient:4.5"
+
+    implementation 'com.google.maps:google-maps-services:0.9.4'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
 
 }
 
@@ -58,6 +71,12 @@ repositories {
  	    url "http://jacamo.sourceforge.net/maven2"
   	}
 }
+
+javafx {
+    version = "12.0.2"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
 
 task generateRMIstubs(type:Exec, dependsOn: classes) {
 	workingDir 'build/classes/main'
@@ -164,7 +183,8 @@ artifacts {
     archives jacaJar
 }
 
+/*
 task execute(type:JavaExec) {
    main = mainClass
    classpath = sourceSets.main.runtimeClasspath
-}
+}*/

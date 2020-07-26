@@ -26,7 +26,7 @@ import java.util.concurrent.locks.*;
  * @author aricci
  *
  */
-class OpExecutionFrame {
+public class OpExecutionFrame {
 
 	public enum OpExecState { EXECUTING, SUCCEEDED, NOT_ALIGNED, TIME_OUT, INTERRUPTED, OP_NOT_EXIST, FAILED };
 	private OpExecState state;
@@ -199,7 +199,7 @@ class OpExecutionFrame {
 	 */
 	public void notifyOpFailed() {
 		if (actionId != -1){
-			kernel.notifyActionFailed(eventListener, actionId, op, failureMsg, failureReason);
+			kernel.notifyActionFailed(eventListener, aid, actionId, op, failureMsg, failureReason);
 		}
 	}
 
@@ -208,7 +208,7 @@ class OpExecutionFrame {
 	 */
 	public void notifyOpFailed(String failureMsg, Tuple failureReason) {
 		if (actionId != -1){
-			kernel.notifyActionFailed(eventListener, actionId, op, failureMsg, failureReason);
+			kernel.notifyActionFailed(eventListener, aid, actionId, op, failureMsg, failureReason);
 		}
 	}
 	
