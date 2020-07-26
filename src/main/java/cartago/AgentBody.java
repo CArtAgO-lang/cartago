@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,8 @@ package cartago;
 import java.util.*;
 
 /**
- * Agent descriptor - keeping track of agent info inside a workspace
+ * Core class representing the connection between the agent mind and 
+ * a workspace, proving an interface for doing actions and receiving percepts.
  * 
  * @author aricci
  *
@@ -63,17 +64,7 @@ public class AgentBody implements ICartagoContext {
 	public AgentBodyArtifact getAgentBodyArtifact(){
 		return bodyArtifact;
 	}
-	//
 	
-	/*
-	public void doAction(long actionId, ArtifactId aid, Op op, IAlignmentTest test, long timeout) throws CartagoException {
-		if (timeout == -1){
-			timeout = Integer.MAX_VALUE;
-		}
-		wspKernel.execOp(actionId, id, agentCallback, aid, op, timeout, test);
-	}*/
-	
-
 	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
@@ -86,6 +77,10 @@ public class AgentBody implements ICartagoContext {
 			timeout = Integer.MAX_VALUE;
 		}
 		wsp.execOp(actionId, id, agentCallback, op, timeout, test);
+	}
+	
+	public void quit() throws CartagoException {
+		wsp.quitAgent(id);
 	}
 	
 	public void updateAgentCallback(ICartagoCallback callback) {

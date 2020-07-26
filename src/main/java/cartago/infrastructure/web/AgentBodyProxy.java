@@ -1,5 +1,5 @@
 /**
-1 * CArtAgO - DEIS, University of Bologna
+1 * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -127,18 +127,18 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 			ex.printStackTrace();
 		}
 	}
-	
-	
-	
-	private JsonObject makeJsonObjForAct(long agentCallbackId, Op op,long timeout) {
-		JsonObject req = new JsonObject();
-		req.put("reqType", "doAction");		
-		req.put("agentCallbackId", agentCallbackId);
-		req.put("timeout", timeout);
-		req.put("op", toJson(op));
-		return req;
+		
+	@Override
+	public void quit() throws CartagoException {
+		try {
+			JsonObject req = makeJsonObjForQuit();
+			ws.writeTextMessage(req.encodePrettily());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new CartagoException(ex.getMessage());
+		}
 	}
-	
+
 	/*
 	 * Explicit artifact
 	 */
@@ -172,10 +172,6 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 	}
 	
 	
-	private void log(String msg) {
-		System.out.println("[AgentBodyProxy | web infra layer]  " + msg);
-	}
-
 	@Override
 	public WorkspaceId getWorkspaceId() throws CartagoException {
 		return wspId;
@@ -183,7 +179,27 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 
 	@Override
 	public AgentId getAgentId() throws CartagoException {
-		// TODO Auto-generated method stub
 		return aid;
 	}
+
+	
+	private JsonObject makeJsonObjForAct(long agentCallbackId, Op op,long timeout) {
+		JsonObject req = new JsonObject();
+		req.put("reqType", "doAction");		
+		req.put("agentCallbackId", agentCallbackId);
+		req.put("timeout", timeout);
+		req.put("op", toJson(op));
+		return req;
+	}
+
+	private JsonObject makeJsonObjForQuit() {
+		JsonObject req = new JsonObject();
+		req.put("reqType", "quit");		
+		return req;
+	}
+	
+	private void log(String msg) {
+		System.out.println("[AgentBodyProxy | web infra layer]  " + msg);
+	}
+
 }

@@ -188,23 +188,27 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 				long timeout = Long.MAX_VALUE;
 				long actId   = Long.MIN_VALUE;
 				if (aid != null) {
+					/* general case - the artifact id is known */
 					actId = envSession.doAction(aid, op, test, timeout);
 				} else if (wspId != null) {
 					if (artName != null) {
+						/* the artifact name is known */
 						actId = envSession.doAction(wspId, artName, op, test, timeout);
 					} else {
+						/* only the workspace id is known */
 						actId = envSession.doAction(op, wspId, test, timeout);
 					}				
 				} else if (wspName != null) {
 					if (artName != null) {
+						/* artifact name and wsp name known */
 						actId = envSession.doAction(wspName, artName, op, test, timeout);
 					} else {
-						// implicit artifact
+						// only operation + wsp name known
 						actId = envSession.doAction(op, wspName, test, timeout);
 					}
 
 				} else {
-					
+										
 					/* 
 					 * Op with implicit artifact & workspace 
 					 * 
@@ -270,7 +274,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 										}
 										
 										fullPath = resolveRelativePath(fullPath);
-
 										
 										int index2 = fullPath.lastIndexOf('/');
 										String wspRef = fullPath.substring(0, index2);
@@ -323,9 +326,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 								}
 							} catch (Exception ex) {
 								ex.printStackTrace();
+							}			
+						} else if (op.getName().equals("quitWorkspace")) {
+							try {
+								actId = envSession.doAction(envSession.getAgentContextArtifactId(), op, test, timeout);
+							} catch (Exception ex) {
+								ex.printStackTrace();
 							}
-							
-							
 						} else {								
 							actId = envSession.doAction(op, implicitWspId, test,timeout);
 						}
@@ -333,48 +340,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 						logger.warning("error trying action with cartago "+e.getMessage());
 					}
 					
-					/* 
-					
-					if (artName != null) {
-						actId = envSession.doAction(artName, op, test, timeout);
-					} else { 
-						if (DEF_OPS.contains(op.getName())) { // predefined CArtAgO operation
-							actId = envSession.doAction(op, test, timeout); // default operations go to workspace
-						} else { 
-							// User defined operation
-							outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
-								ICartagoController c;
-								try {
-									c = CartagoService.getController(aid1.getWorkspaceId().getName());
-								} catch (CartagoException e) {
-									// can be ignored (?)
-									c = null;
-								}
-								if (c != null) {
-									try {
-										for (OpDescriptor o : c.getArtifactInfo(aid1.getName()).getOperations()) {
-											if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
-												actId = envSession.doAction(aid1, op, test, timeout); //
-												break outer; // action executes a corresponding op in only one artifact
-											}
-										}
-									} catch (Exception ex) {
-										ex.printStackTrace();
-									}
-								}
-							}
-							// TODO: decide whether to try this (in all workspaces!)
-							if (actId == Long.MIN_VALUE) {
-								// try as before name spaces
-								try {
-									actId = envSession.doAction(op,test,timeout);
-								} catch (Exception e) {
-									logger.warning("error trying action with cartago "+e.getMessage());
-								}
-							}
-						}
-					}
-					*/
 				}
 
 				if (actId != Long.MIN_VALUE) {

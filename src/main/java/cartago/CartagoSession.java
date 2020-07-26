@@ -8,7 +8,11 @@ import java.util.concurrent.atomic.*;
 import cartago.events.*;
 
 /**
- * Class to manage a working session of an agent inside a workspace
+ * Class representing a working session of an agent inside an environment
+ * 
+ * - singleton
+ * - keeps track  of all workspaces joined
+ * - accessed by the agent API
  * 
  * @author aricci
  *
@@ -155,12 +159,18 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		}
 		throw new CartagoException("Workspace not joined.");
 	}
+
+	public ICartagoContext getJoinedWsp(WorkspaceId wid) {
+		return contexts.get(wid);
+	}
 	
 	public WorkspaceId getCurrentWorkspace() {
 		synchronized (contextOrderedList) {
 			return this.contextOrderedList.getFirst();
 		}
 	}
+	
+	
 	
 	/**
 	 * Make a new artifact instance
@@ -197,7 +207,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	private void checkWSPEvents(CartagoEvent ev) {
 		if (ev instanceof JoinWSPSucceededEvent) {
 			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;				
-			WorkspaceId wid = wspev.getWorkspaceId();		
 			contexts.put(wspev.getWorkspaceId(), wspev.getContext());
 			synchronized (contextOrderedList) {
 				contextOrderedList.addFirst(wspev.getWorkspaceId());

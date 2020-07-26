@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,6 +54,7 @@ public interface IAgentBodyRemote extends Remote {
 
 	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
 	void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
+	void quit() throws  RemoteException, CartagoException;
 
 	// ArtifactId getArtifactIdFromOp(Op op) throws  RemoteException, CartagoException;
 	// ArtifactId getArtifactIdFromOp(String name, Op op) throws  RemoteException, CartagoException;

@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -302,7 +302,7 @@ public class CartagoEnvironment {
 			WorkspaceId wspId = startContext.getWorkspaceId();
 			ArtifactId agentContextArtifact = null;
 			try {
-				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "context-"+cred.getId(), "cartago.AgentContextArtifact", new ArtifactConfig(cred, session, session, wsp));
+				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "session-"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, wsp));
 			} catch (Exception ex){
 				ex.printStackTrace();
 			}

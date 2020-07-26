@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,7 +54,7 @@ import cartago.security.SecurityException;
  */
 public class Workspace {
 		
-	private static final int NCONTROLLERS_DEFAULT = 20;
+	// private static final int NCONTROLLERS_DEFAULT = 20;
 
 	// private java.util.concurrent.atomic.AtomicInteger artifactIds;
 	private int ctxIds;
@@ -138,7 +138,8 @@ public class Workspace {
 
 		nBusyControllers = 0;
 		controllers = new ArrayList<EnvironmentController>();
-		for (int i=0; i<NCONTROLLERS_DEFAULT; i++){				
+		int nInitialControllers = Runtime.getRuntime().availableProcessors();
+		for (int i = 0; i < nInitialControllers; i++){				
 			EnvironmentController controller = new EnvironmentController(this,opTodo);
 			controllers.add(controller);
 			controller.start();
@@ -914,86 +915,20 @@ public class Workspace {
 		}
 	}
 
-	//
+	/* 
+	 * Core methods to execute an operation
+	 *
+	 * Note that specifying the artifact name is enough (instead of ArtifactId) since 
+	 * in the same wsp there could not be 2 artifacts with the same name
+	 * 
+	 */
 	
-	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId aid, Op op, long timeout, IAlignmentTest test) {
-		execOp(actionId, userId, ctx, aid, null, op, timeout, test);
-	}
-
 	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, String name, Op op, long timeout, IAlignmentTest test) {
 		execOp(actionId, userId, ctx, null, name, op, timeout, test);
 	}
 
 	public void execOp(long actionId, AgentId userId, ICartagoCallback ctx, Op op, long timeout, IAlignmentTest test) {
 		execOp(actionId, userId, ctx, null, null, op, timeout, test);
-	}
-
-	/*
-	public ArtifactId getArtifactIdFromOp(AgentId userId, Op op) {
-		synchronized(opMap){
-			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
-			if (list == null){
-				// try with var args
-				String opsign = Artifact.getOpKey(op.getName(), -1);
-				//log("use - try with varags: "+opsign+" -- "+op);
-				list = opMap.get(opsign);
-				if (list == null){
-					return null;
-				}
-			}
-			// if only one artifact has that operation, no problems...
-			if (list.size() == 1){
-				return list.get(0).getArtifact().getId();
-			} else {
-				// first we check for artifacts created by the agent
-				for (ArtifactDescriptor desc: list){
-					if (desc.getAgentCreator().equals(userId)){
-						return desc.getArtifact().getId();
-					}
-				}
-				for (ArtifactDescriptor desc: list){
-					if (desc.isObservedBy(userId)){
-						return desc.getArtifact().getId();
-					}
-				}
-				return list.get(0).getArtifact().getId();
-			}
-		}
-	}*/
-
-	/*
-	public ArtifactId getArtifactIdFromOp(AgentId userId, String artName, Op op) {
-		synchronized(opMap){
-			List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
-			if (list == null){
-				// try with var args
-				String opsign = Artifact.getOpKey(op.getName(), -1);
-				//log("use - try with varags: "+opsign+" -- "+op);
-				list = opMap.get(opsign);
-				if (list == null){
-					return null;
-				}
-			}
-			// first we check for artifacts created by the agent
-			for (ArtifactDescriptor desc: list){
-				if (desc.getArtifact().getId().getName().equals(artName)){
-					return desc.getArtifact().getId();
-				}
-			}
-			return null;
-		}
-	}*/
-	
-	
-	private void notifyFailure(ICartagoCallback ctx, ArtifactId aid, long actionId, Op op, String msg, Tuple t) {
-		try {
-			ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(aid, actionId, msg, t,op); 					
-			ctx.notifyCartagoEvent(ev);
-			return;
-		} catch (Exception ex){
-			ex.printStackTrace();
-			return;
-		}
 	}
 
 	private void execOp(long actionId, AgentId userId, ICartagoCallback ctx, ArtifactId arId, String arName, Op op, long timeout, IAlignmentTest test) /* throws CartagoException */ {
@@ -1105,6 +1040,18 @@ public class Workspace {
 			}
 		}
 	}	
+	
+	private void notifyFailure(ICartagoCallback ctx, ArtifactId aid, long actionId, Op op, String msg, Tuple t) {
+		try {
+			ActionFailedEvent ev = eventRegistry.makeActionFailedEvent(aid, actionId, msg, t,op); 					
+			ctx.notifyCartagoEvent(ev);
+			return;
+		} catch (Exception ex){
+			ex.printStackTrace();
+			return;
+		}
+	}
+
 	
 	// *****  @EXPERIMENTAL - external controller support  
 	

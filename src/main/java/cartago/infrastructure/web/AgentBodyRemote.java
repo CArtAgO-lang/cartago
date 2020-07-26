@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,7 +64,13 @@ public class AgentBodyRemote  implements ICartagoCallback {
     			} catch (Exception ex) {
     				ex.printStackTrace();
     			}
-    		} 
+    		} else if (reqType.contentEquals("quit")) {
+    			try {
+    				ctx.quit();
+    			} catch (Exception ex) {
+    				ex.printStackTrace();
+    			}
+    		}
     	}
     }
 

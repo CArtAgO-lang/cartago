@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -110,23 +110,15 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		}
 	}
 
-
-	/*
-	public ArtifactId getArtifactIdFromOp(Op op) throws CartagoException {
+	@Override
+	public void quit() throws CartagoException {
 		try {
-			return ctx.getArtifactIdFromOp(op);			
+			ctx.quit();			
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
-		}	
+		}
 	}
 
-	public ArtifactId getArtifactIdFromOp(String name, Op op) throws CartagoException {
-		// TODO Auto-generated method stub
-		try {
-			return ctx.getArtifactIdFromOp(name,op);			
-		} catch (RemoteException ex) {
-			throw new CartagoException(ex.getMessage());
-		}	
-	}*/
+
 	
 }

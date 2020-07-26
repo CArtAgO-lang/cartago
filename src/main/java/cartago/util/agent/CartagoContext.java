@@ -1,12 +1,12 @@
-package cartago;
+package cartago.util.agent;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import cartago.*;
+import cartago.ArtifactObsProperty;
 import cartago.events.*;
 import cartago.util.agent.*;
-import cartago.util.agent.ObsPropMap;
 
 /**
  * Basic utility class  to interact with CArtAgO from Java

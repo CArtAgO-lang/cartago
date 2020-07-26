@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,20 +23,19 @@ import cartago.security.*;
 import java.util.*;
 
 /**
- * Artifact providing basic functionalities to manage the workspace,
- * including creating new artifacts, lookup artifacts, setting RBAC
- * security policies, and so on.
+ * Artifact providing basic functionalities to manage the working session
+ * of an agent inside the MAS environment.
+ * 
+ * This is a personal artifact, one for each agent.
+ * 
+ * This artifact is stored in the home workspace of the agent.
  * 
  * @author aricci
  *
  */
-public class AgentContextArtifact extends Artifact {
+public class AgentSessionArtifact extends Artifact {
 
-	// private Workspace wsp;
-	// private Inspector debug;
-	// private WorkspaceId implicitWspId;
 	private AgentCredential cred;
-	private String artBodyClassName;
 	private ICartagoCallback eventListener;
 	private Workspace homeWsp;
 	private CartagoSession session;
@@ -163,19 +162,15 @@ public class AgentContextArtifact extends Artifact {
 		}
 		return sb.toString();
 	}
-
 	
-	@OPERATION void quitWorkspace() {
+	@OPERATION void quitWorkspace(WorkspaceId wspId) {
 		try {
-			OpExecutionFrame opFrame = this.getOpFrame();
-			wsp.quitAgent(opFrame.getAgentId());
-			WorkspaceId wspId = getId().getWorkspaceId();
-			wsp.notifyQuitWSPCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId);
-			opFrame.setCompletionNotified();
+			ICartagoContext ctx = session.getJoinedWsp(wspId);
+			ctx.quit();
 		} catch (Exception ex){
 			failed("Quit Workspace failed.");
 		}
 	}
-
+	
 	
 }

@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -77,6 +77,11 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 			throws RemoteException, CartagoException {
 		ctx.doAction(agentCallbackId, op, test, timeout);
 	}
+
+	@Override
+	public void quit() throws RemoteException, CartagoException {
+		ctx.quit();
+	}
 	
 	public synchronized void  ping() throws RemoteException {
 		lastPingFromMind = System.currentTimeMillis();
@@ -96,18 +101,4 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 	AgentBody getContext(){
 		return ctx;
 	}
-
-	
-
-	/*
-	public ArtifactId getArtifactIdFromOp(Op op) {
-		return ctx.getArtifactIdFromOp(op);
-	}
-
-	public ArtifactId getArtifactIdFromOp(String name, Op op) {
-		return ctx.getArtifactIdFromOp(name,op);
-	}
-	*/
-
-
 }
