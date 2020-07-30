@@ -30,11 +30,11 @@
   println("before join...");
   joinWorkspace("w0",Wid2);
   println("joined workspace w0");
-  makeArtifact(c0,"test.Counter",[],Id);
+  makeArtifact(c0,"acme.Counter",[],Id);
   focus(Id);
   inc;
   inc;
-  makeArtifact("/main/c1","test.Counter", [], Id4); 
+  makeArtifact("/main/c1","acme.Counter", [], Id4); 
   .println(Id4);
   lookupArtifact("c0",Id5);
   .println(Id5).
@@ -48,7 +48,7 @@
 
 
 +!use_remote <-
-  makeArtifact(c0,"test.Counter",[],Id);
+  makeArtifact(c0,"acme.Counter",[],Id);
   focus(Id);
   inc;
   inc;

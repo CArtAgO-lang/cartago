@@ -120,10 +120,10 @@ public interface ICartagoSession {
 	List<WorkspaceId> getJoinedWorkspaces() throws CartagoException;
 	
 	/**
-	 * Get the identifier of the unique agent context artifact
+	 * Get the identifier of the unique agent session artifact
 	 * @return
 	 */
-	ArtifactId getAgentContextArtifactId();
+	ArtifactId getAgentSessionArtifactId();
 
 	/**
 	 * Fetch the next percept from the percept queue.

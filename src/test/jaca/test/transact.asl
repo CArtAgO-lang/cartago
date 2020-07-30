@@ -9,7 +9,7 @@
   update4.
 
 +!setup <-
-  makeArtifact("myArt1","test.TestTransactArtifact",[],Id);
+  makeArtifact("myArt1","acme.TestTransactArtifact",[],Id);
   focus(Id).
   
 -!setup <-

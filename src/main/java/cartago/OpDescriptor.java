@@ -32,12 +32,11 @@ public class OpDescriptor {
     private String id;	
 	public static enum OpType { LINK, UI, INTERNAL};
 	private OpType type;
+	private boolean isDynamic;
 	
 	public OpDescriptor(String id, IArtifactOp op, IArtifactGuard guard, OpType t){
-		this.op = op;
+		this(id, op, t);
 		this.guard = guard;
-		this.type = t;
-		this.id = id;
 	}
 
 	public OpDescriptor(String id, IArtifactOp op, OpType t){
@@ -45,8 +44,13 @@ public class OpDescriptor {
 		this.guard = null;
 		this.type = t;
 		this.id = id;
+		if (op instanceof ArtifactDynOp) {
+			isDynamic = true;
+		} else {
+			isDynamic = false;
+		}
 	}
-	
+
 	public IArtifactOp getOp(){
 		return op;
 	}
@@ -57,6 +61,10 @@ public class OpDescriptor {
 	
 	public String getKeyId(){
 		return id;
+	}
+	
+	public boolean isDynamic() {
+		return isDynamic;
 	}
 	
 	public boolean isLinkOperation(){

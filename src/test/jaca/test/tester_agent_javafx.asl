@@ -64,7 +64,7 @@ apiKey("AIzaSyDiPt735ULDnFl9Iwz4ZyeEzt1LKlxOVyE").
 +!print_complex(Re,Im) <- print("( ", Re, " + ",Im, "i )").
 
 +!test_javafx
-  <-  makeArtifact("myArtifact","test.MainWindowArtifact",[],Id);
+  <-  makeArtifact("myArtifact","acme.MainWindowArtifact",[],Id);
   	  focus(Id);
   	  L = [ name("Sofia"), age(11) ];
   	  .println("ready.", L).

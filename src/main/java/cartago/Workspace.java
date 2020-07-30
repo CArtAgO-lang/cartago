@@ -718,6 +718,43 @@ public class Workspace {
 
 	//
 
+	public void registerOpInMap(OpDescriptor op, ArtifactId aid) {
+		ArtifactDescriptor desc = null; 
+		synchronized (artifactMap){
+			String name = aid.getName();
+			desc = artifactMap.get(name);
+		}
+		this.registerOpInMap(op, desc);
+	}
+	
+	private void registerOpInMap(OpDescriptor op, ArtifactDescriptor desc) {
+		synchronized (opMap){
+			List<ArtifactDescriptor> list = opMap.get(op.getKeyId());
+			if (list == null){
+				list = new ArrayList<ArtifactDescriptor>();
+			}	
+			list.add(desc);
+			opMap.put(op.getKeyId(), list);
+		}
+		
+	}	
+	
+	public void unregisterOpFromMap(OpDescriptor op, ArtifactId id) {
+		synchronized (opMap){
+			List<ArtifactDescriptor> list = opMap.get(op.getKeyId());
+			if (list != null){
+				Iterator<ArtifactDescriptor> it = list.iterator();
+				while (it.hasNext()){
+					ArtifactDescriptor des = it.next();
+					if (des.getArtifact().getId().equals(id)){
+						it.remove();
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	public ArtifactId makeArtifact(AgentId userId, String name, String template, ArtifactConfig config) throws ArtifactAlreadyPresentException, UnknownArtifactTemplateException, ArtifactConfigurationFailedException {
 		ArtifactId id = null;
 		AbstractArtifactAdapter adapter = null;
@@ -748,8 +785,9 @@ public class Workspace {
 			try {
 				adapter.initArtifact(config);
 				List<OpDescriptor> ops = desc.getAdapter().getOperations();
-				synchronized (opMap){
-					for (OpDescriptor op: ops){
+				for (OpDescriptor op: ops){
+					this.registerOpInMap(op, desc);
+						/*
 						List<ArtifactDescriptor> list = opMap.get(op.getKeyId());
 						if (list == null){
 							list = new ArrayList<ArtifactDescriptor>();
@@ -757,7 +795,7 @@ public class Workspace {
 						list.add(desc);
 						opMap.put(op.getKeyId(), list);
 						//log("registering operation - key: "+op+" artifact: "+desc.getArtifact().getId());
-					}
+						 */
 				}
 				
 				if (logManager.isLogging()){
@@ -961,7 +999,7 @@ public class Workspace {
 					//log("use - try with varags: "+opsign+" -- "+op);
 					list = opMap.get(opsign);
 					if (list == null){
-						notifyFailure(ctx, arId, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+						notifyFailure(ctx, arId, actionId, op, "Operation Not Available", new Tuple("operation_not_available",op));
 						return;
 					}
 				}

@@ -217,6 +217,44 @@ public abstract class Artifact {
 	}
 
 	/**
+	 * 
+	 * Adding a dynamic operation
+	 * 
+	 * version 3.0
+	 * @param opName
+	 * @param op
+	 * @throws Exception
+	 */
+	protected void defineNewOp(String opName, ArtifactDynOpInterface op) throws Exception {
+		String name =  Artifact.getOpKey(opName,-1);
+		OpDescriptor opdesc = new OpDescriptor(
+				name,
+				new ArtifactDynOp(this, opName, op), null,
+				OpDescriptor.OpType.UI);
+		// log("registering "+name);
+		operationMap.put(name, opdesc);
+		this.wsp.registerOpInMap(opdesc, this.id);
+	}
+
+	/**
+	 * 
+	 * Removing a dynamic operation
+	 * 
+	 * version 3.0
+	 * @param opName
+	 * @param op
+	 * @throws Exception
+	 */
+	protected void removeOp(String opName) throws Exception {
+		String key =  Artifact.getOpKey(opName,-1);
+		OpDescriptor opdesc = operationMap.remove(key);
+		if (opdesc != null) {
+			this.wsp.unregisterOpFromMap(opdesc, this.id);
+		}
+	}
+
+	
+	/**
 	 * Get the name of the file containing the manual for the specified artifact
 	 * template, by accessing to ARTIFACT_INFO annotation.
 	 * 
@@ -341,7 +379,9 @@ public abstract class Artifact {
 					}
 					return;
 				}
-				varargs = true;
+				if (!opDesc.isDynamic()) {
+					varargs = true;
+				}
 			}
 
 			IAlignmentTest test = info.getAlignmentTest();
@@ -490,9 +530,9 @@ public abstract class Artifact {
 						System.out.println("EXPECTED PARAM "+p+" "+p.getClass());
 					}
 					*/
-					String msg = "Unknown Operation";
+					String msg = "Generic Error in Op execution";
 					Tuple desc =  new Tuple(
-							"unknown_operation", opBody.getName() + "/"
+							"operation_error", opBody.getName() + "/"
 							+ opBody.getNumParameters());
 					if (log.isLogging()){
 						log.opFailed(System.currentTimeMillis(), info.getOpId(), this.id, info.getOperation(), msg, desc);

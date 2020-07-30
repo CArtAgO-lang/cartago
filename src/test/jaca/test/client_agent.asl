@@ -9,9 +9,9 @@
 +!do_link_local<-
 	lookupArtifact("workspace",LocalWspID);
 	+wsp_art_id(local,LocalWspID);
-	makeArtifact("myLinkerArt", "test.LinkerArt", [], LinkerArtId);
+	makeArtifact("myLinkerArt", "acme.LinkerArt", [], LinkerArtId);
 	+art_id(linker,LinkerArtId);
-	makeArtifact("linkableArt", "test.LinkableArt", [], LinkableArtID);
+	makeArtifact("linkableArt", "acme.LinkableArt", [], LinkableArtID);
 	.println("artifacts created");
 	.println("A");
 	linkArtifacts(LinkerArtId, "out", LinkableArtID)[aid(LocalWspID)];

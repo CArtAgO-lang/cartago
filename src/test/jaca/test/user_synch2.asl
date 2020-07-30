@@ -1,4 +1,4 @@
-!test.
+!acme.
 
 +!test
 	<-	!locate_tool;

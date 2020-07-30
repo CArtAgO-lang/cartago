@@ -21,7 +21,7 @@
  * So in this case the expected value for X is 1
  */
 +!go1(Name)
-  <- makeArtifact(Name,"test.CommonArtifact",[],_);
+  <- makeArtifact(Name,"acme.CommonArtifact",[],_);
      op(1,X);
      println(X).
      

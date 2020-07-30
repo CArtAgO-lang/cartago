@@ -1,8 +1,8 @@
 !test_manual.
 
 +!test_manual
-	<- storeManual("test.Counter","");
-	   consultManual("test.Counter");
+	<- storeManual("acme.Counter","");
+	   consultManual("acme.Counter");
 	   println("manual consulted.").
 	   
 	   

@@ -1,19 +1,19 @@
-!test.	   
+!acme.	   
 
 +!test 
 	<- /* creating a wsp with a custom 2d topology */
-	   createWorkspaceWithTopology("wsp","test.Space2D");
+	   createWorkspaceWithTopology("wsp","acme.Space2D");
 	   
 	   /* joining the workspace with custom agent body artifact */
-	   joinWorkspaceWithBody("wsp","test.MyAgentBodyArtifact",Wid);
+	   joinWorkspaceWithBody("wsp","acme.MyAgentBodyArtifact",Wid);
 
 	   /* initialising 2d pos + observability radius + observable radius */
 	   initBody(0,0,2,2);
 	   
 	   /* creating situated artifacts */
 	   println("creating situated artifacts..");
-       makeArtifact("a0","test.MySituatedArtifact",[50,50,5],Id);
-       makeArtifact("a1","test.MySituatedArtifact",[100,100,5],Id2);
+       makeArtifact("a0","acme.MySituatedArtifact",[50,50,5],Id);
+       makeArtifact("a1","acme.MySituatedArtifact",[100,100,5],Id2);
  
  		
        println("should not perceive anyone... (for 1 sec)");

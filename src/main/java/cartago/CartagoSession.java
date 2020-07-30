@@ -21,7 +21,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 
 	// one context for workspace, the agent can work in multiple workspaces
 	private ConcurrentHashMap<WorkspaceId, ICartagoContext> contexts;
-	private LinkedList<WorkspaceId> contextOrderedList;
+	// private LinkedList<WorkspaceId> contextOrderedList;
 	
 	// queue where percepts are notified by the environment
 	private java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent> perceptQueue;
@@ -35,7 +35,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		
 	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
-		contextOrderedList = new java.util.LinkedList<WorkspaceId>();
+		// contextOrderedList = new java.util.LinkedList<WorkspaceId>();
 		perceptQueue = new java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent>();
 		agentArchListener = listener;
 		this.agentRole = agentRole;
@@ -46,12 +46,13 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	void init(ArtifactId agentContextId, WorkspaceId initialWspId, ICartagoContext startContext) {
 		this.agentContextId = agentContextId;
 		contexts.put(initialWspId, startContext);
+		/*
 		synchronized (contextOrderedList) {
 			contextOrderedList.addFirst(initialWspId);
-		}
+		}*/
 	}
 
-	public ArtifactId getAgentContextArtifactId() {
+	public ArtifactId getAgentSessionArtifactId() {
 		return agentContextId;
 	}
 
@@ -164,12 +165,13 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		return contexts.get(wid);
 	}
 	
+	/*
 	public WorkspaceId getCurrentWorkspace() {
 		synchronized (contextOrderedList) {
 			return this.contextOrderedList.getFirst();
 		}
 	}
-	
+	*/
 	
 	
 	/**
@@ -208,15 +210,17 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		if (ev instanceof JoinWSPSucceededEvent) {
 			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;				
 			contexts.put(wspev.getWorkspaceId(), wspev.getContext());
+			/*
 			synchronized (contextOrderedList) {
 				contextOrderedList.addFirst(wspev.getWorkspaceId());
-			}
+			}*/
 		} else if (ev instanceof QuitWSPSucceededEvent) {
 			QuitWSPSucceededEvent wspev = (QuitWSPSucceededEvent) ev;
 			contexts.remove(wspev.getWorkspaceId());
+			/*
 			synchronized (contextOrderedList) {
 				contextOrderedList.remove(wspev.getWorkspaceId());
-			}
+			}*/
 		}
 	}
 

@@ -17,9 +17,6 @@
  */
 package cartago;
 
-import cartago.security.SecurityException;
-import cartago.tools.inspector.Inspector;
-import cartago.security.*;
 import java.util.*;
 
 /**
@@ -50,16 +47,19 @@ public class AgentSessionArtifact extends Artifact {
 	/**
 	 * Join a workspace
 	 * 
-	 * @param wspName workspace name
+	 * @param wspRef workspace absolute name
 	 * @param res output parameter: workspace id
 	 */
 	@OPERATION void joinWorkspace(String wspRef, OpFeedbackParam<WorkspaceId> res) {
 		try {			
+			/*
 			WorkspaceId implicitWspId = session.getCurrentWorkspace();
 			if (!wspRef.startsWith("/")) {
 				wspRef = implicitWspId.getFullName() + "/" + wspRef;
-				/* action on the workspace artifact of the implicit workspace */
-			} 			
+				// action on the workspace artifact of the implicit workspace 
+			} */			
+			// wspRef must be absolute: /...
+			
 			wspRef = removeRelativePath(wspRef);
 			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef);
 		    OpExecutionFrame opFrame = this.getOpFrame();
@@ -68,7 +68,9 @@ public class AgentSessionArtifact extends Artifact {
 				try {
 					ICartagoContext ctx = des.getWorkspace().joinWorkspace(cred, null, eventListener);
 					WorkspaceId wspId = ctx.getWorkspaceId();
-					res.set(wspId);
+					if (res != null) {
+						res.set(wspId);
+					}
 					// this.implicitWspId = wspId;
 					des.getWorkspace().notifyJoinWSPCompleted(eventListener, opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
 				} catch (Exception ex){
@@ -81,7 +83,9 @@ public class AgentSessionArtifact extends Artifact {
 							.joinRemoteWorkspace(CartagoEnvironment.getInstance().getName(), des.getAddress(), des.getRemotePath(), des.getProtocol(), cred, eventListener, wspRef);
 					WorkspaceId wspId = ctx.getWorkspaceId();
 					// this.implicitWspId = wspId;
-					res.set(wspId);
+					if (res != null) {
+						res.set(wspId);
+					}
 					homeWsp.notifyJoinWSPCompleted(eventListener, opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
 				} catch (Exception ex) {
 					// ex.printStackTrace();
@@ -96,13 +100,25 @@ public class AgentSessionArtifact extends Artifact {
 		
 	}	
 
+	/**
+	 * Join a workspace
+	 * 
+	 * @param wspRef workspace absolute name
+	 * @param res output parameter: workspace id
+	 */
+	@OPERATION void joinWorkspace(String wspRef) {
+		joinWorkspace(wspRef, null);
+	}	
+	
+	
 	@OPERATION void mountWorkspace(String remoteWspPath, String localFullName,  String protocol)  {
 		try {
+			/*
 			WorkspaceId implicitWspId = session.getCurrentWorkspace();
 			if (!localFullName.startsWith("/")) {
 				localFullName = implicitWspId.getFullName() + "/" + localFullName;
-				/* action on the workspace artifact of the implicit workspace */
-			} 			
+				// action on the workspace artifact of the implicit workspace 
+			} */			
 			localFullName = removeRelativePath(localFullName);
 			int index = localFullName.lastIndexOf('/');
 			

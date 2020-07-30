@@ -1,7 +1,7 @@
 !test_react.
 
 +!test_react
-  <-  makeArtifact("gui","test.ReactivityTestGUI",[],Id);
+  <-  makeArtifact("gui","acme.ReactivityTestGUI",[],Id);
       focus(Id);
       +count(1);
       !work.

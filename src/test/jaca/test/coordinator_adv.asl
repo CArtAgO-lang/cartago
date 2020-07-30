@@ -1,7 +1,7 @@
 !test.
 
 +!test
-  <- makeArtifact("a0","test.CommonArtifact");
+  <- makeArtifact("a0","acme.CommonArtifact");
      in("ready",From1);
      println(From1," is ready");
      .send(From1,achieve,go("a1"));

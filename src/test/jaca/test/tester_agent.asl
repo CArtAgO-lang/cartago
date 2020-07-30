@@ -1,7 +1,10 @@
+
+
+// !main_test.
+
+!test_art_dyn_ops.
+
 //!test_double_join.
-
-!main_test.
-
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
 //!test_wsp.
@@ -13,7 +16,7 @@
 //!test_new_prop.
 //!test_varargs.
 //!test_java_api.
-// !test_remote.
+//!test_remote.
 //!test_shutdown.
 //!test_wsp.
 //!test_art.
@@ -23,6 +26,20 @@
 //!test_array_obj.
 //!test_ext_interface.
 
++!test_art_dyn_ops
+	<-	makeArtifact("a0","acme.ArtifactWithDynamicOps",[], Id);
+		focus(Id);
+		inc;
+		add.
+
+-!test_art_dyn_ops
+	<-	println("going to extend the artifact...")	
+		extend;
+		add(5).
+
++my_count(X)
+	<-	println("my_count: ", X).
+		
 
    
 +!test_console <-
@@ -45,7 +62,7 @@
 /* testing artifact with a direct external interface */
 
 +!test_ext_interface
-	<- makeArtifact("myArt","test.ArtifactWithExtUse",[],Id);
+	<- makeArtifact("myArt","acme.ArtifactWithExtUse",[],Id);
 		+count(0);
 	   focus(Id).
 
@@ -62,7 +79,7 @@
 	  
 
 +!test_array_obj 
-  <-  makeArtifact("myArt","test.ArtifactWithArray",[],Id);
+  <-  makeArtifact("myArt","acme.ArtifactWithArray",[],Id);
       getCurrentArtifacts(L);
 	  println(L);
 	  myOp(L).
@@ -84,10 +101,10 @@
 +!test_make_lookup_dispose <-
   lookupArtifact("workspace",W);
   focus(W);
-  makeArtifact("my_counter","test.Counter");
+  makeArtifact("my_counter","acme.Counter");
   lookupArtifact("my_counter",Id);
   println("artifact created ",Id);
-  makeArtifact("my_counter2","test.Counter",[],Id2);
+  makeArtifact("my_counter2","acme.Counter",[],Id2);
   println("artifact2 created ",Id2);
   // stopFocus(Id2);
   disposeArtifact(Id2);
@@ -133,7 +150,7 @@
 	 
 
 +!test_focus_with_filter 
-  <- makeArtifact("my_counter","test.Counter",[],Id);
+  <- makeArtifact("my_counter","acme.Counter",[],Id);
      cartago.new_array("java.lang.String[]",["incremented"],Array);
      cartago.new_obj("cartago.events.SignalFilter",[Array],Filter);
      focus(Id,Filter);
@@ -143,15 +160,15 @@
 //
 
 +!test_link
-  <-  makeArtifact("myArtifact","test.LinkingArtifact",[],Id1);
-      makeArtifact("count","test.LinkableArtifact",[],Id2);
+  <-  makeArtifact("myArtifact","acme.LinkingArtifact",[],Id1);
+      makeArtifact("count","acme.LinkableArtifact",[],Id2);
 	  linkArtifacts(Id1,"out-1",Id2);			
 	  println("artifacts linked: going to test");
 	  test;
       test2(V);
       println("value ",V);
 	  println("testing link with multiple artifacts..");
-	  makeArtifact("count3","test.LinkableArtifact",[],Id3);
+	  makeArtifact("count3","acme.LinkableArtifact",[],Id3);
 	  linkArtifacts(Id1,"out-1",Id3);			
 	  test;
       println("the test op should have been called on two count artifacts...").	  
@@ -164,7 +181,7 @@
  
 +!test_op_fail 
   <- println("test op failure");
-     makeArtifact("a0","test.MyArtifactA");
+     makeArtifact("a0","acme.MyArtifactA");
      testFail [art("a0")];
      println("This should not be printed.").
 -!test_op_fail [error_msg(Msg),env_failure_reason(reason("test",Y))]    
@@ -189,7 +206,7 @@
 //  
 
 +!test3
-  <-  makeArtifact("a0","test.MyArtifactA",[],Id);
+  <-  makeArtifact("a0","acme.MyArtifactA",[],Id);
       compute(4,X,Y);
       println(X);
       println(Y).
@@ -198,7 +215,7 @@
 //
 
 +!test_gui
-  <-  makeArtifact("gui","test.MySimpleGUI",[10],Id);
+  <-  makeArtifact("gui","acme.MySimpleGUI",[10],Id);
       focus(Id).
 
 +value(V) 
@@ -214,7 +231,7 @@
 //
 
 +!test_gui2
-  <-  makeArtifact("gui","test.MySimpleGUI",[],Id);
+  <-  makeArtifact("gui","acme.MySimpleGUI",[],Id);
       cartago.new_array("java.lang.String[]",["java"],Ext);
 	  selectFileToOpen("/Users","Java files",Ext,FileName);
 	  println(FileName).
@@ -223,7 +240,7 @@
 //
 
 +!test_new_prop
-  <- makeArtifact("a0","test.MyArtifactB",[],Id);
+  <- makeArtifact("a0","acme.MyArtifactB",[],Id);
      focus(Id);
      addNewProp("myprop",13).
 
@@ -233,7 +250,7 @@
 //
 
 +!test_multi_prop
-  <- makeArtifact("a0","test.MyArtifactB",[],Id);
+  <- makeArtifact("a0","acme.MyArtifactB",[],Id);
      focus(Id);
      update(0,"new_text");
      update(1,500).
@@ -250,13 +267,13 @@
      
 
 +!test_java_api
-  <- cartago.new_obj("test.FlatCountObject",[10],Id);
+  <- cartago.new_obj("acme.FlatCountObject",[10],Id);
      cartago.invoke_obj(Id,inc);
      cartago.invoke_obj(Id,getValue,Res);
      println(Res);
      cartago.invoke_obj("java.lang.System",currentTimeMillis,T);
      println(T);
-     cartago.invoke_obj("java.lang.Class",forName("test.FlatCountObject"),Class);
+     cartago.invoke_obj("java.lang.Class",forName("acme.FlatCountObject"),Class);
      println(Class).
   
 +!test_remote <-
@@ -266,7 +283,7 @@
   !use_remote.
   
 +!use_remote <-
-  makeArtifact(c0,"test.Counter",[],Id);
+  makeArtifact(c0,"acme.Counter",[],Id);
   focus(Id);
   inc;
   inc.
@@ -286,7 +303,7 @@
      println("joining...");
      joinWorkspace("w0",WspID);
      println("making artifact...");
-     makeArtifact("a0","test.MyArtifactA",[],Id2);
+     makeArtifact("a0","acme.MyArtifactA",[],Id2);
      println("looking up...");
      lookupArtifact("a0",Id3);
      println("hello ",Id3);
@@ -307,7 +324,7 @@
 	 println("joined w0");
 	 joinWorkspace("/main/w1",W1);
 	 println("joined w1");
-  	 makeArtifact("my_counter","test.Counter", [], Id1);
+  	 makeArtifact("my_counter","acme.Counter", [], Id1);
      println("artifact created ", Id1);
      lookupArtifact("my_counter", Id2);
      println("artifact lookup ", Id2);
@@ -331,16 +348,16 @@
   <- .println("no more environments.. ",Msg).
      
 +!test_art <-
-    makeArtifact("c0","test.Counter",[],Id1);
-    makeArtifact("c1","test.Counter",[],Id2);
-    makeArtifact("c2","test.Counter",[],Id3);
+    makeArtifact("c0","acme.Counter",[],Id1);
+    makeArtifact("c1","acme.Counter",[],Id2);
+    makeArtifact("c2","acme.Counter",[],Id3);
     inc [art("c0")];
     inc [art("c1")].
       
 +!test_obs_multiple_artifacts_same_type <-
-    makeArtifact("c0","test.Counter",[],Id1);
-    makeArtifact("c1","test.Counter",[],Id2);
-    makeArtifact("c2","test.Counter",[],Id3);
+    makeArtifact("c0","acme.Counter",[],Id1);
+    makeArtifact("c1","acme.Counter",[],Id2);
+    makeArtifact("c2","acme.Counter",[],Id3);
     focus(Id1);
     focus(Id2);
     focus(Id3);
@@ -351,10 +368,10 @@
 // test wsp rule manager
 
 +!test_wspruleman 
-	<-	cartago.new_obj("test.MyWSPRuleEngine",[],Id);
+	<-	cartago.new_obj("acme.MyWSPRuleEngine",[],Id);
 		setWSPRuleEngine(Id);
 		println("wsp rule manager set.");
-		makeArtifact("c0","test.Counter",[],_);
+		makeArtifact("c0","acme.Counter",[],_);
 		inc;
 		inc;
 		inc;
