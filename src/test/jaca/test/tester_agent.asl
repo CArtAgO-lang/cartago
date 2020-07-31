@@ -26,6 +26,8 @@
 //!test_array_obj.
 //!test_ext_interface.
 
+/* testing dynamic ops */
+
 +!test_art_dyn_ops
 	<-	makeArtifact("a0","acme.ArtifactWithDynamicOps",[], Id);
 		focus(Id);
@@ -41,7 +43,8 @@
 	<-	println("my_count: ", X).
 		
 
-   
+/* testing console */   
+
 +!test_console <-
   println("this print is done by the console artifact").
 
@@ -75,16 +78,16 @@
 	   ?count(Y);
 	   -+count(Y+1).
 
-/* ------- */
+/* testing array objs */
 	  
-
 +!test_array_obj 
   <-  makeArtifact("myArt","acme.ArtifactWithArray",[],Id);
       getCurrentArtifacts(L);
 	  println(L);
 	  myOp(L).
 	  
-  
+/* testing all */  
+
 +!main_test
   <-  .println("started.");
       !test_console;
@@ -94,9 +97,7 @@
       !test_link;
       !test_op_fail.      
     
-+!test_console <-
-  println("this print is done by the console artifact").
-
+/* testing make lookup dispose */
   
 +!test_make_lookup_dispose <-
   lookupArtifact("workspace",W);
@@ -116,6 +117,7 @@
 -artifact(Name,Template,Id)
   <- println("Artifact removed: ",Name).
   
+/* testing use */
   
 +!test_use <-
   inc;
@@ -157,7 +159,7 @@
      inc;
      inc.
      
-//
+/* testing linking */
 
 +!test_link
   <-  makeArtifact("myArtifact","acme.LinkingArtifact",[],Id1);
@@ -179,6 +181,8 @@
     //observe_property(Id3,aprop(X));
     //println("obs prop value: ",X).
  
+ /* testing op failures */
+ 
 +!test_op_fail 
   <- println("test op failure");
      makeArtifact("a0","acme.MyArtifactA");
@@ -188,7 +192,7 @@
   <- println("got it: ",Msg," ",Y).    
 
     
-//
+/* testing artifacts with process inside */
 
 +!test2
   <- makeArtifact("my_clock","cartago.tools.Clock",[],Id);
@@ -203,7 +207,7 @@
 +tick [art(_,"my_clock")]
   <-  println("TICK!").
   
-//  
+/* testing op feedback params */
 
 +!test3
   <-  makeArtifact("a0","acme.MyArtifactA",[],Id);
@@ -212,7 +216,7 @@
       println(Y).
 
   
-//
+/* testing GUI */
 
 +!test_gui
   <-  makeArtifact("gui","acme.MySimpleGUI",[10],Id);
@@ -237,7 +241,7 @@
 	  println(FileName).
 
 
-//
+/* testing dynamic obs prop addition */
 
 +!test_new_prop
   <- makeArtifact("a0","acme.MyArtifactB",[],Id);
@@ -247,7 +251,7 @@
 +myprop(V)
   <- println("here it is the new prop! value: ",V).
 
-//
+/* testing props with muliple values */
 
 +!test_multi_prop
   <- makeArtifact("a0","acme.MyArtifactB",[],Id);
@@ -258,95 +262,15 @@
 +complex_prop(X,Y)
   <- println("prop with multiple values: ",X," ",Y).
 
-//
+/* testing ops with var args */
 
 +!test_varargs
   <- out("p",1,2);
      in("p",X,2);
      println("value: ",X).
-     
 
-+!test_java_api
-  <- cartago.new_obj("acme.FlatCountObject",[10],Id);
-     cartago.invoke_obj(Id,inc);
-     cartago.invoke_obj(Id,getValue,Res);
-     println(Res);
-     cartago.invoke_obj("java.lang.System",currentTimeMillis,T);
-     println(T);
-     cartago.invoke_obj("java.lang.Class",forName("acme.FlatCountObject"),Class);
-     println(Class).
-  
-+!test_remote <-
-  println("testing remote..");
-  joinRemoteWorkspace("main","localhost",WspId);
-  println("hello, remote world!");
-  !use_remote.
-  
-+!use_remote <-
-  makeArtifact(c0,"acme.Counter",[],Id);
-  focus(Id);
-  inc;
-  inc.
+/* testing multiple artifacts  */ 
 
--!use_remote [action_failed(make_artifact(_,_,_),artifact_already_present)] <-
-  println("artifact already created ");
-  focus("c0");
-  inc.
-  
-  
-+count(V)[artifact_name(Id,c0)]
-  <- println("perceived from remote counter: ",V).
-
-/*  
-+!test_wsp 
-  <- createWorkspace("w0");
-     println("joining...");
-     joinWorkspace("w0",WspID);
-     println("making artifact...");
-     makeArtifact("a0","acme.MyArtifactA",[],Id2);
-     println("looking up...");
-     lookupArtifact("a0",Id3);
-     println("hello ",Id3);
-     createWorkspace("w1");
-     println("joining w1...");
-     joinWorkspace("w1",WspID2);
-     println("computing...");
-     compute(5,X,Y)[wsp("w0")];
-     println(X).     
-*/
-
-+!test_wsp
-  <- createWorkspace("w0");
-     println("created w0");
-	 createWorkspace("w1");
-	 println("created w1");
-	 joinWorkspace("w0",W0);
-	 println("joined w0");
-	 joinWorkspace("/main/w1",W1);
-	 println("joined w1");
-  	 makeArtifact("my_counter","acme.Counter", [], Id1);
-     println("artifact created ", Id1);
-     lookupArtifact("my_counter", Id2);
-     println("artifact lookup ", Id2);
-     lookupArtifact("/main/w1/my_counter",Id3);
-     println("artifact lookup with full path name ", Id3).
-	   
-	    
-
-+joined_wsp(Name,Id)	
-	<- println("joined wsp: ",Name," ",Id).          
-          
--!test_wsp [error_msg(Msg)]
-  <- println("OOOPS failed: ",Msg).
-  
-+!test_shutdown
-  <- println("testing shutdown");
-     shutdownNode;
-     println("should be down now..").
-
--!test_shutdown [error_msg(Msg)]
-  <- .println("no more environments.. ",Msg).
-     
 +!test_art <-
     makeArtifact("c0","acme.Counter",[],Id1);
     makeArtifact("c1","acme.Counter",[],Id2);
@@ -364,8 +288,54 @@
     inc [aid(Id1)];
     inc [aid(Id2)];
     inc [aid(Id3)].
+     
+/* testing CArtAgO Java API  */
+
++!test_java_api
+  <- cartago.new_obj("acme.FlatCountObject",[10],Id);
+     cartago.invoke_obj(Id,inc);
+     cartago.invoke_obj(Id,getValue,Res);
+     println(Res);
+     cartago.invoke_obj("java.lang.System",currentTimeMillis,T);
+     println(T);
+     cartago.invoke_obj("java.lang.Class",forName("acme.FlatCountObject"),Class);
+     println(Class).
   
-// test wsp rule manager
+/* testing wsps */
+
++!test_wsp
+  <- createWorkspace("w0");
+     println("created w0");
+	 createWorkspace("w1");
+	 println("created w1");
+	 joinWorkspace("w0",W0);
+	 println("joined w0");
+	 joinWorkspace("/main/w1",W1);
+	 println("joined w1");
+  	 makeArtifact("my_counter","acme.Counter", [], Id1);
+     println("artifact created ", Id1);
+     lookupArtifact("my_counter", Id2);
+     println("artifact lookup ", Id2);
+     lookupArtifact("/main/w1/my_counter",Id3);
+     println("artifact lookup with full path name ", Id3).	    
+
++joined_wsp(Name,Id)	
+	<- println("joined wsp: ",Name," ",Id).          
+          
+-!test_wsp [error_msg(Msg)]
+  <- println("OOOPS failed: ",Msg).
+
+/* testing shutdown */
+  
++!test_shutdown
+  <- println("testing shutdown");
+     shutdownNode;
+     println("should be down now..").
+
+-!test_shutdown [error_msg(Msg)]
+  <- .println("no more environments.. ",Msg).
+     
+/* testing wsp rule manager */  
 
 +!test_wspruleman 
 	<-	cartago.new_obj("acme.MyWSPRuleEngine",[],Id);

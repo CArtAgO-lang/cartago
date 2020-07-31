@@ -270,14 +270,41 @@ public class Workspace {
 	
 	
 	/**
-	 * Link an existing workspace
+	 * Link an existing workspace (local or remote) to this workspace
+	 * 
+	 * @param wspToBeLinkedPath
+	 * @param linkedName
+	 * @return
+	 * @throws CartagoException
+	 */
+	public synchronized WorkspaceDescriptor linkWorkspace(String wspToBeLinkedPath, String linkedName) throws CartagoException {
+		Optional<WorkspaceDescriptor> res = this.resolveWSP(linkedName);
+		if (!res.isPresent()){
+			if (wspToBeLinkedPath.startsWith("/")) {
+				WorkspaceDescriptor toBeLinked = CartagoEnvironment.getInstance().resolveWSP(wspToBeLinkedPath);
+				WorkspaceDescriptor winfo = new WorkspaceDescriptor(toBeLinked.getEnvName(), toBeLinked.getEnvId(), toBeLinked.getId(), this.desc);
+				winfo.setWorkspace(toBeLinked.getWorkspace());
+				this.childWsp.put(linkedName, winfo);
+				return winfo;			
+			} else {
+				WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveRemoteWSP(wspToBeLinkedPath, "web");			
+				this.linkedWsp.put(linkedName, des);
+				return des;
+			}
+		} else {
+			throw new CartagoException("workspace already created");
+		}		
+	}
+
+	/**
+	 * Link an existing local workspace
 	 * 
 	 * @param toBeLinked
 	 * @param linkedName
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized WorkspaceDescriptor linkWorkspace(WorkspaceDescriptor toBeLinked, String linkedName) throws CartagoException {
+	public synchronized WorkspaceDescriptor linkLocalWorkspace(WorkspaceDescriptor toBeLinked, String linkedName) throws CartagoException {
 		Optional<WorkspaceDescriptor> res = this.resolveWSP(linkedName);
 		if (!res.isPresent()){
 			WorkspaceDescriptor winfo = new WorkspaceDescriptor(toBeLinked.getEnvName(), toBeLinked.getEnvId(), toBeLinked.getId(), this.desc);
@@ -288,17 +315,18 @@ public class Workspace {
 			throw new CartagoException("workspace already created");
 		}
 	}
+
 	
 	/**
 	 * Link an existing workspace belonging to another MAS
 	 * 
-	 * @param targetWsp
+	 * @param remoteWspPath
 	 * @param linkName
 	 * @param protocol
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized WorkspaceDescriptor mountWorkspace(String remoteWspPath, String linkName, String protocol) throws CartagoException {
+	public synchronized WorkspaceDescriptor linkRemoteWorkspace(String remoteWspPath, String linkName, String protocol) throws CartagoException {
 		Optional<WorkspaceDescriptor> res = this.resolveWSP(linkName);
 		if (!res.isPresent()){
 			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveRemoteWSP(remoteWspPath, protocol);			
@@ -308,20 +336,6 @@ public class Workspace {
 			throw new CartagoException("workspace already created");
 		}
 	}
-	
-	/*
-	public synchronized CartagoWorkspace createWorkspace(String name, AbstractWorkspaceTopology topology) throws CartagoException {
-		CartagoWorkspace wsp = wsps.get(name);		
-		if (wsp==null){
-			WorkspaceId wid = new WorkspaceId(name,nodeId); 
-			wsp = new CartagoWorkspace(wid,this);
-			wsp.setTopology(topology);
-			wsps.put(name, wsp);
-			return wsp;
-		} else {
-			throw new CartagoException("workspace already created");
-		}
-	}*/
 	
 	
 	/**
@@ -517,7 +531,7 @@ public class Workspace {
 
 	private ArtifactId makeAgentBodyArtifact(String artBodyClassName, AgentBody body){
 		try {
-			String name = body.getAgentId().getAgentName()+"Body";
+			String name = "body_"+body.getAgentId().getAgentName();
 			String className = artBodyClassName;
 			
 			if (className == null) {

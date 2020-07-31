@@ -302,7 +302,7 @@ public class CartagoEnvironment {
 			WorkspaceId wspId = startContext.getWorkspaceId();
 			ArtifactId agentContextArtifact = null;
 			try {
-				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "session-"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, wsp));
+				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "session_"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, wsp));
 			} catch (Exception ex){
 				ex.printStackTrace();
 			}
@@ -350,70 +350,6 @@ public class CartagoEnvironment {
 		return startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME,cred);
 	}
 	
-	/**
-	 * Start a working session in a remote workspace.
-	 * 
-	 * @param wspName workspace name
-	 * @param wspAddress workspace address 
-	 * @param protocol infrastructure protocol ("default" for default one)
-	 * @param cred agent  credential
-	 * @param eventListener listener to workspace events to be perceived by the agent
-	 * @return a context for working inside the workspace
-	 *//*
-	public synchronized ICartagoSession startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
-		if (wspName==null){
-			wspName = "default";
-		}
-		
-		if ((protocol == null) || (protocol.equals("default"))) protocol = defaultInfraLayer;
-
-		//If the infrastructure protocol is not installed yet (agent joining a remote workspace
-		//without installing a CArtAgO node ex. CArtAgO-WS agents..) we install it
-		if (!infraLayers.containsKey(protocol)) {
-			installInfrastructureLayer(protocol);
-		}
-		
-		CartagoSession session = new CartagoSession(cred,null,eventListener);
-		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, session);
-		WorkspaceId wspId = startContext.getWorkspaceId();
-		session.init(null, wspId, startContext);
-		return session;
-	}*/
-
-	/**
-	 * Start a working session in a remote workspace, returning a context
-	 * 
-	 * @param wspName workspace name
-	 * @param wspAddress workspace address 
-	 * @param protocol infrastructure protocol ("default" for default one)
-	 * @param cred agent  credential
-	 * @param eventListener listener to workspace events to be perceived by the agent
-	 * @return a context for working inside the workspace
-	 *//*
-	public synchronized CartagoContext startRemoteSession(String wspName, String wspAddress, String protocol, AgentCredential cred) throws CartagoException {
-		if (wspName==null){
-			wspName = "default";
-		}
-		
-		if ((protocol == null) || (protocol.equals("default"))) {
-			protocol = defaultInfraLayer;
-		}
-
-		//If the infrastructure protocol is not installed yet (agent joining a remote workspace
-		//without installing a CArtAgO node ex. CArtAgO-WS agents..) we install it
-		if(!infraLayers.containsKey(protocol)) { 
-			installInfrastructureLayer(protocol);
-		}
-		CartagoContext context = new CartagoContext(cred);
-		ICartagoContext startContext = joinRemoteWorkspace(wspName, wspAddress, protocol, cred, context.getCartagoSession());
-		WorkspaceId wspId = startContext.getWorkspaceId();
-		context.getCartagoSession().init(null, wspId, startContext);
-		return context;
-	}*/
-	
-
-	
-	//
 	
 	/**
 	 * Join a remote workspace - called by CArtAgO node.
@@ -441,22 +377,6 @@ public class CartagoEnvironment {
 			throw new CartagoException("Join " + wspFullNameRemote + "@"+address+" failed ");
 		}
 	}
-
-
-	/*
-	public synchronized WorkspaceDescriptor createRemoteWSP(String wspName, String address, String envName, String protocol) throws CartagoException {
-		try {
-			if ((protocol == null) || (protocol.equals("default"))){
-				protocol = defaultInfraLayer;
-			} 
-			ICartagoInfrastructureLayer layer = infraLayers.get(protocol);
-			WorkspaceDescriptor des = layer.createRemoteWSP(wspName, address, envName);
-			return des;
-		} catch (CartagoInfrastructureLayerException ex) {
-			ex.printStackTrace();
-			throw new CartagoException("CreateWorkspace" + wspName + "@"+address+" failed ");
-		}
-	}*/
 
 
 	public WorkspaceDescriptor createRemoteWorkspace(String fullName, String address, String envName, String protocol) throws CartagoException {

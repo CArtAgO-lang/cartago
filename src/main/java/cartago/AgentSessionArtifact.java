@@ -52,12 +52,6 @@ public class AgentSessionArtifact extends Artifact {
 	 */
 	@OPERATION void joinWorkspace(String wspRef, OpFeedbackParam<WorkspaceId> res) {
 		try {			
-			/*
-			WorkspaceId implicitWspId = session.getCurrentWorkspace();
-			if (!wspRef.startsWith("/")) {
-				wspRef = implicitWspId.getFullName() + "/" + wspRef;
-				// action on the workspace artifact of the implicit workspace 
-			} */			
 			// wspRef must be absolute: /...
 			
 			wspRef = removeRelativePath(wspRef);
@@ -110,15 +104,9 @@ public class AgentSessionArtifact extends Artifact {
 		joinWorkspace(wspRef, null);
 	}	
 	
-	
+	/*
 	@OPERATION void mountWorkspace(String remoteWspPath, String localFullName,  String protocol)  {
 		try {
-			/*
-			WorkspaceId implicitWspId = session.getCurrentWorkspace();
-			if (!localFullName.startsWith("/")) {
-				localFullName = implicitWspId.getFullName() + "/" + localFullName;
-				// action on the workspace artifact of the implicit workspace 
-			} */			
 			localFullName = removeRelativePath(localFullName);
 			int index = localFullName.lastIndexOf('/');
 			
@@ -130,24 +118,16 @@ public class AgentSessionArtifact extends Artifact {
 				des.getWorkspace().mountWorkspace(remoteWspPath, wspName, protocol);
 			} else {
 				failed("not implemented");
-				/*
-				try {
-					ICartagoContext ctx = CartagoEnvironment.getInstance().joinRemoteWorkspace(des.getRemotePath(), des.getAddress(), des.getProtocol(), cred, eventListener);
-					WorkspaceId wspId = ctx.getWorkspaceId();
-					this.implicitWspId = wspId;
-					res.set(wspId);
-				} catch (Exception ex) {
-					// ex.printStackTrace();
-					failed("Join Workspace error: "+ex.getMessage());
-					
-				}*/
 			}
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("Mount Workspace error: "+ex.getMessage());
 		}
 	}
+	*/
 
+	// aux
+	
 	private String removeRelativePath(String path) {
 		String[] parts = path.split("/");
 		List<String> list = new ArrayList<String>();

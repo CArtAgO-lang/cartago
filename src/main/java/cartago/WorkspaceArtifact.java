@@ -39,10 +39,10 @@ public class WorkspaceArtifact extends Artifact {
 		this.wsp = env;
 	}
 
-	/* wsp management */
+	/* Wsp management */
 
 	/**
-	 * Create a workspace in the local node.
+	 * Create a child workspace of this workspace.
 	 * 
 	 * @param name name of the workspace
 	 */
@@ -56,7 +56,7 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * Create a workspace on a remote node
+	 * Create a child workspace running on a different node
 	 * 
 	 * @param name name of the workspace
 	 */
@@ -70,9 +70,8 @@ public class WorkspaceArtifact extends Artifact {
 	}
 
 	/**
-	 * Experimental support for topology
 	 * 
-	 * Create a workspace in the local node.
+	 * Create a child workspace specifying a topology
 	 * 
 	 * @param name name of the workspace
 	 */
@@ -88,40 +87,56 @@ public class WorkspaceArtifact extends Artifact {
 	}
 	
 
-	@GUARD boolean artifactAvailable(String artName){
-		return wsp.getArtifact(artName) != null;
+	/**
+	 * Link an existing workspace to be reachable from this workspace
+	 * 
+	 * @param wspToBeLinkedPath
+	 * @param localName
+	 */
+	@OPERATION void linkWorkspace(String wspToBeLinkedPath, String localName)  {
+		try {
+			wsp.linkWorkspace(wspToBeLinkedPath, localName);			
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			failed("link workspace error: "+ex.getMessage());
+		}
 	}
 
 	/**
-	 * Enable debugging
+	 * Link an existing remote workspace to be reachable from this workspace
 	 * 
+	 * @param remoteWspPath
+	 * @param wspName
+	 * @param protocol
 	 */
-	@OPERATION void enableDebug(){
-		 if (debug == null){
-			 Inspector insp = new Inspector();
-			 insp.start();
-			 wsp.getLoggerManager().registerLogger(insp.getLogger());
-		 }
-	}
-	
-	/**
-	 * Disable debugging
-	 * 
-	 */
-	@OPERATION void disableDebug(){
-		 if (debug != null){
-			 wsp.getLoggerManager().unregisterLogger(debug.getLogger());
-		 }
-	}
-		
-	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
-		AgentId userId = this.getCurrentOpAgentId();
+	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName,  String protocol)  {
 		try {
-			wsp.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
-		} catch(Exception ex){
-			failed("Artifact Not Available.");
+			wsp.linkRemoteWorkspace(remoteWspPath, wspName, protocol);			
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			failed("link workspace error: "+ex.getMessage());
 		}
 	}
+
+	/**
+	 * Link an existing remote workspace to be reachable from this workspace
+	 * 
+	 * @param remoteWspPath
+	 * @param wspName
+	 * @param protocol
+	 */
+	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName)  {
+		try {
+			wsp.linkRemoteWorkspace(remoteWspPath, wspName, "web");			
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			failed("link workspace error: "+ex.getMessage());
+		}
+	}
+
+	
+	/* Artifacts management */
+
 
 	/**
 	 * <p>Discover an artifact by name</p>
@@ -173,25 +188,6 @@ public class WorkspaceArtifact extends Artifact {
 		} catch (Exception ex){
 			failed(ex.toString());
 		}
-	}
-	
-	/**
-	 * Add an artifact factory
-	 * 
-	 * @param factory artifact factory
-	 */
-	@OPERATION @LINK void addArtifactFactory(ArtifactFactory factory){
-		wsp.addArtifactFactory(factory);
-	}
-
-
-	/**
-	 * Remove an existing artifact factory
-	 * 
-	 * @param name
-	 */
-	@OPERATION @LINK void removeArtifactFactory(String name){
-		wsp.removeArtifactFactory(name);
 	}
 	
 	/**
@@ -276,15 +272,6 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
-	@OPERATION @LINK void disposeArtifact(ArtifactId id){
-		try {
-			wsp.disposeArtifact(this.getCurrentOpAgentId(),id);
-			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
-		} catch (Exception ex){
-			failed(ex.toString());
-		}
-	}
-	
 	
 	/**
 	 * Start observing an artifact of the workspace
@@ -384,16 +371,49 @@ public class WorkspaceArtifact extends Artifact {
 			failed("Artifact Not Available.");
 		}
 	}
-	
-	
-	
-	@OPERATION void mountWorkspace(String remoteWspPath, String wspName,  String protocol)  {
+
+	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
-			wsp.mountWorkspace(remoteWspPath, wspName, protocol);			
-		} catch (Exception ex) {
-			// ex.printStackTrace();
-			failed("Mount Workspace error: "+ex.getMessage());
+			wsp.disposeArtifact(this.getCurrentOpAgentId(),id);
+			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
+		} catch (Exception ex){
+			failed(ex.toString());
 		}
+	}
+	
+	@GUARD boolean artifactAvailable(String artName){
+		return wsp.getArtifact(artName) != null;
+	}
+
+		
+	@OPERATION void linkArtifacts(ArtifactId artifactOutId, String artifactOutPort, ArtifactId artifactInId){
+		AgentId userId = this.getCurrentOpAgentId();
+		try {
+			wsp.linkArtifacts(userId, artifactOutId, artifactOutPort, artifactInId);
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
+	/* Artifact factories management */
+	
+	/**
+	 * Add an artifact factory
+	 * 
+	 * @param factory artifact factory
+	 */
+	@OPERATION @LINK void addArtifactFactory(ArtifactFactory factory){
+		wsp.addArtifactFactory(factory);
+	}
+
+
+	/**
+	 * Remove an existing artifact factory
+	 * 
+	 * @param name
+	 */
+	@OPERATION @LINK void removeArtifactFactory(String name){
+		wsp.removeArtifactFactory(name);
 	}
 	
 	
@@ -534,4 +554,27 @@ public class WorkspaceArtifact extends Artifact {
 	@LINK void getArtifactList(OpFeedbackParam<ArtifactId[]> artifacts) {
 		artifacts.set(wsp.getArtifactIdList());
 	}
+
+	/**
+	 * Enable debugging
+	 * 
+	 */
+	@OPERATION void enableDebug(){
+		 if (debug == null){
+			 Inspector insp = new Inspector();
+			 insp.start();
+			 wsp.getLoggerManager().registerLogger(insp.getLogger());
+		 }
+	}
+	
+	/**
+	 * Disable debugging
+	 * 
+	 */
+	@OPERATION void disableDebug(){
+		 if (debug != null){
+			 wsp.getLoggerManager().unregisterLogger(debug.getLogger());
+		 }
+	}
+
 }

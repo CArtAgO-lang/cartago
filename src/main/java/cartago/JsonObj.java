@@ -120,4 +120,7 @@ public class JsonObj implements java.io.Serializable {
 		return obj;
 	}
 	
+	public String toString() {
+		return obj.encodePrettily();
+	}
 }

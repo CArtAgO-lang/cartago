@@ -3,7 +3,7 @@ package acme;
 import cartago.CartagoEnvironment;
 import cartago.utils.BasicLogger;
 
-public class SetupRemoteNodeWebInfr {
+public class LaunchRemoteNodeWebInfr {
 
 	public static void main(String[] args) throws Exception {			
 		CartagoEnvironment env = CartagoEnvironment.getInstance();
