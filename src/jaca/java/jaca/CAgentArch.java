@@ -319,7 +319,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		}
 	}
 	
-	private int nbEventsPerCycle = 0;
+	private int nbAcumEvents = 0;
 
 	@Override
 	public Collection<Literal> perceive() {
@@ -328,9 +328,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 
 		try {
 			CartagoEvent evt = envSession.fetchNextPercept();
-			nbEventsPerCycle = 0;
 			while (evt != null) {
-				nbEventsPerCycle++;
+				nbAcumEvents++;
 				
 				if (evt instanceof ActionSucceededEvent) {
 					perceiveActionSucceeded((ActionSucceededEvent) evt);
@@ -371,7 +370,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	
     public Map<String,Object> getStatus() {
     	Map<String,Object> r = super.getStatus();
-    	r.put("nbPercepts", this.nbEventsPerCycle);
+    	r.put("nbAcumEvents", this.nbAcumEvents);
+		nbAcumEvents = 0;
     	return r;
 	}
 
