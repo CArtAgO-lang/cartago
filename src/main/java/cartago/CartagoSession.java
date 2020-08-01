@@ -10,7 +10,7 @@ import cartago.events.*;
 /**
  * Class representing a working session of an agent inside an environment
  * 
- * - singleton
+ * - one for each agent  
  * - keeps track  of all workspaces joined
  * - accessed by the agent API
  * 
@@ -21,7 +21,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 
 	// one context for workspace, the agent can work in multiple workspaces
 	private ConcurrentHashMap<WorkspaceId, ICartagoContext> contexts;
-	// private LinkedList<WorkspaceId> contextOrderedList;
 	
 	// queue where percepts are notified by the environment
 	private java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent> perceptQueue;
@@ -35,7 +34,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		
 	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
-		// contextOrderedList = new java.util.LinkedList<WorkspaceId>();
 		perceptQueue = new java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent>();
 		agentArchListener = listener;
 		this.agentRole = agentRole;
@@ -46,10 +44,6 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	void init(ArtifactId agentContextId, WorkspaceId initialWspId, ICartagoContext startContext) {
 		this.agentContextId = agentContextId;
 		contexts.put(initialWspId, startContext);
-		/*
-		synchronized (contextOrderedList) {
-			contextOrderedList.addFirst(initialWspId);
-		}*/
 	}
 
 	public ArtifactId getAgentSessionArtifactId() {
@@ -127,10 +121,22 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		long actId = actionId.incrementAndGet();
 		ICartagoContext ctx = null;
 		synchronized (this){
-			for (Map.Entry<WorkspaceId, ICartagoContext> e: contexts.entrySet()){
-				if (e.getKey().getName().equals(wspName)) {
-					ctx = e.getValue();
-					break;
+			// if it is a full name...
+			if (wspName.startsWith("/")) {
+				for (Map.Entry<WorkspaceId, ICartagoContext> e: contexts.entrySet()){
+					if (e.getKey().getFullName().equals(wspName)) {
+						ctx = e.getValue();
+						break;
+					}
+				}
+			} else {
+				// single name
+				
+				for (Map.Entry<WorkspaceId, ICartagoContext> e: contexts.entrySet()){
+					if (e.getKey().getName().equals(wspName)) {
+						ctx = e.getValue();
+						break;
+					}
 				}
 			}
 			if (ctx != null) {
@@ -164,16 +170,7 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 	public ICartagoContext getJoinedWsp(WorkspaceId wid) {
 		return contexts.get(wid);
 	}
-	
-	/*
-	public WorkspaceId getCurrentWorkspace() {
-		synchronized (contextOrderedList) {
-			return this.contextOrderedList.getFirst();
-		}
-	}
-	*/
-	
-	
+		
 	/**
 	 * Make a new artifact instance
 	 * 
@@ -210,23 +207,13 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback {
 		if (ev instanceof JoinWSPSucceededEvent) {
 			JoinWSPSucceededEvent wspev = (JoinWSPSucceededEvent) ev;				
 			contexts.put(wspev.getWorkspaceId(), wspev.getContext());
-			/*
-			synchronized (contextOrderedList) {
-				contextOrderedList.addFirst(wspev.getWorkspaceId());
-			}*/
 		} else if (ev instanceof QuitWSPSucceededEvent) {
 			QuitWSPSucceededEvent wspev = (QuitWSPSucceededEvent) ev;
 			contexts.remove(wspev.getWorkspaceId());
-			/*
-			synchronized (contextOrderedList) {
-				contextOrderedList.remove(wspev.getWorkspaceId());
-			}*/
 		}
 	}
 
 	public void notifyCartagoEvent(CartagoEvent ev) {
-		// System.out.println("NOTIFIED "+ev.getId()+"
-		// "+ev.getClass().getCanonicalName());
 		checkWSPEvents(ev);
 		boolean keepEvent = true;
 		if (agentArchListener != null) {

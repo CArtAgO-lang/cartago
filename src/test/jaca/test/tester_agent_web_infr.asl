@@ -39,7 +39,7 @@
   println("created workspace w0")[wsp("main")];
   println("before join...")[wsp("main")];
   joinWorkspace("w0",Wid2);
-  println("joined workspace w0. Creating a c0 counter...")[wsp("main")];
+  println("joined workspace w0. Creating a c0 counter... (this is printed in the remote wsp)")[wsp("/main/b")];
   makeArtifact(c0,"acme.Counter",[],Id);
   println("Counter created, using it")[wsp("main")];
   focus(Id);
