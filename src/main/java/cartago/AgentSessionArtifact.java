@@ -104,27 +104,6 @@ public class AgentSessionArtifact extends Artifact {
 		joinWorkspace(wspRef, null);
 	}	
 	
-	/*
-	@OPERATION void mountWorkspace(String remoteWspPath, String localFullName,  String protocol)  {
-		try {
-			localFullName = removeRelativePath(localFullName);
-			int index = localFullName.lastIndexOf('/');
-			
-			String parentPath = localFullName.substring(0, index);
-			String wspName = localFullName.substring(index + 1);
-			
-			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(parentPath);
-			if (des.isLocal()) {
-				des.getWorkspace().mountWorkspace(remoteWspPath, wspName, protocol);
-			} else {
-				failed("not implemented");
-			}
-		} catch (Exception ex) {
-			// ex.printStackTrace();
-			failed("Mount Workspace error: "+ex.getMessage());
-		}
-	}
-	*/
 
 	// aux
 	

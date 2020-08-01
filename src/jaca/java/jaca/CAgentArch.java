@@ -332,13 +332,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									ex.printStackTrace();
 								}
 							}							
-						} else if (op.getName().equals("mountWorkspace")) {
+						}  /* else if (op.getName().equals("mountWorkspace")) {
 							Object[] params = op.getParamValues();
 							String mountingPoint = (String) params[1];
 							try {
 								int index = mountingPoint.indexOf('/');
 								if (index == -1) {
-									/* action on the workspace artifact of the implicit workspace */
+									// action on the workspace artifact of the implicit workspace 
 									actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
 								} else {
 									String fullPath = mountingPoint;
@@ -353,9 +353,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 									
 									WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(parentPath);
 									if (des.isLocal()) {
-										/* use only the name */
+										// use only the name 
 										params[1] = linkName;
-										/* invoke the op on the wsp artifact of that wsp */
+										// invoke the op on the wsp artifact of that wsp 
 										actId = envSession.doAction(des.getWorkspace().getWspArtifactId(), op, test, timeout);
 										
 									} else {
@@ -366,7 +366,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener {
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}			
-						} else if (op.getName().equals("quitWorkspace")) {
+						} */ else if (op.getName().equals("quitWorkspace")) {
 							try {
 								actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
 							} catch (Exception ex) {

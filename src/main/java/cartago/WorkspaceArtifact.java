@@ -88,7 +88,7 @@ public class WorkspaceArtifact extends Artifact {
 	
 
 	/**
-	 * Link an existing workspace to be reachable from this workspace
+	 * Link an existing workspace (either locally or in another MAS) to be reachable from this workspace
 	 * 
 	 * @param wspToBeLinkedPath
 	 * @param localName
@@ -134,6 +134,67 @@ public class WorkspaceArtifact extends Artifact {
 		}
 	}
 
+	
+	/**
+	 * Mounting is linking a remote wsp specifying the full local path 
+	 * 
+	 * @param remoteWspPath
+	 * @param localFullName
+	 * @param protocol
+	 */
+	@OPERATION void mountWorkspace(String targetMASURL, String remoteWspPath, String localWspPath)  {
+		try {
+			localWspPath = removeRelativePath(localWspPath);
+			int index = localWspPath.lastIndexOf('/');
+			
+			String parentPath = localWspPath.substring(0, index);
+			String wspName = localWspPath.substring(index + 1);
+			
+			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(parentPath);
+			if (des.isLocal()) {
+				des.getWorkspace().linkRemoteWorkspace(targetMASURL + remoteWspPath, wspName, "web");
+			} else {
+				failed("not implemented");
+			}
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			failed("Mount Workspace error: "+ex.getMessage());
+		}
+	}
+	
+	// aux
+	
+	private String removeRelativePath(String path) {
+		String[] parts = path.split("/");
+		List<String> list = new ArrayList<String>();
+		for (String p: parts) {
+			if (!p.equals("")) {
+				list.add(p);
+			}
+		}
+		int index = 0;
+		while (index < list.size()) {
+			String elem = list.get(index);
+			if (elem.equals(".")) {
+				list.remove(index);
+			} else if (elem.equals("..")) {
+				list.remove(index);
+				if (list.size() > 0) {
+					list.remove(index - 1);
+				} else {
+					return null;
+				}
+			} else {
+				index++;
+			}
+		}
+		StringBuffer sb = new StringBuffer();
+		for (String s: list) {
+			sb.append("/"+s);
+		}
+		return sb.toString();
+	}
+	
 	
 	/* Artifacts management */
 

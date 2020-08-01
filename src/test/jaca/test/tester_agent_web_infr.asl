@@ -19,15 +19,15 @@
 
 /* 
  *  /main
- * 		/b (linked to http://localhost/myMAS/main 
+ * 		/b (linked to http://localhost/myMAS/main)
  * 			/w0 
  */
 
 +!test_remote <-
   println("Testing distributed MAS.");
-  // mountWorkspace("http://localhost/myMAS/main","/main/b","web");
   println("Linking a remote wsp belonging to another MAS called myMAS running on localhost...");
   linkWorkspace("http://localhost/myMAS/main","b");
+  // alternative: mountWorkspace("http://localhost/myMAS","/main","/main/b");
   println("link ok");
   println("joining the remote wsp (some msgs will be printed in the console there)");
   joinWorkspace("/main/b", Wid);

@@ -54,7 +54,7 @@ public class CartagoMiddlewareDaemon extends AbstractVerticle  {
 	private Router router;
 	private HttpServer server;
 	
-	
+	private static int CARTAGO_DEF_PORT = 22000;
 	private Logger logger = LoggerFactory.getLogger(CartagoMiddlewareDaemon.class);
 	
 	private static final String API_BASE_PATH = "/cartago/api";
@@ -105,7 +105,7 @@ public class CartagoMiddlewareDaemon extends AbstractVerticle  {
 	}
 
 	private  void log(String msg) {
-		System.out.println("" + Thread.currentThread() + " " + msg);
+		System.out.println("[ CArtAgO Node Daemon ] " + msg);
 	}
 
 	public void shutdown(){
@@ -162,6 +162,6 @@ public class CartagoMiddlewareDaemon extends AbstractVerticle  {
 	
 	public static void main(String[] args) throws Exception {			
 		Vertx vertx = Vertx.vertx();
-		vertx.deployVerticle(new CartagoMiddlewareDaemon(22000));
+		vertx.deployVerticle(new CartagoMiddlewareDaemon(CARTAGO_DEF_PORT));
 	}
 }

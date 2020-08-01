@@ -114,8 +114,6 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 
 		router.get(API_BASE_PATH + "/:masName").handler(this::handleResolveWSP);
 		 
-		// Router router = routerFactory.getRouter();
-
 		server = vertx.createHttpServer()
 		.requestHandler(router)
 		.websocketHandler(ws -> {
@@ -136,7 +134,7 @@ public class CartagoEnvironmentService extends AbstractVerticle  {
 	}
 
 	private  void log(String msg) {
-		System.out.println("" + Thread.currentThread() + " " + msg);
+		System.out.println("[ CArtAgO Web Service Layer ] " + msg);
 	}
 
 	public void shutdownService(){
