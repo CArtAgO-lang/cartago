@@ -3,3 +3,6 @@
 build
 *~
 /.gradle/
+.project
+.classpath
+.settings
