@@ -17,21 +17,14 @@
  */
 package cartago.infrastructure.web;
 
-import java.rmi.*;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.omg.CORBA.Request;
-
-import cartago.*;
+import cartago.CARTAGO_VERSION;
+import cartago.CartagoEnvironment;
+import cartago.WorkspaceDescriptor;
+import cartago.WorkspaceId;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
