@@ -13,9 +13,9 @@ import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
 import cartago.CARTAGO_VERSION;
+import cartago.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.CartagoNode;
-import cartago.CartagoWorkspace;
+import cartago.Workspace;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
 import cartago.ICartagoContext;
@@ -32,14 +32,12 @@ import cartago.OpId;
 public class CartagoNodeRemote implements ICartagoNodeRemote {
 	
 	private int mPort;
-	private CartagoNode mNode;
 	private ConcurrentLinkedQueue<AgentBodyRemote> mRemoteCtxs;
 	private GarbageBodyCollectorAgent mGarbageCollector;
 	private CallHandler mCallHandler;
 	private Server mServer;
 	
-	public CartagoNodeRemote(CartagoNode node) {
-		mNode = node;
+	public CartagoNodeRemote() {
 		mRemoteCtxs = new ConcurrentLinkedQueue<AgentBodyRemote>();
 		mGarbageCollector = new GarbageBodyCollectorAgent(mRemoteCtxs,500,10000);
 		mGarbageCollector.start();
@@ -87,7 +85,7 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 		
 		ICartagoCallback proxy = new CartagoCallbackProxy(callback);
 		String wspName = targetId.getWorkspaceId().getName();
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
+		Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(wspName).getWorkspace();
 		return wsp.execInterArtifactOp(proxy, callbackId, userId, srcId, targetId, op, timeout, test);
 	}
 
@@ -100,9 +98,9 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 	public IAgentBodyRemote join(String wspName, AgentCredential cred,
 			ICartagoCallbackRemote callback) throws CartagoException {
 		
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
+		Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(wspName).getWorkspace();
 		ICartagoCallback proxy = new CartagoCallbackProxy(callback);
-		ICartagoContext ctx = wsp.join(cred,proxy);
+		ICartagoContext ctx = wsp.joinWorkspace(cred,proxy);
 		try {
 			IAgentBodyRemote rctx = new AgentBodyRemote((AgentBody)ctx, mCallHandler);
 			mRemoteCtxs.add((AgentBodyRemote) rctx);
@@ -116,8 +114,8 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 	@Override
 	public void quit(String wspName, AgentId id) throws CartagoException {
 		
-		CartagoWorkspace wsp = mNode.getWorkspace(wspName);
-		wsp.getKernel().quitAgent(id);
+		Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(wspName).getWorkspace();
+		wsp.quitAgent(id);
 		Iterator<AgentBodyRemote> it = mRemoteCtxs.iterator();
 		while (it.hasNext()){
 			AgentBodyRemote c = it.next();
@@ -128,9 +126,9 @@ public class CartagoNodeRemote implements ICartagoNodeRemote {
 		}
 	}
 
-	@Override
+	/*
 	public NodeId getNodeId() throws CartagoException {
-		return mNode.getId();
-	}
+		return mNode.getFullName();
+	}*/
 
 }

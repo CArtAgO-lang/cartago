@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ public abstract class Artifact {
 	// private Logger logger = Logger.getLogger("log");
 
 	private ArtifactId id;
-	WorkspaceKernel env;
+	Workspace wsp;
 
 	protected OpId thisOpId;
 	private OpExecutionFrame opExecFrame;
@@ -64,10 +64,10 @@ public abstract class Artifact {
 	/* defines the radius in which the artifact can be perceived*/
 	protected double observabilityRadius;
 	
-	final void bind(ArtifactId id, AgentId creatorId, WorkspaceKernel env) throws CartagoException {
+	void bind(ArtifactId id, AgentId creatorId, Workspace env) throws CartagoException {
 		this.id = id;
 		this.creatorId = creatorId;
-		this.env = env;
+		this.wsp = env;
 		obsPropId = 0;
 		opIds = new java.util.concurrent.atomic.AtomicInteger(0);
 
@@ -217,6 +217,44 @@ public abstract class Artifact {
 	}
 
 	/**
+	 * 
+	 * Adding a dynamic operation
+	 * 
+	 * version 3.0
+	 * @param opName
+	 * @param op
+	 * @throws Exception
+	 */
+	protected void defineNewOp(String opName, ArtifactDynOpInterface op) throws Exception {
+		String name =  Artifact.getOpKey(opName,-1);
+		OpDescriptor opdesc = new OpDescriptor(
+				name,
+				new ArtifactDynOp(this, opName, op), null,
+				OpDescriptor.OpType.UI);
+		// log("registering "+name);
+		operationMap.put(name, opdesc);
+		this.wsp.registerOpInMap(opdesc, this.id);
+	}
+
+	/**
+	 * 
+	 * Removing a dynamic operation
+	 * 
+	 * version 3.0
+	 * @param opName
+	 * @param op
+	 * @throws Exception
+	 */
+	protected void removeOp(String opName) throws Exception {
+		String key =  Artifact.getOpKey(opName,-1);
+		OpDescriptor opdesc = operationMap.remove(key);
+		if (opdesc != null) {
+			this.wsp.unregisterOpFromMap(opdesc, this.id);
+		}
+	}
+
+	
+	/**
 	 * Get the name of the file containing the manual for the specified artifact
 	 * template, by accessing to ARTIFACT_INFO annotation.
 	 * 
@@ -316,7 +354,7 @@ public abstract class Artifact {
 	 * @throws CartagoException
 	 */
 	private void doOperation(OpExecutionFrame info) throws CartagoException {
-		ICartagoLoggerManager log = env.getLoggerManager();
+		ICartagoLoggerManager log = wsp.getLoggerManager();
 		try {
 			lock.lock();
 			Op op = info.getOperation();
@@ -341,7 +379,9 @@ public abstract class Artifact {
 					}
 					return;
 				}
-				varargs = true;
+				if (!opDesc.isDynamic()) {
+					varargs = true;
+				}
 			}
 
 			IAlignmentTest test = info.getAlignmentTest();
@@ -490,9 +530,9 @@ public abstract class Artifact {
 						System.out.println("EXPECTED PARAM "+p+" "+p.getClass());
 					}
 					*/
-					String msg = "Unknown Operation";
+					String msg = "Generic Error in Op execution";
 					Tuple desc =  new Tuple(
-							"unknown_operation", opBody.getName() + "/"
+							"operation_error", opBody.getName() + "/"
 							+ opBody.getNumParameters());
 					if (log.isLogging()){
 						log.opFailed(System.currentTimeMillis(), info.getOpId(), this.id, info.getOperation(), msg, desc);
@@ -547,7 +587,7 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (changed != null || added != null || removed != null){
-				env.notifyObsEvent(id, null, changed, added, removed);
+				wsp.notifyObsEvent(id, null, changed, added, removed);
 				guards.signalAll();
 			}
 		} catch (Exception ex){
@@ -566,9 +606,9 @@ public abstract class Artifact {
 		ArtifactObsProperty[] removed = obsPropertyMap.getPropsRemoved();	
 		try {
 			if (target == null){
-				env.notifyObsEvent(id, signal, changed, added, removed);
+				wsp.notifyObsEvent(id, signal, changed, added, removed);
 			} else {
-				env.notifyObsEventToAgent(id, target, signal, changed, added, removed);
+				wsp.notifyObsEventToAgent(id, target, signal, changed, added, removed);
 			}
 			guards.signalAll();
 		} catch (Exception ex){
@@ -621,7 +661,7 @@ public abstract class Artifact {
 	 * 
 	 */
 	protected ArtifactId getCurrentOpAgentBody() {
-		return env.getAgentBodyArtifact(opExecFrame.getAgentId());
+		return wsp.getAgentBodyArtifact(opExecFrame.getAgentId());
 	}
 
 
@@ -690,7 +730,7 @@ public abstract class Artifact {
 	 */
 	protected ObsProperty defineObsProperty(String name, Object... values) {			
 			try {
-				String fullId="obs_id_"+this.env.getId().getId()+this.id.getId()+"_"+obsPropId;
+				String fullId="obs_id_"+this.wsp.getId().getFullName()+this.id.getId()+"_"+obsPropId;
 				ObsProperty prop = new ObsProperty(obsPropertyMap,obsPropId, fullId, name, values); 
 				obsPropertyMap.add(prop);
 				obsPropId++;
@@ -768,7 +808,7 @@ public abstract class Artifact {
 	 *            - parameters of the method
 	 */
 	protected void await(String guardName, Object... params) {
-		ICartagoLoggerManager log = env.getLoggerManager();
+		ICartagoLoggerManager log = wsp.getLoggerManager();
 		OpId id = thisOpId;
 		try {
 			commitObsStateChanges();
@@ -850,7 +890,7 @@ public abstract class Artifact {
 	 */
 	protected void execInternalOp(String opName, Object... params) {
 		try {
-			env.doInternalOp(this.id, new Op(opName, params));
+			wsp.doInternalOp(this.id, new Op(opName, params));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new IllegalArgumentException(
@@ -884,7 +924,7 @@ public abstract class Artifact {
 					PendingOp pop = opCallback.createPendingOp();
 					AgentId userId = this.getCurrentOpAgentId();
 					Op op = new Op(opName, params);
-					env.getNode().execInterArtifactOp(opCallback, pop.getActionId(),
+					wsp.execInterArtifactOp(opCallback, pop.getActionId(),
 									userId, this.getId(), aid, op,
 									Integer.MAX_VALUE, null);
 					popList.add(pop);
@@ -947,7 +987,7 @@ public abstract class Artifact {
 			PendingOp pop = opCallback.createPendingOp();
 			AgentId userId = this.getCurrentOpAgentId();
 			Op op = new Op(opName, params);
-			env.getNode().execInterArtifactOp(opCallback, pop.getActionId(), userId,
+			wsp.execInterArtifactOp(opCallback, pop.getActionId(), userId,
 							this.getId(), aid, op, Integer.MAX_VALUE, null);
 			try {
 				this.commitObsStateChanges();
@@ -980,7 +1020,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId makeArtifact(String name, String type, ArtifactConfig params) throws OperationException {
 		try {
-			return env.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
+			return wsp.makeArtifact(this.getCurrentOpAgentId(), name, type, params);
 		} catch (Exception ex) {
 			throw new OperationException("makeArtifact failed: " + name + " " + type);
 		}
@@ -996,7 +1036,7 @@ public abstract class Artifact {
 	 */
 	protected void dispose(ArtifactId aid) throws OperationException {
 		try {
-			env.disposeArtifact(this.getCurrentOpAgentId(),aid);
+			wsp.disposeArtifact(this.getCurrentOpAgentId(),aid);
 		} catch (Exception ex) {
 			throw new OperationException("disposeArtifact failed: " + aid);
 		}
@@ -1012,7 +1052,7 @@ public abstract class Artifact {
 	 */
 	protected ArtifactId lookupArtifact(String name) throws OperationException {
 		try {
-			return env.lookupArtifact(this.getCurrentOpAgentId(),name);
+			return wsp.lookupArtifact(this.getCurrentOpAgentId(),name);
 		} catch (Exception ex) {
 			throw new OperationException("lookupArtifact failed: " + name);
 		}
@@ -1083,7 +1123,7 @@ public abstract class Artifact {
 		position = pos;
 		this.observabilityRadius = observabilityRadius;
 		try {
-			env.notifyArtifactPositionOrRadiusChange(id);	
+			wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1092,7 +1132,7 @@ public abstract class Artifact {
 	protected void updatePosition(AbstractWorkspacePoint pos) {
 		position = pos;
 		try {
-			this.env.notifyArtifactPositionOrRadiusChange(id);	
+			this.wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1101,7 +1141,7 @@ public abstract class Artifact {
 	protected void updateObservabilityRadius(double radius) {
 		observabilityRadius = radius;
 		try {
-			this.env.notifyArtifactPositionOrRadiusChange(id);	
+			this.wsp.notifyArtifactPositionOrRadiusChange(id);	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -1121,15 +1161,15 @@ public abstract class Artifact {
 	
 	
 	/* Direct API interface for external use by ext threads */
+
 	
 	/**
-	 * Begins an external use session of the artifact.
+	 * Begins a session of the artifact.
 	 * 
-	 * Method to be called by external threads (not agents) before
-	 * starting calling methods on the artifact.
+	 * Internal use, for kernel.
 	 * 
 	 */
-	public void beginExternalSession(){
+	public void beginExtSession(){
 		try {
 			lock.lock();
 		} catch (Exception ex) {
@@ -1140,18 +1180,31 @@ public abstract class Artifact {
 	/**
 	 * Ends an external use session.
 	 * 
-	 * Method to be called to close a session started by a thread
-	 * to finalize the state.
+	 * Internal use, for kernel.
 	 * 
 	 * @param success
 	 */
-	public void endExternalSession(boolean success){
+	public void endExtSession(){
 		try {
-			if (success){
-				commitObsStateChanges();
-			} else {
-				obsPropertyMap.rollbackChanges();
-			}
+			commitObsStateChanges();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			guards.signalAll();
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Ends an external use session.
+	 * 
+	 * Internal use, for kernel.
+	 * 
+	 * @param success
+	 */
+	public void endExtSessionWithFailure(){
+		try {
+			obsPropertyMap.rollbackChanges();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -1359,4 +1412,88 @@ public abstract class Artifact {
 
 		
 	}
+	
+	/**
+	 * Interface for external threads.
+	 * 
+	 * @author aricci
+	 *
+	 *//*
+	public class ArtifactExternalInterface {
+
+		private Artifact art;
+		
+		ArtifactExternalInterface(Artifact art){
+			this.art = art;
+		}
+		
+		public void execInternalOp(String opName, Object... params) {
+			try {
+				art.execInternalOp(opName, params);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw new IllegalArgumentException("Error in executing internal op.");
+			}
+		}
+		
+		protected void updateObsProperty(String name, Object... values){
+			try {
+				lock.lock();
+				art.updateObsProperty(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void defineObsProperty(String name, Object... values){
+			try {
+				lock.lock();
+				art.defineObsProperty(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+		
+		protected void removeObsProperty(String name){
+			try {
+				lock.lock();
+				art.removeObsProperty(name);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void removeObsPropertyByTemplate(String name, Object... values){
+			try {
+				lock.lock();
+				art.removeObsPropertyByTemplate(name, values);
+				art.commitObsStateChanges();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+
+		protected void generateSignal(String type, Object... objs){
+			try {
+				lock.lock();
+				art.commitObsStateChangesAndSignal(null, new Tuple(type, objs));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				lock.unlock();
+			}			
+		}
+		
+	}*/
 }

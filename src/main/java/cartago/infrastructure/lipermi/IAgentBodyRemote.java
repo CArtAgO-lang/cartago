@@ -18,11 +18,15 @@ import cartago.WorkspaceId;
 public interface IAgentBodyRemote extends Serializable {
     
 	AgentId getAgentId() throws CartagoException;
-	void doAction(long actionId, ArtifactId id, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
+	
 	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
+	void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
+	void quit();
+	
 	WorkspaceId getWorkspaceId() throws  CartagoException;
-	ArtifactId getArtifactIdFromOp(Op op);
-	ArtifactId getArtifactIdFromOp(String name, Op op);
+
+	// ArtifactId getArtifactIdFromOp(Op op);
+	// ArtifactId getArtifactIdFromOp(String name, Op op);
 	void ping();
 	
 }

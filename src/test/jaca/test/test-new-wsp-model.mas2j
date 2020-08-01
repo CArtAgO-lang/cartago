@@ -1,0 +1,9 @@
+MAS test {
+
+    environment: jaca.CartagoEnvironment("standalone") 
+
+    agents:  
+   	tester_agent_new_wsp_model agentArchClass jaca.CAgentArch;
+
+	aslSourcePath: "src/test/jaca/test";
+}

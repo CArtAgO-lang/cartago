@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -92,7 +92,7 @@ public class Tuple implements java.io.Serializable {
     }
 
     /**
-     * Get the i-th argument coverted to an integer
+     * Get the i-th argument converted to an integer
      * 
      * @param index
      * @return
@@ -102,7 +102,7 @@ public class Tuple implements java.io.Serializable {
     }
 
     /**
-     * Get the i-th argument coverted to an double
+     * Get the i-th argument converted to an double
      * 
      * @param index
      * @return
@@ -112,7 +112,7 @@ public class Tuple implements java.io.Serializable {
     }
     
     /**
-     * Get the i-th argument coverted to a boolean
+     * Get the i-th argument converted to a boolean
      * 
      * @param index
      * @return
@@ -122,7 +122,7 @@ public class Tuple implements java.io.Serializable {
     }
 
     /**
-     * Get the i-th argument coverted to a String
+     * Get the i-th argument converted to a String
      * 
      * @param index
      * @return

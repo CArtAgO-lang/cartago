@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 package cartago;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Identifier of a workspace
@@ -26,49 +27,73 @@ import java.io.Serializable;
  */
 public class WorkspaceId implements Serializable {
 
+	/* this is the local name, unique in the scope of the parent */
 	private String name;
-	private NodeId nodeId;
-	private int hashCode;
 	
-	WorkspaceId(String name, NodeId id){
-		this.name = name;
-		this.nodeId = id;
-		hashCode = id.hashCode();
-	}
+	/* this is the full name - e.g.  /main/w0/w1 */
+	private String fullName;
+	
+	/* this is the unique identifier of the wsp */
+	private UUID uuid;
+	
+	WorkspaceId(){}
 	
 	/**
-	 * Get the numeric identifier of the workspace
+	 * Workspace identifier for Local environment.
 	 * 
-	 * @return
-	 */
-	public String getId(){
-		return name+"-"+nodeId.getId();
-	}
-	
-	/**
-	 * Get node id
+	 * @param fullName full name of the workspace: e.g. /main/w0
+	 * @param wspId unique UUID identifying the workspace
 	 * 
-	 * @return
 	 */
-	public NodeId getNodeId(){
-		return nodeId;
+	public WorkspaceId(String fullName, UUID wspId) throws InvalidWorkspaceNameException {
+		this.fullName = fullName;
+		this.uuid = wspId;
+		int index = fullName.lastIndexOf('/');
+		if (index == -1) {
+			name = fullName;
+			fullName = "/"+fullName;
+		} else {
+			name = fullName.substring(index + 1);
+		}
+	}
+	
+	public WorkspaceId(String fullName) throws InvalidWorkspaceNameException {
+		this(fullName, UUID.randomUUID());
 	}
 	
 	/**
-	 * Get the logic name of the workspace
+	 * Get the local name of the workspace
 	 * 
 	 * @return
 	 */
 	public String getName(){
 		return name;
 	}
-		
+	
+
+	/**
+	 * Get the full name, including path from root
+	 * 
+	 * @return
+	 */
+	public String getFullName(){
+		return fullName;
+	}
+	
+	/**
+	 * Get the wsp UUID
+	 * @return
+	 */
+	public UUID getUUID() {
+		return this.uuid;
+	}
+	
 	public int hashCode(){
-		return hashCode;
+		return uuid.hashCode();
 	}
 	
 	public boolean equals(Object obj){
-		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).getId().equals(this.getId()); 
+		return (obj instanceof WorkspaceId) && ((WorkspaceId)obj).uuid.equals(uuid); 
 	}
 	
 	public String toString(){

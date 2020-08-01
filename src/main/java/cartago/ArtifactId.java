@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 package cartago;
 
 import java.io.*;
+import java.util.UUID;
 
 /**
  * Identifier of an artifact
@@ -26,20 +27,21 @@ import java.io.*;
  */
 public class ArtifactId implements java.io.Serializable {
 
+	/* local name inside the wsp */
 	private String name;
-	private int id;
 	private String artifactType;
-    private WorkspaceId wspId;
+    private WorkspaceId workspaceId;
 	private AgentId creatorId;
-	private int hashCode;
+	private UUID id;
 		
-	ArtifactId(String name, int id, String artifactType, WorkspaceId wspId, AgentId creatorId){
+	ArtifactId(){}
+	
+	public ArtifactId(String name, UUID id, String artifactType, WorkspaceId wspId, AgentId creatorId){
 		this.name = name;
 		this.id = id;
-		this.wspId = wspId;
+		this.workspaceId = wspId;
 		this.creatorId = creatorId;
 		this.artifactType = artifactType;
-		hashCode = (wspId.getNodeId().getId()+wspId.getName()+id).hashCode();
 	}
 	
 	public String toString(){
@@ -60,7 +62,7 @@ public class ArtifactId implements java.io.Serializable {
 	 * 
 	 * @return
 	 */
-	public int getId(){
+	public UUID getId(){
 		return id;
 	}
 	
@@ -87,11 +89,14 @@ public class ArtifactId implements java.io.Serializable {
 	public boolean equals(Object aid){
 		if (aid!=null && (aid instanceof ArtifactId)) {
 			ArtifactId wId = (ArtifactId)aid;
+			return this.id.equals(wId.getId());
+			/*
 			return (wId.getId()==id  
 						&& wId.getArtifactType().equals(artifactType)
 						&& wId.getCreatorId().equals(creatorId)
 						&& wId.getName().equals(name)
-						&& wId.getWorkspaceId().equals(wspId));
+						&& wId.getWorkspaceId().equals(workspaceId));
+			*/
 		} else { 
 			return false;
 		}
@@ -103,10 +108,10 @@ public class ArtifactId implements java.io.Serializable {
 	 * @return
 	 */
 	public WorkspaceId getWorkspaceId(){
-		return wspId;
+		return workspaceId;
 	}
 	
 	public int hashCode(){
-		return hashCode;
+		return id.hashCode();
 	}
 }

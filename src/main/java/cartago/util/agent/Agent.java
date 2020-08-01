@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,13 +35,14 @@ public class Agent extends Thread {
 	
 	public Agent(String agentName) {
 		super(agentName);
-		ctx = new CartagoBasicContext(agentName,CartagoService.MAIN_WSP_NAME);
+		ctx = new CartagoBasicContext(agentName,CartagoEnvironment.ROOT_WSP_DEFAULT_NAME);
 	}
 
+	/*
 	public Agent(String agentName, String workspaceName, String workspaceHost) {
 		super(agentName);
 		ctx = new CartagoBasicContext(agentName, workspaceName, workspaceHost);
-	}
+	}*/
 	
 	protected String getAgentName(){
 		return ctx.getName();

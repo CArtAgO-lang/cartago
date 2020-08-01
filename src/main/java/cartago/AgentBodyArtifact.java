@@ -12,15 +12,14 @@ public class AgentBodyArtifact extends Artifact {
 		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
 	
-	
 	protected void setupPosition(AbstractWorkspacePoint pos, double observabilityRadius, double observingRadius){
 		position = pos;
 		this.observabilityRadius = observabilityRadius;
 		this.observingRadius = observingRadius;
-		env.bindAgentBodyArtifact(this.getCreatorId(),this);
+		wsp.bindAgentBodyArtifact(this.getCreatorId(),this);
 		try {
-			env.notifyArtifactPositionOrRadiusChange(this.getId());	
-			env.notifyAgentPositionOrRadiusChange(getCreatorId());	
+			wsp.notifyArtifactPositionOrRadiusChange(this.getId());	
+			wsp.notifyAgentPositionOrRadiusChange(getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -29,8 +28,8 @@ public class AgentBodyArtifact extends Artifact {
 	protected void updatePosition(AbstractWorkspacePoint pos) {
 		position = pos;
 		try {
-			env.notifyArtifactPositionOrRadiusChange(getId());	
-			env.notifyAgentPositionOrRadiusChange(getCreatorId());	
+			wsp.notifyArtifactPositionOrRadiusChange(getId());	
+			wsp.notifyAgentPositionOrRadiusChange(getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -43,7 +42,7 @@ public class AgentBodyArtifact extends Artifact {
 	protected void setObservingRadius(double radius){
 		observingRadius = radius;
 		try {
-			env.notifyAgentPositionOrRadiusChange(this.getCreatorId());	
+			wsp.notifyAgentPositionOrRadiusChange(this.getCreatorId());	
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -51,7 +50,7 @@ public class AgentBodyArtifact extends Artifact {
 	
 	/* called directly by the kernel */
 	
-	void addFocusedArtifact(String wspName, String artName, ArtifactId id){
+	public  void addFocusedArtifact(String wspName, String artName, ArtifactId id){
 		defineObsProperty("focused",wspName,artName,id);
 	}
 	

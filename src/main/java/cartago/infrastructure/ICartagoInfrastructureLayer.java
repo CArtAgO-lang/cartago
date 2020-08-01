@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 package cartago.infrastructure;
+
+import java.util.UUID;
 
 import cartago.*;
 
@@ -42,8 +44,17 @@ public interface ICartagoInfrastructureLayer {
 	 * @throws CartagoInfrastructureLayerException
 	 * @throws CartagoException
 	 */
-	ICartagoContext joinRemoteWorkspace(String wspName, String address, AgentCredential cred, ICartagoCallback eventListener) throws CartagoInfrastructureLayerException, CartagoException;
-		
+	ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote, AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal) throws CartagoInfrastructureLayerException, CartagoException;
+	
+	WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String envName) throws WorkspaceNotFoundException;
+
+	WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException;
+	
+	WorkspaceDescriptor createRemoteWorkspace(String wspName, String address, String envName) throws CartagoException;
+	
+	void spawnNode(String address, String masName, UUID envId, String rootWspName);
+	
+	
 	/**
 	 * Execute an linked operation from a local artifact to a target remote artifact using this service
 	 * 
@@ -62,15 +73,6 @@ public interface ICartagoInfrastructureLayer {
 	 */
 	OpId execRemoteInterArtifactOp(ICartagoCallback callback, long callbackId, AgentId userId, ArtifactId srcId, ArtifactId targetId, String address, Op op, long timeout, IAlignmentTest test) throws CartagoInfrastructureLayerException, CartagoException;
 	
-	/**
-	 * Get the identifier of the CArtAgO node running at the specified address
-	 * 
-	 * @param address address of the node
-	 * @return
-	 * @throws CartagoInfrastructureLayerException
-	 * @throws CartagoException
-	 */
-	NodeId getNodeAt(String address) throws CartagoInfrastructureLayerException, CartagoException;
 
 	/**
 	 * Shutdown the layer
@@ -92,12 +94,12 @@ public interface ICartagoInfrastructureLayer {
 	/**
 	 * Start the infrastructure service to enable the access by remote agents 
 	 * 
-	 * @param node CArtAgO node
+	 * @param node CArtAgO environment
 	 * @param address address of the service
 	 * 
 	 * @throws CartagoInfrastructureLayerException
 	 */
-	void startService(CartagoNode node, String address) throws CartagoInfrastructureLayerException;
+	void startService(String address) throws CartagoInfrastructureLayerException;
 	
 	/**
 	 * Check if the the infrastructure service is running

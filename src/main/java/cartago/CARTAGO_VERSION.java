@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,9 +24,9 @@ package cartago;
  *
  */
 public class CARTAGO_VERSION {
-	private static final String triple ="2.2.0";
+	private static final String triple ="3.0.0";
 	private static final String build = "742";
-	private static final String date = "20160515";
+	private static final String date = "20190515";
 		
 	/**
 	 * Get current CArtAgO version ID.

@@ -1,12 +1,12 @@
 package examples;
 
-import cartago.CartagoService;
+import cartago.CartagoEnvironment;
 
 public class ExProducerConsumer {
 
 	public static void main(String[] args) throws Exception {
 		/* starting CArtAgO */
-		CartagoService.startNode();
+		CartagoEnvironment.startEnvironment();
 		/* Declaration of 10 producers  and 10 consumers*/
 		ProducerAgent[] producers = new ProducerAgent[10];
 		ConsumerAgent[] consumers = new ConsumerAgent[10];

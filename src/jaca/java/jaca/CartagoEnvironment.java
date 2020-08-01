@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import jaca.CAgentArch;
 import jaca.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.CartagoService;
 import cartago.ICartagoSession;
 import cartago.tools.inspector.Inspector;
 
@@ -36,7 +35,7 @@ public class CartagoEnvironment extends Environment {
 
 	public void init(String[] args) {
 		logger.setLevel(Level.WARNING);
-		wspName = cartago.CartagoService.MAIN_WSP_NAME;
+		wspName = cartago.CartagoEnvironment.ROOT_WSP_DEFAULT_NAME;
 		
 		infrastructure = false;
 		local = false;
@@ -71,6 +70,7 @@ public class CartagoEnvironment extends Environment {
 
 		/* current supported options:
 		 * -debug
+		 * -name
 		 */
 		for (String opt: args){
 			if (opt.startsWith("-")){
@@ -79,21 +79,23 @@ public class CartagoEnvironment extends Environment {
 				} else {
 					throw new IllegalArgumentException("Unknown option: "+opt);
 				}
-			}
+			} 
 		}
 		
+		cartago.CartagoEnvironment env = cartago.CartagoEnvironment.getInstance();
+
 		if (standalone){
 			try {
-				if (debug) {
-					Inspector insp = new Inspector();
-					insp.start();
-					CartagoService.startNode(insp.getLogger());
+				if (debug){
+					 Inspector insp = new Inspector();
+					 insp.start();
+					 env.init(insp.getLogger());
+				} else {				 
+					env.init();
 				}
-				CartagoService.startNode();
-
-				if (!CartagoService.isInfrastructureLayerInstalled("default"))
-					CartagoService.installInfrastructureLayer("default");
-
+				// if (!env.isInfrastructureLayerInstalled("default")) {
+					env.installInfrastructureLayer("default");
+				// }
 				checkProtocols(args);
 				logger.info("CArtAgO Environment - standalone setup succeeded.");
 			} catch (Exception ex){
@@ -102,19 +104,19 @@ public class CartagoEnvironment extends Environment {
 			}
 		} else if (infrastructure){
 			try {
-				CartagoService.startNode();
+				env.init();
 				checkProtocols(args);
 				int nserv = checkServices(args);
 				/*
 				 * We install the default infrastructure layer only if not 
 				 * already installed by one of the service parameter  
 				 */
-				if (!CartagoService.isInfrastructureLayerInstalled("default")){
-					CartagoService.installInfrastructureLayer("default");
+				if (!env.isInfrastructureLayerInstalled("default")){
+					env.installInfrastructureLayer("default");
 					logger.info("CArtAgO Environment - default infrastructure layer installed.");
 				}
 				if (nserv == 0){
-					CartagoService.startInfrastructureService("default");
+					env.startInfrastructureService("default");
 					logger.info("CArtAgO Environment - default infrastructure service installed.");
 				}
 				
@@ -129,7 +131,7 @@ public class CartagoEnvironment extends Environment {
 				wspAddress = args[2];
 			}
 			try {
-				CartagoService.installInfrastructureLayer("default");
+				env.installInfrastructureLayer("default");
 				checkProtocols(args);
 				logger.info("CArtAgO Environment - remote setup succeeded - Joining a remote workspace: "+wspName+"@"+wspAddress);
 			} catch (Exception ex){
@@ -159,7 +161,7 @@ public class CartagoEnvironment extends Environment {
 						Literal l = Literal.parseLiteral(prot);
 						if (l.getFunctor().equals("protocol")){
 							String protocol = l.getTerm(0).toString();
-							CartagoService.installInfrastructureLayer(protocol);
+							cartago.CartagoEnvironment.getInstance().installInfrastructureLayer(protocol);
 							logger.info("Installed protocol "+protocol);
 							np++;
 						}
@@ -173,6 +175,7 @@ public class CartagoEnvironment extends Environment {
 
 	private int checkServices(String[] args){
 		int ns = 0;
+		cartago.CartagoEnvironment env = cartago.CartagoEnvironment.getInstance();
 		for (int i = 1; i < args.length; i++){
 			if (!args[i].startsWith("-")){
 				String prot = args[i];
@@ -199,15 +202,15 @@ public class CartagoEnvironment extends Environment {
 						 * before installing the service
 						 */
 						
-						if(!CartagoService.isInfrastructureLayerInstalled(serviceType)){
-							CartagoService.installInfrastructureLayer(serviceType);
+						if(!env.isInfrastructureLayerInstalled(serviceType)){
+							env.installInfrastructureLayer(serviceType);
 						}
 						
 						if (address == null){
-							CartagoService.startInfrastructureService(serviceType);
+							env.startInfrastructureService(serviceType);
 							logger.info("Installed service "+serviceType);
 						} else {
-							CartagoService.startInfrastructureService(serviceType,address);
+							env.startInfrastructureService(serviceType,address);
 							logger.info("Installed service "+serviceType+" at "+address);
 						}
 						ns++;
@@ -239,12 +242,13 @@ public class CartagoEnvironment extends Environment {
 	 */
 	public ICartagoSession startSession(String agName, CAgentArch arch) throws Exception {
 		if (wspAddress == null){ 
-			ICartagoSession context = CartagoService.startSession(wspName,new cartago.AgentIdCredential(agName),arch);
+			ICartagoSession context = cartago.CartagoEnvironment.getInstance().startSession(wspName,new cartago.AgentIdCredential(agName),arch);
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {
-			ICartagoSession context = CartagoService.startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
-			return context;
+			// ICartagoSession context = cartago.CartagoEnvironment.getInstance().startRemoteSession(wspName,wspAddress,serviceType, new cartago.AgentIdCredential(agName),arch);
+			// return context;
+			throw new RuntimeException("not implemented.");
 		}
 	}
 
@@ -254,7 +258,7 @@ public class CartagoEnvironment extends Environment {
 		super.stop();
 		if (!local && !remote){
 			try {
-				CartagoService.shutdownNode();
+				cartago.CartagoEnvironment.getInstance().shutdown();
 			} catch (CartagoException e) {
 				e.printStackTrace();
 			}

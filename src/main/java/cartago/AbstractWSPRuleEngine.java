@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ import cartago.events.ActionSucceededEvent;
 public abstract class AbstractWSPRuleEngine {
 
 	private ReentrantLock lock;
-	private WorkspaceKernel kernel;
+	private Workspace kernel;
 	
 	protected AbstractWSPRuleEngine(){
 		lock = new ReentrantLock();
@@ -154,7 +154,7 @@ public abstract class AbstractWSPRuleEngine {
 	
 	// internals
 	
-	void setKernel(WorkspaceKernel kernel){
+	void setKernel(Workspace kernel){
 		this.kernel = kernel;
 	}
 

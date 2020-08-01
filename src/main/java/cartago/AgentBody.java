@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,8 @@ package cartago;
 import java.util.*;
 
 /**
- * Agent descriptor - keeping track of agent info inside a workspace
+ * Core class representing the connection between the agent mind and 
+ * a workspace, proving an interface for doing actions and receiving percepts.
  * 
  * @author aricci
  *
@@ -28,7 +29,7 @@ import java.util.*;
 public class AgentBody implements ICartagoContext {
 	
 	private AgentId id;
-	private WorkspaceKernel wspKernel;
+	private Workspace wsp;
 	
 	/* agent callback to notify action/obs events */
 	protected ICartagoCallback agentCallback;
@@ -36,9 +37,9 @@ public class AgentBody implements ICartagoContext {
 	protected LinkedList<ArtifactDescriptor> focusedArtifacts;
 	protected AgentBodyArtifact bodyArtifact;
 	
-	AgentBody(AgentId id, WorkspaceKernel env, ICartagoCallback agentCallback){
+	AgentBody(AgentId id, Workspace env, ICartagoCallback agentCallback){
 		this.id = id;
-		this.wspKernel = env;
+		this.wsp = env;
 		this.agentCallback = agentCallback;
 		focusedArtifacts = new LinkedList<ArtifactDescriptor>();
 		bodyArtifact = null;
@@ -49,11 +50,11 @@ public class AgentBody implements ICartagoContext {
 	}
 	
 	public WorkspaceId getWorkspaceId(){
-		return wspKernel.getId();
+		return wsp.getId();
 	}
 	
-	public WorkspaceKernel getWSPKernel(){
-		return wspKernel;
+	public Workspace getWSPKernel(){
+		return wsp;
 	}
 
 	public void setBodyArtifact(AgentBodyArtifact art){
@@ -63,52 +64,53 @@ public class AgentBody implements ICartagoContext {
 	public AgentBodyArtifact getAgentBodyArtifact(){
 		return bodyArtifact;
 	}
-	//
 	
-	public void doAction(long actionId, ArtifactId aid, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		wspKernel.execOp(actionId, id, agentCallback, aid, op, timeout, test);
+		wsp.execOp(actionId, id, agentCallback, name, op, timeout, test);
 	}
-
-	public void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+	
+	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) {
 		if (timeout == -1){
 			timeout = Integer.MAX_VALUE;
 		}
-		wspKernel.execOp(actionId, id, agentCallback, name, op, timeout, test);
+		wsp.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
 	
-	public void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
-		if (timeout == -1){
-			timeout = Integer.MAX_VALUE;
-		}
-		wspKernel.execOp(actionId, id, agentCallback, op, timeout, test);
+	public void quit() throws CartagoException {
+		wsp.quitAgent(id);
 	}
 	
-	public ArtifactId getArtifactIdFromOp(Op op){
-		return wspKernel.getArtifactIdFromOp(id, op);
+	public void updateAgentCallback(ICartagoCallback callback) {
+		this.agentCallback = callback;
 	}
-
-	public ArtifactId getArtifactIdFromOp(String name, Op op){
-		return wspKernel.getArtifactIdFromOp(id, name, op);
-	}
-
+	
 	// called by the kernel
 	
 	public void addFocusedArtifacts(ArtifactDescriptor des){
 		focusedArtifacts.add(des);
 		if (bodyArtifact != null){
-			bodyArtifact.beginExternalSession();
+			
+			bodyArtifact.beginExtSession();
 			bodyArtifact.addFocusedArtifact(des.getArtifact().getId().getWorkspaceId().getName(),
 											des.getArtifact().getId().getName(),
 											des.getArtifact().getId());
-			bodyArtifact.endExternalSession(true);
+			bodyArtifact.endExtSession();
 		}
 	}
 
 	public void removeFocusedArtifacts(ArtifactDescriptor des){
 		focusedArtifacts.remove(des);
+		if (bodyArtifact != null){
+			
+			bodyArtifact.beginExtSession();
+			bodyArtifact.removeFocusedArtifact(des.getArtifact().getId().getWorkspaceId().getName(),
+											des.getArtifact().getId().getName(),
+											des.getArtifact().getId());
+			bodyArtifact.endExtSession();
+		}		
 	}
 	
 	public ICartagoCallback getCallback(){

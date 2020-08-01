@@ -1,11 +1,16 @@
+
+
+// !main_test.
+
+!test_art_dyn_ops.
+
 //!test_double_join.
-//!main_test.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
 //!test_wsp.
 //!test2.
 //!test3.
-!test_gui.
+//!test_gui.
 //!test_gui2.
 //!test_multi_prop.
 //!test_new_prop.
@@ -20,6 +25,29 @@
 //!test_wspruleman.
 //!test_array_obj.
 //!test_ext_interface.
+
+/* testing dynamic ops */
+
++!test_art_dyn_ops
+	<-	makeArtifact("a0","acme.ArtifactWithDynamicOps",[], Id);
+		focus(Id);
+		inc;
+		add.
+
+-!test_art_dyn_ops
+	<-	println("going to extend the artifact...")	
+		extend;
+		add(5).
+
++my_count(X)
+	<-	println("my_count: ", X).
+		
+
+/* testing console */   
+
++!test_console <-
+  println("this print is done by the console artifact").
+
 
 /* test double join */
 
@@ -37,7 +65,7 @@
 /* testing artifact with a direct external interface */
 
 +!test_ext_interface
-	<- makeArtifact("myArt","c4jtest.ArtifactWithExtUse",[],Id);
+	<- makeArtifact("myArt","acme.ArtifactWithExtUse",[],Id);
 		+count(0);
 	   focus(Id).
 
@@ -50,37 +78,36 @@
 	   ?count(Y);
 	   -+count(Y+1).
 
-/* ------- */
+/* testing array objs */
 	  
-
 +!test_array_obj 
-  <-  makeArtifact("myArt","test.ArtifactWithArray",[],Id);
+  <-  makeArtifact("myArt","acme.ArtifactWithArray",[],Id);
       getCurrentArtifacts(L);
 	  println(L);
 	  myOp(L).
 	  
-  
+/* testing all */  
+
 +!main_test
-  <-  !test_console;
+  <-  .println("started.");
+      !test_console;
       !test_make_lookup_dispose;
       !test_use;
       !test_focus; 
       !test_link;
       !test_op_fail.      
     
-+!test_console <-
-  println("this print is done by the console artifact").
-
+/* testing make lookup dispose */
   
 +!test_make_lookup_dispose <-
   lookupArtifact("workspace",W);
   focus(W);
-  makeArtifact("my_counter","c4jtest.Counter");
+  makeArtifact("my_counter","acme.Counter");
   lookupArtifact("my_counter",Id);
   println("artifact created ",Id);
-  makeArtifact("my_counter2","c4jtest.Counter",[],Id2);
+  makeArtifact("my_counter2","acme.Counter",[],Id2);
   println("artifact2 created ",Id2);
-  stopFocus(Id2);
+  // stopFocus(Id2);
   disposeArtifact(Id2);
   println("artifact2 disposed.").
 
@@ -90,6 +117,7 @@
 -artifact(Name,Template,Id)
   <- println("Artifact removed: ",Name).
   
+/* testing use */
   
 +!test_use <-
   inc;
@@ -124,25 +152,25 @@
 	 
 
 +!test_focus_with_filter 
-  <- makeArtifact("my_counter","c4jtest.Counter",[],Id);
+  <- makeArtifact("my_counter","acme.Counter",[],Id);
      cartago.new_array("java.lang.String[]",["incremented"],Array);
      cartago.new_obj("cartago.events.SignalFilter",[Array],Filter);
      focus(Id,Filter);
      inc;
      inc.
      
-//
+/* testing linking */
 
 +!test_link
-  <-  makeArtifact("myArtifact","c4jtest.LinkingArtifact",[],Id1);
-      makeArtifact("count","c4jtest.LinkableArtifact",[],Id2);
+  <-  makeArtifact("myArtifact","acme.LinkingArtifact",[],Id1);
+      makeArtifact("count","acme.LinkableArtifact",[],Id2);
 	  linkArtifacts(Id1,"out-1",Id2);			
 	  println("artifacts linked: going to test");
 	  test;
       test2(V);
       println("value ",V);
 	  println("testing link with multiple artifacts..");
-	  makeArtifact("count3","c4jtest.LinkableArtifact",[],Id3);
+	  makeArtifact("count3","acme.LinkableArtifact",[],Id3);
 	  linkArtifacts(Id1,"out-1",Id3);			
 	  test;
       println("the test op should have been called on two count artifacts...").	  
@@ -153,16 +181,18 @@
     //observe_property(Id3,aprop(X));
     //println("obs prop value: ",X).
  
+ /* testing op failures */
+ 
 +!test_op_fail 
   <- println("test op failure");
-     makeArtifact("a0","c4jtest.MyArtifactA");
+     makeArtifact("a0","acme.MyArtifactA");
      testFail [art("a0")];
      println("This should not be printed.").
 -!test_op_fail [error_msg(Msg),env_failure_reason(reason("test",Y))]    
   <- println("got it: ",Msg," ",Y).    
 
     
-//
+/* testing artifacts with process inside */
 
 +!test2
   <- makeArtifact("my_clock","cartago.tools.Clock",[],Id);
@@ -177,19 +207,19 @@
 +tick [art(_,"my_clock")]
   <-  println("TICK!").
   
-//  
+/* testing op feedback params */
 
 +!test3
-  <-  makeArtifact("a0","c4jtest.MyArtifactA",[],Id);
+  <-  makeArtifact("a0","acme.MyArtifactA",[],Id);
       compute(4,X,Y);
       println(X);
       println(Y).
 
   
-//
+/* testing GUI */
 
 +!test_gui
-  <-  makeArtifact("gui","c4jtest.MySimpleGUI",[10],Id);
+  <-  makeArtifact("gui","acme.MySimpleGUI",[10],Id);
       focus(Id).
 
 +value(V) 
@@ -205,26 +235,26 @@
 //
 
 +!test_gui2
-  <-  makeArtifact("gui","c4jtest.MySimpleGUI",[],Id);
+  <-  makeArtifact("gui","acme.MySimpleGUI",[],Id);
       cartago.new_array("java.lang.String[]",["java"],Ext);
 	  selectFileToOpen("/Users","Java files",Ext,FileName);
 	  println(FileName).
 
 
-//
+/* testing dynamic obs prop addition */
 
 +!test_new_prop
-  <- makeArtifact("a0","c4jtest.MyArtifactB",[],Id);
+  <- makeArtifact("a0","acme.MyArtifactB",[],Id);
      focus(Id);
      addNewProp("myprop",13).
 
 +myprop(V)
   <- println("here it is the new prop! value: ",V).
 
-//
+/* testing props with muliple values */
 
 +!test_multi_prop
-  <- makeArtifact("a0","c4jtest.MyArtifactB",[],Id);
+  <- makeArtifact("a0","acme.MyArtifactB",[],Id);
      focus(Id);
      update(0,"new_text");
      update(1,500).
@@ -232,66 +262,70 @@
 +complex_prop(X,Y)
   <- println("prop with multiple values: ",X," ",Y).
 
-//
+/* testing ops with var args */
 
 +!test_varargs
   <- out("p",1,2);
      in("p",X,2);
      println("value: ",X).
+
+/* testing multiple artifacts  */ 
+
++!test_art <-
+    makeArtifact("c0","acme.Counter",[],Id1);
+    makeArtifact("c1","acme.Counter",[],Id2);
+    makeArtifact("c2","acme.Counter",[],Id3);
+    inc [art("c0")];
+    inc [art("c1")].
+      
++!test_obs_multiple_artifacts_same_type <-
+    makeArtifact("c0","acme.Counter",[],Id1);
+    makeArtifact("c1","acme.Counter",[],Id2);
+    makeArtifact("c2","acme.Counter",[],Id3);
+    focus(Id1);
+    focus(Id2);
+    focus(Id3);
+    inc [aid(Id1)];
+    inc [aid(Id2)];
+    inc [aid(Id3)].
      
+/* testing CArtAgO Java API  */
 
 +!test_java_api
-  <- cartago.new_obj("c4jtest.FlatCountObject",[10],Id);
+  <- cartago.new_obj("acme.FlatCountObject",[10],Id);
      cartago.invoke_obj(Id,inc);
      cartago.invoke_obj(Id,getValue,Res);
      println(Res);
      cartago.invoke_obj("java.lang.System",currentTimeMillis,T);
      println(T);
-     cartago.invoke_obj("java.lang.Class",forName("c4jtest.FlatCountObject"),Class);
+     cartago.invoke_obj("java.lang.Class",forName("acme.FlatCountObject"),Class);
      println(Class).
   
-+!test_remote <-
-  println("testing remote..");
-  joinWorkspace("default@localhost");
-  println("hello, remote world!");
-  !use_remote.
-  
-+!use_remote <-
-  makeArtifact("c0","basic.Counter",Id);
-  focus(Id);
-  inc;
-  inc.
+/* testing wsps */
 
--!use_remote [action_failed(make_artifact(_,_,_),artifact_already_present)] <-
-  println("artifact already created ");
-  focus("c0");
-  inc.
-  
-+count(V)[art(Id,"c0")]
-  <- println("perceived from remote counter: ",V).
-
-  
-+!test_wsp 
++!test_wsp
   <- createWorkspace("w0");
-     println("joining...");
-     joinWorkspace("w0",WspID);
-     println("making artifact...");
-     makeArtifact("a0","c4jtest.MyArtifactA",[],Id2);
-     println("looking up...");
-     lookupArtifact("a0",Id3);
-     println("hello ",Id3);
-     createWorkspace("w1");
-     println("joining w1...");
-     joinWorkspace("w1",WspID2);
-     println("computing...");
-     compute(5,X,Y);
-     println(X).
+     println("created w0");
+	 createWorkspace("w1");
+	 println("created w1");
+	 joinWorkspace("w0",W0);
+	 println("joined w0");
+	 joinWorkspace("/main/w1",W1);
+	 println("joined w1");
+  	 makeArtifact("my_counter","acme.Counter", [], Id1);
+     println("artifact created ", Id1);
+     lookupArtifact("my_counter", Id2);
+     println("artifact lookup ", Id2);
+     lookupArtifact("/main/w1/my_counter",Id3);
+     println("artifact lookup with full path name ", Id3).	    
 
 +joined_wsp(Name,Id)	
 	<- println("joined wsp: ",Name," ",Id).          
           
 -!test_wsp [error_msg(Msg)]
   <- println("OOOPS failed: ",Msg).
+
+/* testing shutdown */
   
 +!test_shutdown
   <- println("testing shutdown");
@@ -301,31 +335,13 @@
 -!test_shutdown [error_msg(Msg)]
   <- .println("no more environments.. ",Msg).
      
-+!test_art <-
-    makeArtifact("c0","c4jtest.Counter",[],Id1);
-    makeArtifact("c1","c4jtest.Counter",[],Id2);
-    makeArtifact("c2","c4jtest.Counter",[],Id3);
-    inc [art("c0")];
-    inc [art("c1")].
-      
-+!test_obs_multiple_artifacts_same_type <-
-    makeArtifact("c0","c4jtest.Counter",[],Id1);
-    makeArtifact("c1","c4jtest.Counter",[],Id2);
-    makeArtifact("c2","c4jtest.Counter",[],Id3);
-    focus(Id1);
-    focus(Id2);
-    focus(Id3);
-    inc [aid(Id1)];
-    inc [aid(Id2)];
-    inc [aid(Id3)].
-  
-// test wsp rule manager
+/* testing wsp rule manager */  
 
 +!test_wspruleman 
-	<-	cartago.new_obj("c4jtest.MyWSPRuleEngine",[],Id);
+	<-	cartago.new_obj("acme.MyWSPRuleEngine",[],Id);
 		setWSPRuleEngine(Id);
 		println("wsp rule manager set.");
-		makeArtifact("c0","c4jtest.Counter",[],_);
+		makeArtifact("c0","acme.Counter",[],_);
 		inc;
 		inc;
 		inc;

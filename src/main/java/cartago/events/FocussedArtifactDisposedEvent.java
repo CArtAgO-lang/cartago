@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,15 @@ public class FocussedArtifactDisposedEvent extends ArtifactObsEvent {
 		
 	private List<ArtifactObsProperty> props;
 	
+	FocussedArtifactDisposedEvent(){}
+	
 	public FocussedArtifactDisposedEvent(long id, ArtifactId src,List<ArtifactObsProperty> props){
 		super(id,src,null,null,null,null);
+		this.props = props;
+	}
+
+	public FocussedArtifactDisposedEvent(long id, ArtifactId src,List<ArtifactObsProperty> props, long ts){
+		super(id,src,null,null,null,null, ts);
 		this.props = props;
 	}
 

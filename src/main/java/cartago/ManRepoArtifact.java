@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,9 +32,9 @@ import java.io.*;
  */
 public class ManRepoArtifact extends Artifact {
 
-	private WorkspaceKernel wspKernel;
+	private Workspace wspKernel;
 
-	@OPERATION void init(WorkspaceKernel env){
+	@OPERATION void init(Workspace env){
 		this.wspKernel = env;
 	}
 

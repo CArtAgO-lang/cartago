@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,11 @@ public class NodeId implements Serializable {
 		hashCode = id.hashCode();
 	}
 	
-	/**
+	public NodeId(String uuid){
+		this.id = UUID.fromString(uuid);
+	}
+	
+		/**
 	 * Get the unique identifier of the node
 	 * 
 	 * @return

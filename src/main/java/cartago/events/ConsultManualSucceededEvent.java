@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,8 @@ import java.util.*;
 public class ConsultManualSucceededEvent extends ActionSucceededEvent {
 
 	private Manual man;
+	
+	ConsultManualSucceededEvent(){}
 	
 	public ConsultManualSucceededEvent(long id, long actionId, Op op, ArtifactId aid, Manual man){
 		super(id,actionId,op,aid);

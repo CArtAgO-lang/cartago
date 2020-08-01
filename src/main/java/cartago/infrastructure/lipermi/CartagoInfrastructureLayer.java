@@ -1,6 +1,7 @@
 package cartago.infrastructure.lipermi;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import lipermi.exception.LipeRMIException;
@@ -9,8 +10,8 @@ import lipermi.net.Client;
 import cartago.AgentCredential;
 import cartago.AgentId;
 import cartago.ArtifactId;
+import cartago.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.CartagoNode;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
 import cartago.ICartagoContext;
@@ -18,6 +19,8 @@ import cartago.ICartagoLogger;
 import cartago.NodeId;
 import cartago.Op;
 import cartago.OpId;
+import cartago.WorkspaceDescriptor;
+import cartago.WorkspaceNotFoundException;
 import cartago.infrastructure.CartagoInfrastructureLayerException;
 import cartago.infrastructure.ICartagoInfrastructureLayer;
 
@@ -69,7 +72,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 	}
 
-	@Override
+	/*
 	public NodeId getNodeAt(String fullAddress)
 			throws CartagoInfrastructureLayerException, CartagoException {
 		
@@ -90,14 +93,14 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 			ex.printStackTrace();
 			throw new CartagoInfrastructureLayerException();
 		} 
-	}
+	}*/
 
 	@Override
 	public boolean isServiceRunning() {
 		return mService != null;
 	}
 
-	@Override
+	/*
 	public ICartagoContext joinRemoteWorkspace(String wspName, String fullAddress,
 			AgentCredential cred, ICartagoCallback eventListener)
 			throws CartagoInfrastructureLayerException, CartagoException {
@@ -127,6 +130,12 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		} 
 	}
 
+	
+	public GlobalWorkspaceInfo getRemoteWorkspaceInfo(String address, String envName, String fullPath) throws WorkspaceNotFoundException {
+		throw new RuntimeException("not implemented.");
+	}
+	*/
+
 	@Override
 	public void shutdownLayer() throws CartagoException {
 		mKeepAliveAgent.shutdown();
@@ -141,7 +150,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 	}
 
 	@Override
-	public void startService(CartagoNode node, String address)
+	public void startService(String address)
 			throws CartagoInfrastructureLayerException {
 		
 		if (mService != null){
@@ -149,7 +158,7 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		}
 		try {
 			int port = DEFAULT_PORT;
-			mService = new CartagoNodeRemote(node);
+			mService = new CartagoNodeRemote();
 			if (address!=null && !address.equals("")) {
 				port = Integer.parseInt(address);
 			}
@@ -181,6 +190,40 @@ public class CartagoInfrastructureLayer implements ICartagoInfrastructureLayer {
 		} else {
 			return -1;
 		}
+	}
+
+	@Override
+	public ICartagoContext joinRemoteWorkspace(String envName, String address, String wspFullNameRemote,
+			AgentCredential cred, ICartagoCallback eventListener, String wspNameLocal)
+			throws CartagoInfrastructureLayerException, CartagoException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor resolveRemoteWSP(String fullPath, String address, String envName)
+			throws WorkspaceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor resolveRemoteWSP(String remoteFullPath) throws WorkspaceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkspaceDescriptor createRemoteWorkspace(String wspName, String address, String envName)
+			throws CartagoException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void spawnNode(String address, String masName, UUID envId, String rootWspName) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

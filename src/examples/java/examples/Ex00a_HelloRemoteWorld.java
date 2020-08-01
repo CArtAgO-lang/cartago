@@ -6,10 +6,10 @@ import cartago.util.BasicLogger;
 public class Ex00a_HelloRemoteWorld {
 	
 	public static void main(String[] args) throws Exception {			
-		CartagoService.startNode();
-		CartagoService.installInfrastructureLayer("default");
-		CartagoService.startInfrastructureService("default");
-		CartagoService.registerLogger("main",new BasicLogger());  
+		CartagoEnvironment.startEnvironment();
+		CartagoEnvironment.installInfrastructureLayer("default");
+		CartagoEnvironment.startInfrastructureService("default");
+		CartagoEnvironment.registerLogger("main",new BasicLogger());  
 		System.out.println("CArtAgO Node Ready.");
 	}
 

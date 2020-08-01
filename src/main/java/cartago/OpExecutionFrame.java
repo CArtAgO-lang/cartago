@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ import java.util.concurrent.locks.*;
  * @author aricci
  *
  */
-class OpExecutionFrame {
+public class OpExecutionFrame {
 
 	public enum OpExecState { EXECUTING, SUCCEEDED, NOT_ALIGNED, TIME_OUT, INTERRUPTED, OP_NOT_EXIST, FAILED };
 	private OpExecState state;
@@ -42,7 +42,7 @@ class OpExecutionFrame {
 	private ArtifactId aid;
 	private Thread servingThread;
 	
-	private WorkspaceKernel kernel;
+	private Workspace kernel;
 	
 	// for inter-artifact link operation
 	private ArtifactId sourceId;
@@ -57,7 +57,7 @@ class OpExecutionFrame {
 	
 	boolean alreadyNotified;
 	
-	public OpExecutionFrame(WorkspaceKernel kernel, OpId oid, ICartagoCallback ctx, long actionId, AgentId id, ArtifactId aid, Op op, long timeout, IAlignmentTest test){
+	public OpExecutionFrame(Workspace kernel, OpId oid, ICartagoCallback ctx, long actionId, AgentId id, ArtifactId aid, Op op, long timeout, IAlignmentTest test){
 		this.oid=oid;
 		this.op = op;
 		this.aid = aid;
@@ -75,7 +75,7 @@ class OpExecutionFrame {
 		alreadyNotified = false;
 	}
 
-	public OpExecutionFrame(WorkspaceKernel kernel, OpId oid, ArtifactId source, ICartagoCallback ctx, long actionId, AgentId id, ArtifactId aid, Op op, long timeout){
+	public OpExecutionFrame(Workspace kernel, OpId oid, ArtifactId source, ICartagoCallback ctx, long actionId, AgentId id, ArtifactId aid, Op op, long timeout){
 		this.oid=oid;
 		this.eventListener = ctx;
 		this.op = op;
@@ -92,7 +92,7 @@ class OpExecutionFrame {
 		alreadyNotified = false;
 	}
 
-	public OpExecutionFrame(WorkspaceKernel kernel, OpId oid, ArtifactId aid, Op op){
+	public OpExecutionFrame(Workspace kernel, OpId oid, ArtifactId aid, Op op){
 		this.oid=oid;
 		this.op = op;
 		this.aid = aid;
@@ -199,7 +199,7 @@ class OpExecutionFrame {
 	 */
 	public void notifyOpFailed() {
 		if (actionId != -1){
-			kernel.notifyActionFailed(eventListener, actionId, op, failureMsg, failureReason);
+			kernel.notifyActionFailed(eventListener, aid, actionId, op, failureMsg, failureReason);
 		}
 	}
 
@@ -208,7 +208,7 @@ class OpExecutionFrame {
 	 */
 	public void notifyOpFailed(String failureMsg, Tuple failureReason) {
 		if (actionId != -1){
-			kernel.notifyActionFailed(eventListener, actionId, op, failureMsg, failureReason);
+			kernel.notifyActionFailed(eventListener, aid, actionId, op, failureMsg, failureReason);
 		}
 	}
 	

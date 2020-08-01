@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -77,18 +77,15 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 	public void doAction(long agentCallbackId, ArtifactId id, Op op, IAlignmentTest test,
 			long timeout) throws CartagoException {
 		try {
-			// return ctx.use(((AbstractAgentCallback)actx).getProxy(), id, op, test, timeout);			
-			ctx.doAction(agentCallbackId, id, op, test, timeout);			
+			ctx.doAction(agentCallbackId, id.getName(), op, test, timeout);			
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
 		}
 
 	}
 	
-	public void doAction(long agentCallbackId, String id, Op op, IAlignmentTest test,
-			long timeout) throws CartagoException {
+	public void doAction(long agentCallbackId, String id, Op op, IAlignmentTest test, long timeout) throws CartagoException {
 		try {
-			// return ctx.use(((AbstractAgentCallback)actx).getProxy(), id, op, test, timeout);			
 			ctx.doAction(agentCallbackId, id, op, test, timeout);			
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
@@ -96,6 +93,14 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 
 	}
 
+	@Override
+	public void doAction(long agentCallbackId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+		try {
+			ctx.doAction(agentCallbackId, op, test, timeout);			
+		} catch (RemoteException ex) {
+			throw new CartagoException(ex.getMessage());
+		}
+	}
 	
 	public void ping() throws CartagoException {
 		try {
@@ -106,21 +111,14 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 	}
 
 	@Override
-	public ArtifactId getArtifactIdFromOp(Op op) throws CartagoException {
+	public void quit() throws CartagoException {
 		try {
-			return ctx.getArtifactIdFromOp(op);			
+			ctx.quit();			
 		} catch (RemoteException ex) {
 			throw new CartagoException(ex.getMessage());
-		}	
+		}
 	}
 
-	@Override
-	public ArtifactId getArtifactIdFromOp(String name, Op op) throws CartagoException {
-		// TODO Auto-generated method stub
-		try {
-			return ctx.getArtifactIdFromOp(name,op);			
-		} catch (RemoteException ex) {
-			throw new CartagoException(ex.getMessage());
-		}	
-	}
+
+	
 }

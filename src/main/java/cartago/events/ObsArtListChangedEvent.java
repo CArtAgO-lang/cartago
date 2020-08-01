@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ import cartago.Tuple;
 /**
  * EXPERIMENTAL - Topology support
  * 
- * Class representing an observable artofact list changed event,
+ * Class representing an observable artifact list changed event,
  * @author aricci
  *
  */

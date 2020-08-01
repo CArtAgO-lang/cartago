@@ -1,0 +1,11 @@
+MAS test {
+
+    // environment: jaca.CartagoEnvironment("-debug")
+    
+    environment: jaca.CartagoEnvironment("standalone") // , protocol(web))
+
+    agents:  
+   	tester_agent_web_infr agentArchClass jaca.CAgentArch;
+
+	aslSourcePath: "src/test/jaca/test";
+}

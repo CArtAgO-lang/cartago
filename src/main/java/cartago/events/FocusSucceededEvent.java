@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,12 +30,20 @@ public class FocusSucceededEvent extends ActionSucceededEvent {
 	private ArtifactId targetArtifact;
 	private List<ArtifactObsProperty> props;
 	
+	FocusSucceededEvent(){}
+	
 	public FocusSucceededEvent(long id, long actionId, Op op, ArtifactId aid, ArtifactId targetArtifact, List<ArtifactObsProperty> props){
 		super(id,actionId,op,aid);
 		this.targetArtifact = targetArtifact;
 		this.props = props;
 	}
 	
+	public FocusSucceededEvent(long id, long actionId, Op op, ArtifactId aid, ArtifactId targetArtifact, List<ArtifactObsProperty> props, long ts){
+		super(id,actionId,op,aid,ts);
+		this.targetArtifact = targetArtifact;
+		this.props = props;
+	}
+
 	public ArtifactId getTargetArtifact(){
 		return targetArtifact;
 	}

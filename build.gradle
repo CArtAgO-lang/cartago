@@ -6,11 +6,17 @@
  * Task to create the distribution: makeDist
  *
  */
+plugins {
+  id 'application'
+  id 'org.openjfx.javafxplugin' version '0.0.8'
+}
+
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-version '2.5'
+version '3.0'
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -38,10 +44,29 @@ sourceSets {
 
 /* still using local dep */
 dependencies {
-  compile files('libs/lipermi-0.4.jar')
-  compile group: 'org.jason-lang', name: 'jason'    , version: '2.5.1'  , changing: true , transitive: false
-  // https://mvnrepository.com/artifact/net.openhft/compiler
-  compile group: 'net.openhft', name: 'compiler', version: '2.3.1'
+  
+    compile group: 'org.jason-lang', name: 'jason'    , version: '2.5.1'  , changing: true , transitive: false
+    // https://mvnrepository.com/artifact/net.openhft/compiler
+    compile group: 'net.openhft', name: 'compiler', version: '2.3.1'
+
+	// used in web infrastructure
+  	implementation "io.vertx:vertx-core:3.7.0"
+  	implementation "io.vertx:vertx-sync:3.7.0"
+  	implementation "io.vertx:vertx-unit:3.7.0"
+  	implementation "io.vertx:vertx-web:3.7.0"
+  	implementation "io.vertx:vertx-web-client:3.7.0"
+	implementation "com.fasterxml.jackson.core:jackson-databind:2.9.8"
+
+	compile files('libs/lipermi-0.4.jar')
+
+	/*	
+	// for book examples
+	implementation "org.apache.commons:commons-math3:3.4"
+    implementation "org.apache.httpcomponents:httpclient:4.5"
+
+    implementation 'com.google.maps:google-maps-services:0.9.4'
+    */
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
 }
 
 /* still not used */
@@ -50,6 +75,12 @@ repositories {
 	//maven { url "http://jacamo.sourceforge.net/maven2" 	}
   maven { url "https://raw.github.com/jacamo-lang/mvn-repo/master" }
 }
+
+javafx {
+    version = "12.0.2"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
 
 task generateRMIstubs(type:Exec, dependsOn: classes) {
 	workingDir 'build/classes/main'
@@ -60,13 +91,13 @@ task generateRMIstubs(type:Exec, dependsOn: classes) {
 
 task cartagoJar(type: Jar, dependsOn: [ classes, generateRMIstubs ]) {
   baseName 'cartago'
-  from 'build/classes/main'
+  // from 'build/classes/main'
   include '**'
 }
 
 task jacaJar(type: Jar, dependsOn: compileJacaJava) {
   baseName 'jaca'
-  from 'build/classes/jaca'
+  // from 'build/classes/jaca'
   include '**'
 }
 
@@ -155,3 +186,9 @@ artifacts {
     archives cartagoJar
     archives jacaJar
 }
+
+/*
+task execute(type:JavaExec) {
+   main = mainClass
+   classpath = sourceSets.main.runtimeClasspath
+}*/

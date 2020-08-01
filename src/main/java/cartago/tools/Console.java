@@ -15,7 +15,6 @@ import cartago.*;
 	 * 
 	 */	
 	@OPERATION void print(Object... args){
-		System.out.print("["+getCurrentOpAgentId().getAgentName()+"] ");
 		for (Object st: args){
 			System.out.print(st);
 		}
@@ -32,7 +31,6 @@ import cartago.*;
 	 * 
 	 */	
 	@OPERATION void println(Object... args){
-		System.out.print("["+getCurrentOpAgentId().getAgentName()+"] ");
 		for (Object st: args){
 			System.out.print(st);
 		}
@@ -48,7 +46,7 @@ import cartago.*;
 	 * </ul></p>
 	 * 
 	 */	
-	@OPERATION void anonimousPrint(Object... args){
+	@OPERATION void printWithAgName(Object... args){
 		System.out.print("["+getCurrentOpAgentId().getAgentName()+"] ");
 		for (Object st: args){
 			System.out.print(st);
@@ -65,7 +63,7 @@ import cartago.*;
 	 * </ul></p>
 	 * 
 	 */	
-	@OPERATION void anonimousPrintln(Object... args){
+	@OPERATION void printlnWithAgName(Object... args){
 		System.out.print("["+getCurrentOpAgentId().getAgentName()+"] ");
 		for (Object st: args){
 			System.out.print(st);

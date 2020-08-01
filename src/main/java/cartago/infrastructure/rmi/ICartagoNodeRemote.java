@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,5 +41,5 @@ public interface ICartagoNodeRemote extends Remote {
 
 	String getVersion() throws CartagoException, RemoteException;
 	
-	NodeId getNodeId() throws CartagoException, RemoteException;
+	// NodeId getNodeId() throws CartagoException, RemoteException;
 }

@@ -1,5 +1,5 @@
 /**
- * CArtAgO - DEIS, University of Bologna
+ * CArtAgO - DISI, University of Bologna
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,8 @@ public class JoinWSPSucceededEvent extends ActionSucceededEvent {
 
 	private ICartagoContext ctx;
 	private WorkspaceId wspId;
+	
+	JoinWSPSucceededEvent(){}
 	
 	public JoinWSPSucceededEvent(long id, long actionId, Op op, ArtifactId aid, WorkspaceId wspId, ICartagoContext ctx){
 		super(id,actionId,op,aid);

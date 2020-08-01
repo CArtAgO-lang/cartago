@@ -23,6 +23,7 @@ public class CartagoBasicContext {
 	private ObsEventQueue obsEventQueue; 
 
 	private ObsPropMap obsPropMap;
+	private WorkspaceId implicitWspId;
 
 	private final static IEventFilter firstEventFilter = new IEventFilter(){
 		public boolean select(ArtifactObsEvent ev){
@@ -43,7 +44,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startSession(CartagoService.MAIN_WSP_NAME, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -63,7 +64,7 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startSession(workspaceName, new cartago.AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startSession(workspaceName, new cartago.AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -75,7 +76,7 @@ public class CartagoBasicContext {
 	 * @param name agent name
 	 * @param workspaceName workspace name
 	 * @param workspaceHost workspace host
-	 */
+	 *//*
 	public CartagoBasicContext(String name, String workspaceName, String workspaceHost) {
 		super();
 		this.name = name;
@@ -84,11 +85,11 @@ public class CartagoBasicContext {
 		obsEventQueue = new ObsEventQueue();
 		obsPropMap = new ObsPropMap();
 		try {
-			session = CartagoService.startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
+			session = CartagoEnvironment.getInstance().startRemoteSession(workspaceName, workspaceHost, "default", new AgentIdCredential(name), agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
-	}
+	}*/
 	
 	public WorkspaceId getJoinedWspId(String wspName) throws CartagoException {
 		
@@ -118,7 +119,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public ActionFeedback doActionAsync(Op op) throws CartagoException {
-		long id = session.doAction(op, null, -1);
+		long id = session.doAction(op, implicitWspId, null, -1);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		return res;
 	}
@@ -147,7 +148,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public ActionFeedback doActionAsync(Op op, long timeout) throws CartagoException {
-		long id = session.doAction(op, null, timeout);
+		long id = session.doAction(op, implicitWspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		return res;
 	}
@@ -162,7 +163,7 @@ public class CartagoBasicContext {
 	 * @throws CartagoException
 	 */
 	public void doAction(Op op, long timeout) throws ActionFailedException, CartagoException {
-		long id = session.doAction(op, null, timeout);
+		long id = session.doAction(op, implicitWspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		try {
 			res.waitForCompletion();
@@ -273,8 +274,8 @@ public class CartagoBasicContext {
 	 * @throws ActionFailedException
 	 * @throws CartagoException
 	 */
-	public void doAction(WorkspaceId wspId, Op op, long timeout) throws ActionFailedException, CartagoException {
-		long id = session.doAction(wspId, op, null, timeout);
+	public void doAction(Op op, WorkspaceId wspId, long timeout) throws ActionFailedException, CartagoException {
+		long id = session.doAction(op, wspId, null, timeout);
 		ActionFeedback res = new ActionFeedback(id,actionFeedbackQueue);
 		try {
 			res.waitForCompletion();
@@ -315,8 +316,8 @@ public class CartagoBasicContext {
 	 * @throws ActionFailedException
 	 * @throws CartagoException
 	 */
-	public void doAction(WorkspaceId wspId, Op op) throws ActionFailedException, CartagoException {
-		this.doAction(wspId, op, -1);
+	public void doAction(Op op, WorkspaceId wspId) throws ActionFailedException, CartagoException {
+		this.doAction(op, wspId, -1);
 	}
 
 	/**
@@ -419,7 +420,7 @@ public class CartagoBasicContext {
 	public ArtifactId lookupArtifact(WorkspaceId id, String artifactName) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(id, new Op("lookupArtifact", artifactName, res));
+			doAction(new Op("lookupArtifact", artifactName, res), id);
 		} catch (Exception ex){
 			throw new CartagoException();
 		}
@@ -491,7 +492,7 @@ public class CartagoBasicContext {
 	public ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(id, new Op("makeArtifact", artifactName, templateName, new Object[0], res));
+			doAction(new Op("makeArtifact", artifactName, templateName, new Object[0], res), id);
 		} catch (Exception ex){
 			throw new CartagoException();
 		}
@@ -510,7 +511,7 @@ public class CartagoBasicContext {
 	public ArtifactId makeArtifact(WorkspaceId id, String artifactName, String templateName, Object[] params) throws CartagoException {
 		OpFeedbackParam<ArtifactId> res = new OpFeedbackParam<ArtifactId>();
 		try{
-			doAction(id, new Op("makeArtifact", artifactName, templateName, params, res));
+			doAction(new Op("makeArtifact", artifactName, templateName, params, res), id);
 		} catch (Exception ex){
 			throw new CartagoException();
 		}
