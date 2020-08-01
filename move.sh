@@ -1,2 +1,2 @@
-cp build/dist/cartago-2.5-SNAPSHOT/lib/cartago-2.5-SNAPSHOT.jar $JACAMO_HOME/libs
-cp build/dist/cartago-2.5-SNAPSHOT/lib/jaca-2.5-SNAPSHOT.jar $JACAMO_HOME/libs
+cp build/dist/cartago-3.0-SNAPSHOT/lib/cartago-3.0-SNAPSHOT.jar $JACAMO_HOME/libs
+cp build/dist/cartago-3.0-SNAPSHOT/lib/jaca-3.0-SNAPSHOT.jar $JACAMO_HOME/libs
