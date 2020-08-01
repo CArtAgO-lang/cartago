@@ -25,8 +25,7 @@ package cartago;
  */
 public class CARTAGO_VERSION {
 	private static final String triple ="3.0.0";
-	private static final String build = "742";
-	private static final String date = "20190515";
+	private static final String date = "20200801";
 		
 	/**
 	 * Get current CArtAgO version ID.
@@ -34,6 +33,6 @@ public class CARTAGO_VERSION {
 	 * @return
 	 */
 	static public final String getID(){
-		return triple+"."+build+"-"+date;
+		return triple+"-"+date;
 	}
 }
