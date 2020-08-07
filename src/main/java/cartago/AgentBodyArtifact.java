@@ -9,7 +9,6 @@ public class AgentBodyArtifact extends Artifact {
 	
 	@OPERATION void init(AgentBody body){
 		this.body = body;
-		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
 	
 	protected void setupPosition(AbstractWorkspacePoint pos, double observabilityRadius, double observingRadius){
@@ -50,12 +49,12 @@ public class AgentBodyArtifact extends Artifact {
 	
 	/* called directly by the kernel */
 	
-	public  void addFocusedArtifact(String wspName, String artName, ArtifactId id){
-		defineObsProperty("focused",wspName,artName,id);
+	public  void addFocusedArtifact(ArtifactId id, String artName, String artType, WorkspaceId wspId){
+		defineObsProperty("focusing", id, artName, artType, wspId);
 	}
 	
-	void removeFocusedArtifact(String wspName, String artName, ArtifactId id){
-		this.removeObsPropertyByTemplate("focused", wspName, artName,null);
+	void removeFocusedArtifact(ArtifactId id){
+		this.removeObsPropertyByTemplate("focusing", id, null, null, null);
 	}
 	
 }

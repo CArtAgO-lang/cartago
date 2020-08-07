@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import cartago.AgentBodyArtifact;
 import cartago.AgentId;
+import cartago.AgentSessionArtifact;
 import cartago.ArtifactDescriptor;
 import cartago.ArtifactId;
 import cartago.ArtifactInfo;
@@ -107,13 +108,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	// short cuts
 	protected transient jason.bb.BeliefBase belBase;
 	protected transient jason.asSemantics.Agent agent;
-
 	protected Set<WorkspaceId> allJoinedWsp; // used in stopAg to quit this workspaces
-
 	private List<ArtifactId> focusedArts = null;
 
-	
-	
 	
 	public CAgentArch() {
 		super();
@@ -703,6 +700,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		addObsPropertiesBel(ev.getTargetArtifact(), ev.getObsProperties(), nsp);
 		
 		// add focused/3 from body-art to its nsp
+		/*
 		Literal artName = null;
 		try {
 			// use parsing to consider the name space in the art name
@@ -724,6 +722,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		*/
 	}
 
 	protected Op parseOp(Structure action) {
@@ -975,11 +974,17 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	}
 
 	private Atom processSpecialOP(ArtifactId source, ArtifactObsProperty prop, Atom nsp) throws Exception {
-		if (source.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
-			// translate string to atoms for focused/3
-			if ("focused".equals(prop.getName())) {
-				// focused in handled by processFocusSucceeded
-				return null;
+		String artType = source.getArtifactType();
+		if (artType.equals(AgentBodyArtifact.class.getName())) {
+			
+			// translate string to atoms for focusing/3
+			// focusing (ArtId, ArtName, ArtType, WspId)
+			
+			if (prop.getName().equals("focusing")) {
+				// focusing in handled by processFocusSucceeded
+				prop.getValues()[0] = lib.objectToTerm(prop.getValue(0));
+				prop.getValues()[3] = lib.objectToTerm(prop.getValue(3));
+				prop.getValues()[1] = ASSyntax.parseTerm(prop.getValue(1).toString()); // to consider the use of namespaces in the art id
 				/*if (prop.getValue(1).toString().endsWith("-body")) {
 					return null;
 				} else {
@@ -991,9 +996,16 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					art.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(type)));
 					prop.getValues()[1] = art;
 				}*/
-			} else if ("joined".equals(prop.getName())) {
-				prop.getValues()[0] = ASSyntax.parseTerm(prop.getValue(0).toString()); // to consider the use of namespaces in the art id
-				prop.getValues()[1] = lib.objectToTerm(prop.getValue(1));
+			}
+		} else if (artType.equals(AgentSessionArtifact.class.getName())) {
+			if (prop.getName().equals("joinedWsp")) {
+				
+				// translate string to atoms for joinedWsp/3
+				// joinedWsp(WspId, WspName, WspFullName)
+				
+				prop.getValues()[0] = lib.objectToTerm(prop.getValue(0));
+				prop.getValues()[1] = ASSyntax.parseTerm(prop.getValue(1).toString()); // to consider the use of namespaces in the art id
+				// the third parameter is a full name (String)
 			}
 		}
 		return nsp;

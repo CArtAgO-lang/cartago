@@ -298,15 +298,7 @@ public class CartagoEnvironment {
 	public synchronized ICartagoSession startSession(String wspName, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 			Workspace wsp = this.resolveWSP("/"+wspName).getWorkspace();
 			CartagoSession session = new CartagoSession(cred,null,eventListener);
-			ICartagoContext startContext = wsp.joinWorkspace(cred, null, session);
-			WorkspaceId wspId = startContext.getWorkspaceId();
-			ArtifactId agentContextArtifact = null;
-			try {
-				agentContextArtifact = wsp.makeArtifact(startContext.getAgentId(), "session_"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, wsp));
-			} catch (Exception ex){
-				ex.printStackTrace();
-			}
-			session.init(agentContextArtifact, wspId, startContext);		
+			wsp.startSession(cred, session);
 			return session;
 	}
 

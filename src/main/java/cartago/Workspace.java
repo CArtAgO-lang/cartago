@@ -410,45 +410,24 @@ public class Workspace {
 		}
 	}
 	
-	
-	
+
 	/**
-	 * Join a workspace
-	 * 
-	 * @param wspName
+	 * Start a session on the environment, using this wsp as home
 	 * @param cred
-	 * @param artBodyClassName
-	 * @param eventListener
-	 * @return
+	 * @param session
 	 * @throws CartagoException
-	 *//*
-	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, String artBodyClassName, ICartagoCallback eventListener) throws CartagoException {
-		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
-		if (wdes.isLocal()) {
-			return wdes.getWorkspace().joinWorkspace(cred, artBodyClassName, eventListener);
-		} else {
-			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
-		}
-	}*/
+	 */
+	public void startSession(AgentCredential cred, CartagoSession session) throws CartagoException {
+
+		ICartagoContext startContext = this.joinWorkspace(cred, null, session);
+		WorkspaceId wspId = startContext.getWorkspaceId();
 	
-	/**
-	 * Join a workspace
-	 * 
-	 * @param wspName
-	 * @param cred
-	 * @param artBodyClassName
-	 * @param eventListener
-	 * @return
-	 * @throws CartagoException
-	 *//*
-	public ICartagoContext joinWorkspace(String wspName, AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
-		WorkspaceDescriptor wdes = this.resolveWSP(wspName);
-		if (wdes.isLocal()) {
-			return wdes.getWorkspace().joinWorkspace(cred, eventListener);
-		} else {
-			return CartagoEnvironment.getInstance().joinRemoteWorkspace(wdes.getRemotePath(), wdes.getAddress(), wdes.getProtocol(), cred, eventListener);
-		}
-	}*/	
+		/* creating the session artifact and focusing on it */
+		ArtifactId agentSessionArtifact = makeArtifact(startContext.getAgentId(), "session_"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
+		List<ArtifactObsProperty> props = this.focus(startContext.getAgentId(), null, session, agentSessionArtifact);
+		notifyFocusCompleted(session, -1, null, null, agentSessionArtifact, props);
+		session.init(agentSessionArtifact, wspId, startContext);		
+	}
 
 	/**
 	 * Join this workspace
@@ -459,11 +438,11 @@ public class Workspace {
 	 * @return
 	 * @throws CartagoException
 	 */
-	
 	public ICartagoContext joinWorkspace(AgentCredential cred, ICartagoCallback eventListener) throws CartagoException {
 		return this.joinWorkspace(cred, AgentBodyArtifact.class.getName(), eventListener);
 	}
 	
+		
 	/**
 	 * Join this workspace
 	 * 
@@ -1151,8 +1130,6 @@ public class Workspace {
 	// ******* @EXPERIMENTAL end.
 	
 	
-	// focus action
-
 	private void logState(){
 		log("DUMP -- WSP "+getId());
 		for (ArtifactDescriptor des: artifactMap.values()){
@@ -1172,6 +1149,10 @@ public class Workspace {
 			}
 		}
 		try {
+			if (des.isObservedBy(userId)) {
+				throw new ArtifactAlreadyObservedByTheAgentException();
+			}
+			
 			List<ArtifactObsProperty> obs = des.getAdapter().readProperties();
 			des.addObserver(userId, filter, ctx);
 			synchronized (joinedAgents){

@@ -42,6 +42,9 @@ public class AgentSessionArtifact extends Artifact {
 		this.eventListener = eventListener;
 		this.homeWsp = homeWsp;
 		this.session = session;
+		WorkspaceId wspId = homeWsp.getId();
+		this.defineObsProperty("joinedWsp",wspId.getName(), wspId, wspId.getFullName());
+
 	}
 	
 	/**
@@ -57,14 +60,28 @@ public class AgentSessionArtifact extends Artifact {
 			wspRef = removeRelativePath(wspRef);
 			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef);
 		    OpExecutionFrame opFrame = this.getOpFrame();
+
+		    /* check if wsp already joined */
+		    WorkspaceId wspId = des.getId();
+		    ICartagoContext cachedCtx = session.getJoinedWsp(wspId);
+		    if (cachedCtx != null) {
+				if (res != null) {
+					res.set(wspId);
+				}
+				des.getWorkspace().notifyJoinWSPCompleted(eventListener, opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, cachedCtx);
+				return;
+		    }
+		    
 			if (des.isLocal()) {
 				/* use only the name */
 				try {
 					ICartagoContext ctx = des.getWorkspace().joinWorkspace(cred, null, eventListener);
-					WorkspaceId wspId = ctx.getWorkspaceId();
+					wspId = ctx.getWorkspaceId();
 					if (res != null) {
 						res.set(wspId);
 					}
+					this.defineObsProperty("joinedWsp", wspId, wspId.getName(), wspId.getFullName());
+					
 					// this.implicitWspId = wspId;
 					des.getWorkspace().notifyJoinWSPCompleted(eventListener, opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
 				} catch (Exception ex){
@@ -75,11 +92,12 @@ public class AgentSessionArtifact extends Artifact {
 				try {
 					ICartagoContext ctx = CartagoEnvironment.getInstance()
 							.joinRemoteWorkspace(CartagoEnvironment.getInstance().getName(), des.getAddress(), des.getRemotePath(), des.getProtocol(), cred, eventListener, wspRef);
-					WorkspaceId wspId = ctx.getWorkspaceId();
+					wspId = ctx.getWorkspaceId();
 					// this.implicitWspId = wspId;
 					if (res != null) {
 						res.set(wspId);
 					}
+					this.defineObsProperty("joinedWsp", wspId, wspId.getName(), wspId.getFullName());					
 					homeWsp.notifyJoinWSPCompleted(eventListener, opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), wspId, ctx);
 				} catch (Exception ex) {
 					// ex.printStackTrace();
@@ -138,10 +156,16 @@ public class AgentSessionArtifact extends Artifact {
 		return sb.toString();
 	}
 	
+	/**
+	 * Quit from a joined workspace
+	 * 
+	 * @param wspId
+	 */
 	@OPERATION void quitWorkspace(WorkspaceId wspId) {
 		try {
 			ICartagoContext ctx = session.getJoinedWsp(wspId);
 			ctx.quit();
+			this.removeObsPropertyByTemplate("joinedWsp",  wspId, null, null);
 		} catch (Exception ex){
 			failed("Quit Workspace failed.");
 		}

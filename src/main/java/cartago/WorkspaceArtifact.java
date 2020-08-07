@@ -346,6 +346,8 @@ public class WorkspaceArtifact extends Artifact {
 			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			opFrame.setCompletionNotified();
+		} catch(ArtifactAlreadyObservedByTheAgentException ex) {
+			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
@@ -363,6 +365,8 @@ public class WorkspaceArtifact extends Artifact {
 		try {
 			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(ArtifactAlreadyObservedByTheAgentException ex) {
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -385,6 +389,8 @@ public class WorkspaceArtifact extends Artifact {
 			}
 			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(ArtifactAlreadyObservedByTheAgentException ex) {
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -410,6 +416,8 @@ public class WorkspaceArtifact extends Artifact {
 			}
 			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			opFrame.setCompletionNotified();
+		} catch(ArtifactAlreadyObservedByTheAgentException ex) {
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");

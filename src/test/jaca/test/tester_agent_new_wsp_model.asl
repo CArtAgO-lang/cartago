@@ -5,8 +5,8 @@
  * 
  */
 
-// !test_new_wsp_model.  // OK
-!test_wsp_multiple_intentions. // OK
+!test_new_wsp_model.  // OK
+// !test_wsp_multiple_intentions. // OK
 // !test_wsp_classic. 	// OK
 // !test_link. 			// OK
 
@@ -22,12 +22,12 @@
 	 println("joining w1...");
 	 joinWorkspace("/main/w1",W1);
 	 println("joined w1");
-     println("making a Counter artifact called my_counter (in current wsp) ", Id1);
+     println("making a Counter artifact called my_counter (in current wsp)... ");
   	 makeArtifact("my_counter","acme.Counter", [], Id1);
      println("make succeeded - id: ", Id1);
 	 println("looking up an artifact (my_counter)  using just the name (i.e. in current wsp)")
      lookupArtifact("my_counter", Id2);
-     println("lookup succeded - id:  ", Id2)
+     println("lookup succeeded - id:  ", Id2)
 	 println("looking up an artifact using abs path: /main/w1/my_counter")
      lookupArtifact("/main/w1/my_counter",Id3);
      println("lookup succeeded -  id: ", Id3);
@@ -46,13 +46,17 @@
      quitWorkspace(Id5);
      println("quit succeeded.").
      
++joinedWsp(WspId, Name, FullName) 
+	<- println("joined new wsp: ", Name, " full name: ", FullName).
+	
++focusing(ArtId, ArtName, ArtType, WspId)
+	<- println("start focusing: ", ArtName, " of type ", ArtType, " in wsp ", WspId).
+		
 +!test_fail 
 	<-  lookupArtifact("my_counter", X).
 -!test_fail	
 	<-  println("ok intercepted failure").
 	
-+joined_wsp(Name,Id)	
-	<- println("joined wsp: ",Name," ",Id).          
           
 -!test_wsp [error_msg(Msg)]
   <- println("OOOPS failed: ",Msg).
