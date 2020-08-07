@@ -2,9 +2,7 @@ package jaca;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,20 +22,18 @@ import cartago.ArtifactDescriptor;
 import cartago.ArtifactId;
 import cartago.ArtifactInfo;
 import cartago.ArtifactObsProperty;
+import cartago.CartagoEnvironment;
 import cartago.CartagoEvent;
 import cartago.CartagoException;
-import cartago.Workspace;
-import cartago.WorkspaceDescriptor;
-import cartago.CartagoEnvironment;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
-import cartago.ICartagoController;
 import cartago.ICartagoSession;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
 import cartago.Op;
-import cartago.OpDescriptor;
 import cartago.Tuple;
+import cartago.Workspace;
+import cartago.WorkspaceDescriptor;
 import cartago.WorkspaceId;
 import cartago.events.ActionFailedEvent;
 import cartago.events.ActionSucceededEvent;
@@ -51,7 +47,6 @@ import cartago.events.QuitWSPSucceededEvent;
 import cartago.events.StopFocusSucceededEvent;
 import jason.architecture.AgArch;
 import jason.asSemantics.ActionExec;
-import jason.asSemantics.Circumstance;
 import jason.asSemantics.Event;
 import jason.asSemantics.Intention;
 import jason.asSemantics.Message;
@@ -63,6 +58,7 @@ import jason.asSyntax.ListTerm;
 import jason.asSyntax.Literal;
 import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.StringTerm;
+import jason.asSyntax.StringTermImpl;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
 import jason.asSyntax.Trigger;
@@ -79,12 +75,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	static protected final Term OBS_EV_PERCEPT   = ASSyntax.createStructure("percept_type", ASSyntax.createAtom("obs_ev"));
 
 	private HashMap<ArtifactId, Set<Atom>> mappings = new HashMap<>();
-	static private final List<String> DEF_OPS = Arrays.asList( 
+	/*static private final List<String> DEF_OPS = Arrays.asList( 
 		      "makeArtifact","removeArtifactFactory","addArtifactFactory","lookupArtifactByType","lookupArtifact","focusWhenAvailable",
 		      "disposeArtifact","quitWorkspace","linkArtifacts","stopFocus","getCurrentArtifacts","focus","init","getRoleList","setSecurityManager",
 		      "addRole","removeRole","addRolePolicy","removeRolePolicy","setDefaultRolePolicy","out","in","inp","rd","rdp","joinRemoteWorkspace",
 		      "getNodeId","enableLinkingWithNode","shutdownNode","crash","joinWorkspace","createWorkspace","print","println");
-
+    */
+	
 	protected transient ICartagoSession envSession;
 
 	// actions that have been executed and wait for a completion events
@@ -137,7 +134,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	}
 	
 	protected void initBridge() {
-		String agentName = getTS().getUserAgArch().getAgName();
+		String agentName = getTS().getAgArch().getAgName();
 		try {			
 			this.agent = getTS().getAg();
 			this.belBase = agent.getBB();
@@ -624,9 +621,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				perceiveStopFocus((StopFocusSucceededEvent) ev);
 			} else if (ev instanceof JoinWSPSucceededEvent) {
 				this.lastWspId = ((JoinWSPSucceededEvent) ev).getWorkspaceId();
-				if (!allJoinedWsp.contains(this.lastWspId)) {
-					allJoinedWsp.add(this.lastWspId);
-				}
+				allJoinedWsp.add(this.lastWspId);
 				
 				Intention intent = pendingJoinWsp.get(ev.getActionId());
 				if (intent != null) {
@@ -713,7 +708,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			artName.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(ev.getTargetArtifact().getArtifactType())));
 			
 			Literal l = ASSyntax.createLiteral(nsp, "focused", 
-					new Atom(ev.getTargetArtifact().getWorkspaceId().getName()),
+					new StringTermImpl(ev.getTargetArtifact().getWorkspaceId().getFullName()),
 					artName, 
 					lib.objectToTerm(ev.getTargetArtifact()));
 			l.addAnnot(BeliefBase.TPercept);
@@ -841,10 +836,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			struct.addTerm(lib.objectToTerm(obj));
 		}
 
-		/*if ("obligation".equals(prop.getName()) || "prohibition".equals(prop.getName()) || "permission".equals(prop.getName())) {
-			struct.addAnnot(lib.objectToTerm(prop.getValue(4)));
-			struct.delTerm(4);
-		} removed to use annots from cartago */		
 		if (prop.getAnnots() != null)
 			for (Object o: prop.getAnnots())
 				struct.addAnnot(lib.objectToTerm(o));
@@ -866,12 +857,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		}
 		//struct.addAnnot(ASSyntax.createStructure("source", id));
 		struct.addAnnot(ASSyntax.createStructure("artifact_id", id));
-		struct.addAnnot(ASSyntax.createStructure("artifact_name", id, artName));
+		struct.addAnnot(ASSyntax.createStructure("artifact_name", artName));
 		//struct.addAnnot(ASSyntax.createStructure("artifact_type", id, ASSyntax.createString(source.getArtifactType())));
-		struct.addAnnot(ASSyntax.createStructure("workspace", id, ASSyntax.createAtom(source.getWorkspaceId().getName()), lib.objectToTerm(source.getWorkspaceId())));
+		struct.addAnnot(ASSyntax.createStructure("workspace", ASSyntax.createString(source.getWorkspaceId().getFullName()), lib.objectToTerm(source.getWorkspaceId())));
 	}
 	
 	class JaCaLiteral extends LiteralImpl {
+		private static final long serialVersionUID = 1L;
+		
 		String obsPropId;
 		public JaCaLiteral(Atom ns, String f, String opi) {
 			super(ns, Literal.LPos, f);
@@ -935,7 +928,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	}
 
 	public static CAgentArch getCartagoAgArch(TransitionSystem ts) {
-		AgArch arch = ts.getUserAgArch().getFirstAgArch();
+		AgArch arch = ts.getAgArch();
 		while (arch != null) {
 			if (arch instanceof CAgentArch)
 				return (CAgentArch) arch;
@@ -969,7 +962,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			logger.warning("EXCEPTION - processing new obs prop " + prop + " artifact " + source + " for agent " + getTS().getUserAgArch().getAgName());
+			logger.warning("EXCEPTION - processing new obs prop " + prop + " artifact " + source + " for agent " + getTS().getAgArch().getAgName());
 		}
 	}
 
@@ -1036,19 +1029,19 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			return true;
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			logger.warning("EXCEPTION - processing remove obs prop " + prop + " for agent " + getTS().getUserAgArch().getAgName());
+			logger.warning("EXCEPTION - processing remove obs prop " + prop + " for agent " + getTS().getAgArch().getAgName());
 		}
 		return false;
 	}
 
-	private List<ArtifactId> focusedArtifacts(Atom nid) {
+	/*private List<ArtifactId> focusedArtifacts(Atom nid) {
 		List<ArtifactId> aids = new ArrayList<>();
 		for (ArtifactId aid : mappings.keySet())
 			if (mappings.get(aid).contains(nid))
 				aids.add(aid);
 
 		return aids;
-	}
+	}*/
 	
 	
 	private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
