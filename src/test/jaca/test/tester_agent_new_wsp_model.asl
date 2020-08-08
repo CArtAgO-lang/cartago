@@ -12,7 +12,9 @@
 
 
 +!test_new_wsp_model
-  <- createWorkspace("w0");
+  <- lookupArtifact("workspace", WspArtId);
+	 focus(WspArtId);
+  	 createWorkspace("w0");
      println("created w0");
 	 createWorkspace("w1");
 	 println("created w1");
@@ -52,6 +54,12 @@
 +focusing(ArtId, ArtName, ArtType, WspId)
 	<- println("start focusing: ", ArtName, " of type ", ArtType, " in wsp ", WspId).
 		
++child_wsp(WspName)
+	<- println("new wsp created ", WspName).
+
++linked_wsp(LinkName, WspPath)
+	<- println("new wsp linked ", LinkName, " ", WspPath).
+
 +!test_fail 
 	<-  lookupArtifact("my_counter", X).
 -!test_fail	

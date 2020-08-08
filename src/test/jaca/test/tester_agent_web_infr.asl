@@ -25,6 +25,8 @@
 
 +!test_remote <-
   println("Testing distributed MAS.");
+  lookupArtifact("workspace", WspArtId);
+  focus(WspArtId);
   println("Linking a remote wsp belonging to another MAS called myMAS running on localhost...");
   linkWorkspace("http://localhost/myMAS/main","b");
   // alternative: mountWorkspace("http://localhost/myMAS","/main","/main/b");
@@ -51,7 +53,9 @@
   println("Lookup for the c0 artifact created in the remote wsp")[wsp("main")];  
   lookupArtifact("c0",Id5);
   println("found: ", Id5)[wsp("main")].
-  
+
++linked_wsp(LinkName, WspPath)
+	<- println("new wsp linked: ", WspPath, " link name: ", LinkName).  
 
 +!use_remote <-
   makeArtifact(c0,"acme.Counter",[],Id);

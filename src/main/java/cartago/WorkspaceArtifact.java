@@ -49,7 +49,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void createWorkspace(String name){
 		try {
 			wsp.createWorkspace(name);
-			defineObsProperty("workspace",name,wsp.getId());
+			defineObsProperty("child_wsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -63,7 +63,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void createWorkspace(String name, String address){
 		try {
 			wsp.createWorkspaceOnRemoteNode(name, address, CartagoEnvironment.getInstance().getDefaultInfrastructureLayer(), null);
-			defineObsProperty("workspace",name,wsp.getId());
+			defineObsProperty("child_wsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -80,7 +80,7 @@ public class WorkspaceArtifact extends Artifact {
 			WorkspaceDescriptor des = wsp.createWorkspace(name);
 			AbstractWorkspaceTopology topology = (AbstractWorkspaceTopology) Class.forName(topologyClassName).newInstance();
 			des.getWorkspace().setWSPTopology(topology);
-			defineObsProperty("workspace",name,wsp.getId());
+			defineObsProperty("child_wsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -95,7 +95,9 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void linkWorkspace(String wspToBeLinkedPath, String localName)  {
 		try {
-			wsp.linkWorkspace(wspToBeLinkedPath, localName);			
+			wsp.linkWorkspace(wspToBeLinkedPath, localName);	
+			defineObsProperty("linked_wsp",localName,wspToBeLinkedPath);
+
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("link workspace error: "+ex.getMessage());
@@ -111,7 +113,8 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName,  String protocol)  {
 		try {
-			wsp.linkRemoteWorkspace(remoteWspPath, wspName, protocol);			
+			wsp.linkRemoteWorkspace(remoteWspPath, wspName, protocol);	
+			defineObsProperty("linked_wsp",wspName,remoteWspPath);
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("link workspace error: "+ex.getMessage());
@@ -127,7 +130,8 @@ public class WorkspaceArtifact extends Artifact {
 	 */
 	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName)  {
 		try {
-			wsp.linkRemoteWorkspace(remoteWspPath, wspName, "web");			
+			wsp.linkRemoteWorkspace(remoteWspPath, wspName, "web");	
+			defineObsProperty("linked_wsp",wspName,remoteWspPath);
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("link workspace error: "+ex.getMessage());
@@ -153,6 +157,9 @@ public class WorkspaceArtifact extends Artifact {
 			WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(parentPath);
 			if (des.isLocal()) {
 				des.getWorkspace().linkRemoteWorkspace(targetMASURL + remoteWspPath, wspName, "web");
+				ArtifactId wid = des.getWorkspace().getWspArtifactId();
+				ArtifactDescriptor wspArtifactDes = des.getWorkspace().getArtifactDescriptor(wid.getName());
+				((WorkspaceArtifact)wspArtifactDes.getArtifact()).registerNewLinkedWsp(wspName, remoteWspPath);
 			} else {
 				failed("not implemented");
 			}
@@ -161,6 +168,18 @@ public class WorkspaceArtifact extends Artifact {
 			failed("Mount Workspace error: "+ex.getMessage());
 		}
 	}
+
+	private void registerNewLinkedWsp(String wspName, String remoteWspPath) {
+		try {
+			this.beginExtSession();
+			defineObsProperty("linked_wsp",wspName,remoteWspPath);
+			this.endExtSession();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			this.endExtSessionWithFailure();
+		}
+	}
+	
 	
 	// aux
 	
