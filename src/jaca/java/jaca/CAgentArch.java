@@ -814,6 +814,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		Tuple signal = p.getSignal();
 		try {
 			Literal struct = ASSyntax.createLiteral(ns, signal.getLabel(), lib.objectArray2termArray(signal.getContents()));
+			struct.addAnnot(BeliefBase.TPercept);
 			struct.addAnnot(OBS_EV_PERCEPT);
 			addSourceAnnots(p.getArtifactId(), struct);
 			// struct.addAnnot(ASSyntax.createStructure("time", id, ASSyntax.createNumber(p.getId())));
