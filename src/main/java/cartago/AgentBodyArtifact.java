@@ -1,5 +1,7 @@
 package cartago;
 
+import java.util.List;
+
 public class AgentBodyArtifact extends Artifact {
 	
 	/* defines the radius within which the agent can perceive artifacts*/
@@ -7,9 +9,126 @@ public class AgentBodyArtifact extends Artifact {
 
 	private AgentBody body;
 	
-	@OPERATION void init(AgentBody body){
+	void init(AgentBody body){
 		this.body = body;
+		/* legacy CArtAgO < 3.0 */
+		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
+	
+	/**
+	 * Start observing an artifact of the workspace
+	 * 
+	 * @param aid the artifact id
+	 */
+	@OPERATION void focus(ArtifactId aid){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			if (!body.isObserving(aid)) {
+				List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+				wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+				// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+				opFrame.setCompletionNotified();
+			}
+			opFrame.setCompletionNotified();				
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	/**
+	 * Start observing an artifact of the workspace
+	 * 
+	 * @param aid the artifact id
+	 * @param filter filter to select which events to perceive
+	 */
+	@OPERATION void focus(ArtifactId aid, IEventFilter filter){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			if (!body.isObserving(aid)) {
+				List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+				wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+				// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+			}
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
+	/**
+	 * Start observing an artifact as soon as it is available
+	 * 
+	 * @param artName artifact name
+	 */
+	@OPERATION void focusWhenAvailable(String artName){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+				ArtifactId aid = null;
+				while (aid == null){
+					await("artifactAvailable", artName);		
+					aid = wsp.getArtifact(artName);
+				}
+				List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+				wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+				// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	
+	
+	/**
+	 * Start observing an artifact as soon as it is available
+	 * 
+	 * @param artName artifact name
+	 * @param filter a filter to select the events to perceive
+	 */
+	@OPERATION void focusWhenAvailable(String artName, IEventFilter filter){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			ArtifactId aid = null;
+			while (aid == null){
+				await("artifactAvailable", artName);		
+				aid = wsp.getArtifact(artName);
+			}
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+			// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+
+	/**
+	 * Stop observing an artifact
+	 * 
+	 * @param aid
+	 */
+	@OPERATION void stopFocus(ArtifactId aid){
+		AgentId userId = this.getCurrentOpAgentId();
+		OpExecutionFrame opFrame = this.getOpFrame();
+		try {
+			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
+			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			// this.removeObsPropertyByTemplate("focused", null, null, aid);
+			removeObsPropertyByTemplate("focusing", null, null, aid, null, null, null);
+			opFrame.setCompletionNotified();
+		} catch(Exception ex){
+			failed("Artifact Not Available.");
+		}
+	}
+	
 	
 	protected void setupPosition(AbstractWorkspacePoint pos, double observabilityRadius, double observingRadius){
 		position = pos;
@@ -49,6 +168,7 @@ public class AgentBodyArtifact extends Artifact {
 	
 	/* called directly by the kernel */
 	
+	/*
 	public  void addFocusedArtifact(ArtifactId id, String artName, String artType, WorkspaceId wspId){
 		defineObsProperty("focusing", id, artName, artType, wspId);
 	}
@@ -56,5 +176,7 @@ public class AgentBodyArtifact extends Artifact {
 	void removeFocusedArtifact(ArtifactId id){
 		this.removeObsPropertyByTemplate("focusing", id, null, null, null);
 	}
+	*/
+	
 	
 }

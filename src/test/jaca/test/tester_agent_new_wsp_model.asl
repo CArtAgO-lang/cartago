@@ -33,6 +33,7 @@
 	 println("looking up an artifact using abs path: /main/w1/my_counter")
      lookupArtifact("/main/w1/my_counter",Id3);
      println("lookup succeeded -  id: ", Id3);
+     focus(Id3);
      println("making a new Counter artifact in w0 as /main/w0/my_counter2")
      makeArtifact("/main/w0/my_counter2","acme.Counter", [], Id4);
      println("make succeed - id: ", Id4);
@@ -51,8 +52,8 @@
 +joinedWsp(WspId, Name, FullName) 
 	<- println("joined new wsp: ", Name, " full name: ", FullName).
 	
-+focusing(ArtId, ArtName, ArtType, WspId)
-	<- println("start focusing: ", ArtName, " of type ", ArtType, " in wsp ", WspId).
++focusing(ArtId, ArtName, ArtType, WspId, WspName, WspFullName)
+	<- println("start focusing: ", ArtName, " of type ", ArtType, " in wsp ", WspId, " name: ", WspName, " full name: ", WspFullName).
 		
 +child_wsp(WspName)
 	<- println("new wsp created ", WspName).

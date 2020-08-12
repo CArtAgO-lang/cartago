@@ -91,42 +91,16 @@ public class AgentBody implements ICartagoContext {
 	
 	public void addFocusedArtifacts(ArtifactDescriptor des){
 		focusedArtifacts.add(des);
-		if (bodyArtifact != null){
-			ArtifactId aid = des.getArtifact().getId();
-			bodyArtifact.beginExtSession();
-			try {
-				bodyArtifact.addFocusedArtifact(aid, 
-												aid.getName(),
-												aid.getArtifactType(),
-												aid.getWorkspaceId());
-			} catch (Exception ex) {			
-			} finally {
-				bodyArtifact.endExtSession();
-			}
-		}
 	}
 
 	public void removeFocusedArtifacts(ArtifactDescriptor des){
 		focusedArtifacts.remove(des);
-		if (bodyArtifact != null){
-			
-			bodyArtifact.beginExtSession();
-			ArtifactId aid = des.getArtifact().getId();
-			try {
-				bodyArtifact.removeFocusedArtifact(aid);
-			} catch (Exception ex) {			
-			} finally {
-				bodyArtifact.endExtSession();
-			}
-		}
 	}
 	
 	public ICartagoCallback getCallback(){
 		return agentCallback;
 	}
-	
-	/* experimental */
-	
+		
 	public boolean isObserving(ArtifactId id){
 		for (ArtifactDescriptor des: focusedArtifacts){
 			if (des.getArtifact().getId().equals(id)){

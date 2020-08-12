@@ -970,26 +970,40 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		String artType = source.getArtifactType();
 		if (artType.equals(AgentBodyArtifact.class.getName())) {
 			
-			// translate string to atoms for focusing/3
-			// focusing (ArtId, ArtName, ArtType, WspId)
-			
+			/* handling legacy - focused */
+
 			if (prop.getName().equals("focusing")) {
-				// focusing in handled by processFocusSucceeded
+			
+				// translate string to atoms for focusing/6
+				// focusing (ArtId, ArtName, ArtType, WspId, WspName, WspFullName)			
+				
 				prop.getValues()[0] = lib.objectToTerm(prop.getValue(0));
+				prop.getValues()[1] = ASSyntax.parseTerm(prop.getValue(1).toString());
 				prop.getValues()[3] = lib.objectToTerm(prop.getValue(3));
-				prop.getValues()[1] = ASSyntax.parseTerm(prop.getValue(1).toString()); // to consider the use of namespaces in the art id
-				/*if (prop.getValue(1).toString().endsWith("-body")) {
+				prop.getValues()[4] = ASSyntax.parseTerm(prop.getValue(4).toString()); 
+			}
+			
+			/*
+			if (prop.getName().equals("focused")) {
+				// focusing in handled by processFocusSucceeded
+				prop.getValues()[0] = ASSyntax.parseTerm(prop.getValue(0).toString()); 
+				prop.getValues()[1] = ASSyntax.parseTerm(prop.getValue(1).toString()); 
+				prop.getValues()[2] = lib.objectToTerm(prop.getValue(2));
+				
+				if (prop.getValue(1).toString().startsWith("body_")) {
 					return null;
 				} else {
 					// add artifact_type annot in the art name
 					prop.getValues()[0] = new Atom(prop.getValues()[0].toString());
 					Literal art = ASSyntax.createLiteral(prop.getValues()[1].toString());
 					// discover type of the art
-					String type = CartagoService.getController(prop.getValues()[0].toString()).getArtifactInfo(prop.getValues()[1].toString()).getId().getArtifactType();
+					String type = CartagoEnvironment.getInstance().getController(prop.getValues()[0].toString()).getArtifactInfo(prop.getValues()[1].toString()).getId().getArtifactType();
 					art.addAnnot(ASSyntax.createStructure("artifact_type", ASSyntax.createString(type)));
 					prop.getValues()[1] = art;
-				}*/
+				}
 			}
+			*/
+			
 		} else if (artType.equals(AgentSessionArtifact.class.getName())) {
 			if (prop.getName().equals("joinedWsp")) {
 				

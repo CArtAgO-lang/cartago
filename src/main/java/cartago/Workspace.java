@@ -1149,20 +1149,19 @@ public class Workspace {
 			}
 		}
 		try {
-			if (des.isObservedBy(userId)) {
-				throw new ArtifactAlreadyObservedByTheAgentException();
-			}
-			
 			List<ArtifactObsProperty> obs = des.getAdapter().readProperties();
-			des.addObserver(userId, filter, ctx);
-			synchronized (joinedAgents){
-				AgentBody body = joinedAgents.get(userId.getGlobalId());
-				if (body!=null){
-					body.addFocusedArtifacts(des);
+			/* this check is now performed also by the body artifact */
+			if (!des.isObservedBy(userId)) {
+				des.addObserver(userId, filter, ctx);
+				synchronized (joinedAgents){
+					AgentBody body = joinedAgents.get(userId.getGlobalId());
+					if (body!=null){
+						body.addFocusedArtifacts(des);
+					}
 				}
-			}
-			if (logManager.isLogging()){
-				logManager.artifactFocussed(System.currentTimeMillis(), userId, aid, filter);
+				if (logManager.isLogging()){
+					logManager.artifactFocussed(System.currentTimeMillis(), userId, aid, filter);
+				}
 			}
 			return obs;
 		} catch (Exception ex){
