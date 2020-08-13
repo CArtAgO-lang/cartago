@@ -24,6 +24,9 @@
 	 println("joining w1...");
 	 joinWorkspace("/main/w1",W1);
 	 println("joined w1");
+	 lookupArtifact("workspace", IdWspArt);
+	 focus(IdWspArt);
+	 println("start observing the workspace artifact of w1");
      println("making a Counter artifact called my_counter (in current wsp)... ");
   	 makeArtifact("my_counter","acme.Counter", [], Id1);
      println("make succeeded - id: ", Id1);
@@ -55,11 +58,15 @@
 +focusing(ArtId, ArtName, ArtType, WspId, WspName, WspFullName)
 	<- println("start focusing: ", ArtName, " of type ", ArtType, " in wsp ", WspId, " name: ", WspName, " full name: ", WspFullName).
 		
-+child_wsp(WspName)
++childWsp(WspName)
 	<- println("new wsp created ", WspName).
 
-+linked_wsp(LinkName, WspPath)
++linkedWsp(LinkName, WspPath)
 	<- println("new wsp linked ", LinkName, " ", WspPath).
+
++artifact(Id,Name,Type)[workspace(WspFullName, WspId)]
+	<- println("new artifact available: ", Id, " name: ", " type: ", Type, " in wsp: ", WspFullName).
+	
 
 +!test_fail 
 	<-  lookupArtifact("my_counter", X).

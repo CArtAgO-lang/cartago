@@ -43,7 +43,7 @@ public class AgentSessionArtifact extends Artifact {
 		this.homeWsp = homeWsp;
 		this.session = session;
 		WorkspaceId wspId = homeWsp.getId();
-		this.defineObsProperty("joinedWsp",wspId.getName(), wspId, wspId.getFullName());
+		this.defineObsProperty("joinedWsp",wspId, wspId.getName(), wspId.getFullName());
 
 	}
 	

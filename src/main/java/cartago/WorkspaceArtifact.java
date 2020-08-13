@@ -49,7 +49,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void createWorkspace(String name){
 		try {
 			wsp.createWorkspace(name);
-			defineObsProperty("child_wsp",name);
+			defineObsProperty("childWsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -63,7 +63,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void createWorkspace(String name, String address){
 		try {
 			wsp.createWorkspaceOnRemoteNode(name, address, CartagoEnvironment.getInstance().getDefaultInfrastructureLayer(), null);
-			defineObsProperty("child_wsp",name);
+			defineObsProperty("childWsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -80,7 +80,7 @@ public class WorkspaceArtifact extends Artifact {
 			WorkspaceDescriptor des = wsp.createWorkspace(name);
 			AbstractWorkspaceTopology topology = (AbstractWorkspaceTopology) Class.forName(topologyClassName).newInstance();
 			des.getWorkspace().setWSPTopology(topology);
-			defineObsProperty("child_wsp",name);
+			defineObsProperty("childWsp",name);
 		} catch (Exception ex){
 			failed("Workspace creation error");
 		}
@@ -96,7 +96,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void linkWorkspace(String wspToBeLinkedPath, String localName)  {
 		try {
 			wsp.linkWorkspace(wspToBeLinkedPath, localName);	
-			defineObsProperty("linked_wsp",localName,wspToBeLinkedPath);
+			defineObsProperty("linkedWsp",localName,wspToBeLinkedPath);
 
 		} catch (Exception ex) {
 			// ex.printStackTrace();
@@ -114,7 +114,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName,  String protocol)  {
 		try {
 			wsp.linkRemoteWorkspace(remoteWspPath, wspName, protocol);	
-			defineObsProperty("linked_wsp",wspName,remoteWspPath);
+			defineObsProperty("linkedWsp",wspName,remoteWspPath);
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("link workspace error: "+ex.getMessage());
@@ -131,7 +131,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION void linkRemoteWorkspace(String remoteWspPath, String wspName)  {
 		try {
 			wsp.linkRemoteWorkspace(remoteWspPath, wspName, "web");	
-			defineObsProperty("linked_wsp",wspName,remoteWspPath);
+			defineObsProperty("linkedWsp",wspName,remoteWspPath);
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 			failed("link workspace error: "+ex.getMessage());
@@ -172,7 +172,7 @@ public class WorkspaceArtifact extends Artifact {
 	private void registerNewLinkedWsp(String wspName, String remoteWspPath) {
 		try {
 			this.beginExtSession();
-			defineObsProperty("linked_wsp",wspName,remoteWspPath);
+			defineObsProperty("linkedWsp",wspName,remoteWspPath);
 			this.endExtSession();
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -285,7 +285,7 @@ public class WorkspaceArtifact extends Artifact {
 		try {
 			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,ArtifactConfig.DEFAULT_CONFIG);
 			// signal("new_artifact_created",artifactName,templateName,id);
-			this.defineObsProperty("artifact", artifactName, templateName, id);
+			this.defineObsProperty("artifact", id, artifactName, templateName);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
 		} catch (ArtifactAlreadyPresentException ex){
@@ -311,7 +311,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION @LINK void makeArtifact(String artifactName, String templateName, Object[] param){
 		try {
 			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(param));
-			this.defineObsProperty("artifact", artifactName, templateName, id);
+			this.defineObsProperty("artifact", id, artifactName, templateName);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
 		} catch (ArtifactAlreadyPresentException ex){
@@ -342,7 +342,7 @@ public class WorkspaceArtifact extends Artifact {
 		try {
 			ArtifactId id = wsp.makeArtifact(this.getCurrentOpAgentId(),artifactName,templateName,new ArtifactConfig(params));
 			aid.set(id);
-			this.defineObsProperty("artifact", artifactName, templateName, id);
+			this.defineObsProperty("artifact", id, artifactName, templateName);
 		} catch (UnknownArtifactTemplateException ex){
 			failed("artifact "+artifactName+" creation failed: unknown template "+templateName,"makeArtifactFailure","unknown_artifact_template",templateName);
 		} catch (ArtifactAlreadyPresentException ex){
@@ -357,7 +357,7 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
 			wsp.disposeArtifact(this.getCurrentOpAgentId(),id);
-			this.removeObsPropertyByTemplate("artifact", id.getName(), null, id);
+			this.removeObsPropertyByTemplate("artifact", id, null, null);
 		} catch (Exception ex){
 			failed(ex.toString());
 		}

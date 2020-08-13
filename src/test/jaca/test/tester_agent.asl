@@ -2,8 +2,9 @@
 
 // !main_test.
 
-!test_art_dyn_ops.
+//!test_art_dyn_ops.
 
+!test_double_focus.
 //!test_double_join.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
@@ -26,6 +27,18 @@
 //!test_array_obj.
 //!test_ext_interface.
 
+/* testing double focus */
+
++!test_double_focus 
+	<- makeArtifact("c", "acme.Counter", [], Id);
+	   focus(Id);
+	   println("first focus done.");
+	   focus(Id);
+	   println("second done.").
+	   
++focusing(ArtId, ArtName, ArtType, WspId, WspLocalName, WspFullName)
+	<- println("focusing ", ArtId, " name: ", ArtName, " type: ", ArtType, " in wsp ", WspId, " name: ", WspLocalName, " full name: ", WspFullName).	   
+	
 /* testing dynamic ops */
 
 +!test_art_dyn_ops

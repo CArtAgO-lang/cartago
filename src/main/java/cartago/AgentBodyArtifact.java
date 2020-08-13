@@ -12,7 +12,7 @@ public class AgentBodyArtifact extends Artifact {
 	void init(AgentBody body){
 		this.body = body;
 		/* legacy CArtAgO < 3.0 */
-		defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
+		// defineObsProperty("joined",body.getWorkspaceId().getName(),body.getWorkspaceId()); 
 	}
 	
 	/**
@@ -24,14 +24,14 @@ public class AgentBodyArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			if (!body.isObserving(aid)) {
-				List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
-				wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-				// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			boolean wasAlreadyObserving = body.isObserving(aid);
+			List<ArtifactObsProperty> props = wsp.focus(userId, null, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			opFrame.setCompletionNotified();
+			if (!wasAlreadyObserving) {
 				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
-				opFrame.setCompletionNotified();
 			}
-			opFrame.setCompletionNotified();				
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
@@ -47,13 +47,14 @@ public class AgentBodyArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			if (!body.isObserving(aid)) {
-				List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
-				wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-				// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			boolean wasAlreadyObserving = body.isObserving(aid);
+			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
+			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
+			// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
+			opFrame.setCompletionNotified();
+			if (!wasAlreadyObserving) {
 				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
 			}
-			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}

@@ -1159,9 +1159,9 @@ public class Workspace {
 						body.addFocusedArtifacts(des);
 					}
 				}
-				if (logManager.isLogging()){
-					logManager.artifactFocussed(System.currentTimeMillis(), userId, aid, filter);
-				}
+			}
+			if (logManager.isLogging()){
+				logManager.artifactFocussed(System.currentTimeMillis(), userId, aid, filter);
 			}
 			return obs;
 		} catch (Exception ex){
