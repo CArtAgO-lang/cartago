@@ -22,6 +22,9 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 
 	// one context for workspace, the agent can work in multiple workspaces
 	private ConcurrentHashMap<WorkspaceId, ICartagoContext> contexts;
+	private ICartagoContext homeWspCtx;
+	private WorkspaceId		homeWspId;
+	
 	// queue where percepts are notified by the environment
 	private java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent> perceptQueue;
 
@@ -31,7 +34,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 	
 	private static AgentCredential credential;
 	private static String agentRole;
-	private ArtifactId agentContextId;	
+	private ArtifactId agentSessionArtifactId;	
 		
 	AgentSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
@@ -42,13 +45,15 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 		actionId = new AtomicLong(0);
 	}
 
-	void init(ArtifactId agentContextId, WorkspaceId initialWspId, ICartagoContext startContext) {
-		this.agentContextId = agentContextId;
-		contexts.put(initialWspId, startContext);
+	void init(ArtifactId agentSessionArtifactId, WorkspaceId homeWspId, ICartagoContext startContext) {
+		this.agentSessionArtifactId = agentSessionArtifactId;
+		contexts.put(homeWspId, startContext);
+		this.homeWspId = homeWspId;
+		this.homeWspCtx = startContext;
 	}
 
 	public ArtifactId getAgentSessionArtifactId() {
-		return agentContextId;
+		return agentSessionArtifactId;
 	}
 
 	public String getEnvName() {
@@ -154,13 +159,19 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 		ICartagoContext ctx = null;
 		synchronized (this){
 			boolean processed = false;
+			/* first, try in current wsp */
 			ctx = contexts.get(currentWspId);
 			if (ctx != null) {
 				processed = ctx.doTryAction(actId, op, test, timeout);
 			}
+			/* then try in home wsp */
+			if (!processed) {
+				processed = homeWspCtx.doTryAction(actId, op, test, timeout);
+			}
+			/* then in all other wsps */
 			if (!processed) {
 				for (Map.Entry<WorkspaceId, ICartagoContext> e: contexts.entrySet()){
-					if (!e.getKey().equals(currentWspId)) {
+					if (!e.getKey().equals(currentWspId) && !e.getKey().equals(homeWspId)) {
 						ctx = e.getValue();
 						processed = ctx.doTryAction(actId, op, test, timeout);
 						if (processed) {

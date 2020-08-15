@@ -139,6 +139,12 @@
 	    println("executing an implicit action not found in the current wsp");
 	    inc;
 	    println("done");
+	    makeArtifact("c4","acme.MyArtifactA",[],Id2);
+	    println("created a new artifact in the new wsp w0");
+	    joinWorkspace("/main",_);
+	    println("now the current wsp is /main");
+	    compute(5,X,Y);
+	    println("executed an implicit action on the artifact in w0.. ", X, " ", Y);
 		!test_wrong_action.
 		    
 +!test_wrong_action
