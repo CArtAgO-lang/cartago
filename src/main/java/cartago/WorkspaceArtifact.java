@@ -103,7 +103,28 @@ public class WorkspaceArtifact extends Artifact {
 			failed("link workspace error: "+ex.getMessage());
 		}
 	}
+	
+	/**
+	 * Link a workspace to another workspace
+	 * 
+	 * @param fromWspFullPath full path of the workspace where to create the link
+	 * @param toWspFullPath full path of the workspace to be linked
+	 * @param localName link name
+	 */
+	@OPERATION void linkWorkspaces(String fromWspFullPath, String toWspFullPath, String localName)  {
+		try {
+			WorkspaceDescriptor fromWspDescriptor = CartagoEnvironment.getInstance().resolveWSP(fromWspFullPath);
+			if (fromWspDescriptor.isLocal()) {
+				fromWspDescriptor.getWorkspace().linkWorkspace(toWspFullPath, localName);	
+			} else {
+				failed("not implemented");
+			}
+		} catch (Exception ex) {
+			failed("Link Workspace error: "+ex.getMessage());
+		}
+	}
 
+	
 	/**
 	 * Link an existing remote workspace to be reachable from this workspace
 	 * 

@@ -220,6 +220,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				}
 			}
 
+			String failureMsg = "";
+			
 			if (!failed) {
 				// parse op
 				Op op = parseOp(action);
@@ -353,20 +355,23 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 										}
 									}
 								} catch (Exception ex) {
-									ex.printStackTrace();
+									// ex.printStackTrace();
+									failureMsg = ex.getMessage();
 								}
 							}							
 						}  else if (op.getName().equals("quitWorkspace")) {
 							try {
 								actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
 							} catch (Exception ex) {
-								ex.printStackTrace();
+								// ex.printStackTrace();
+								failureMsg = ex.getMessage();
 							}
 						} else {
 							actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test,timeout);
 						}
 					} catch (Exception e) {
 						logger.warning("error trying action with cartago "+e.getMessage());
+						failureMsg = e.getMessage();
 					}
 					
 				}

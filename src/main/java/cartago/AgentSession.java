@@ -35,6 +35,8 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 	private static AgentCredential credential;
 	private static String agentRole;
 	private ArtifactId agentSessionArtifactId;	
+	
+	private static String wspNotJoined = "Workspace not joined";
 		
 	AgentSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
@@ -69,7 +71,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 				ctx.doAction(actId, aid.getName(), op, test, timeout);
 				return actId;
 			} else {
-				throw new CartagoException("Wrong workspace.");
+				throw new CartagoException(wspNotJoined);
 			}
 		}
 	}
@@ -84,7 +86,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 				ctx.doAction(actId, artName, op, test, timeout);
 				return actId;
 			} else {
-				throw new CartagoException("Wrong workspace.");
+				throw new CartagoException(wspNotJoined);
 			}
 		}
 	}
@@ -104,7 +106,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 				ctx.doAction(actId, artName, op, test, timeout);
 				return actId;
 			} else {
-				throw new CartagoException("Wrong workspace.");
+				throw new CartagoException(wspNotJoined);
 			}
 		}
 	}
@@ -118,7 +120,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 				ctx.doAction(actId, op, test, timeout);
 				return actId;
 			} else {
-				throw new CartagoException("Workspace not found.");
+				throw new CartagoException(wspNotJoined);
 			}
 		}
 	}
@@ -149,7 +151,7 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 				ctx.doAction(actId, op, test, timeout);
 				return actId;
 			} else {
-				throw new CartagoException("Workspace not found.");
+				throw new CartagoException(wspNotJoined);
 			}
 		}
 	}

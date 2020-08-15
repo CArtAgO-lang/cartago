@@ -5,10 +5,10 @@
  * 
  */
 
-// !test_new_wsp_model.  // OK
+!test_new_wsp_model.  // OK
 // !test_wsp_multiple_intentions. // OK
 // !test_wsp_classic. 	// OK
-!test_implicit_action2.
+// !test_implicit_action2.
 
 +!test_new_wsp_model
   <- lookupArtifact("workspace", WspArtId);
@@ -39,6 +39,8 @@
      println("making a new Counter artifact in w0 as /main/w0/my_counter2")
      makeArtifact("/main/w0/my_counter2","acme.Counter", [], Id4);
      println("make succeed - id: ", Id4);
+     createWorkspace("w2");
+     println("created /main/w1/w2 workspace");
      println("joining again w0 using a relative path - this is useful just to set the current wsp...")
      joinWorkspace("../w0",Id5);  	
      println("joined succeeded - now the current wsp is ", Id5);
@@ -47,6 +49,12 @@
      println("lookup succeded - id: ", Id6);
 	 println("now trying to lookup an artifact which is not in last wsp joined (w0) ");
  	 !test_fail;
+ 	 println("try to link /main/w0 to /main/w1/w2 with link name w3 ");
+ 	 linkWorkspaces("/main/w0","/main/w1/w2","w3");
+ 	 joinWorkspace("/main/w0/w3",_);
+ 	 println("link succeeded - creating an artifact in the linked wsp...");
+ 	 makeArtifact("my_counter","acme.Counter", [], _);
+ 	 println("creation ok");
      println("now quitting from w0");
      quitWorkspace(Id5);
      println("quit succeeded.").
@@ -71,10 +79,10 @@
 	<-  lookupArtifact("my_counter", X).
 -!test_fail	
 	<-  println("ok intercepted failure").
-	
-          
+	          
 -!test_wsp [error_msg(Msg)]
   <- println("OOOPS failed: ",Msg).
+ 
  
 +!test_wsp_classic 
   <- createWorkspace("w0");
