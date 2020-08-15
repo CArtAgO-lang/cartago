@@ -19,20 +19,16 @@ package cartago.infrastructure.web;
 
 import java.io.Serializable;
 import java.util.List;
-
+import java.util.concurrent.ConcurrentHashMap;
 import cartago.*;
 import cartago.events.ActionFailedEvent;
 import cartago.events.ActionSucceededEvent;
 import cartago.events.ArtifactObsEvent;
 import cartago.events.FocusSucceededEvent;
 import cartago.events.FocussedArtifactDisposedEvent;
-import cartago.events.JoinWSPSucceededEvent;
 import cartago.events.StopFocusSucceededEvent;
-import cartago.infrastructure.CartagoInfrastructureLayerException;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
 
@@ -53,6 +49,7 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 	private Vertx vertx;
 	private int port;
 	private AgentId aid;
+	private ConcurrentHashMap<Long, TryActionReply> acceptedActionsMap;
 	
 	AgentBodyProxy(Vertx vertx, int port) {
 		this.vertx = vertx;
@@ -64,6 +61,7 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		this.address = address;
 		this.eventListener = eventListener;
 		this.wspId = wspId;
+		acceptedActionsMap = new ConcurrentHashMap<Long, TryActionReply>();
 		ws.handler(this::handleEvent);
 	}
 	
@@ -84,6 +82,9 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 				Op op = toOp(evobj.getJsonObject("op"));
 				ArtifactId aid = toArtifactId(evobj.getJsonObject("artifactId"));
 				ev = new ActionSucceededEvent(id, actionId, op, aid, ts);
+			} else if (evType.equals("actionAccepted")) { 
+				long actionId = evobj.getLong("actionId");
+			
 			} else if (evType.equals("actionFailed")) {
 				long actionId = evobj.getLong("actionId");
 				Op op = toOp(evobj.getJsonObject("op"));
@@ -168,9 +169,24 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 			ex.printStackTrace();
 			throw new CartagoException(ex.getMessage());
 		}
-
 	}
-	
+
+	@Override
+	public boolean doTryAction(long agentCallbackId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+		try {
+			JsonObject req = makeJsonObjForTryAct(agentCallbackId, op, timeout);
+			TryActionReply replyInfo = new TryActionReply();
+			this.acceptedActionsMap.put(agentCallbackId, replyInfo);
+			ws.writeTextMessage(req.encodePrettily());
+			replyInfo.waitForResult(20000);
+			return replyInfo.isAccepted();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return false;
+			// throw new CartagoException(ex.getMessage());
+		}
+	}
+
 	
 	@Override
 	public WorkspaceId getWorkspaceId() throws CartagoException {
@@ -192,6 +208,15 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		return req;
 	}
 
+	private JsonObject makeJsonObjForTryAct(long agentCallbackId, Op op,long timeout) {
+		JsonObject req = new JsonObject();
+		req.put("reqType", "doTryAction");		
+		req.put("agentCallbackId", agentCallbackId);
+		req.put("timeout", timeout);
+		req.put("op", toJson(op));
+		return req;
+	}
+
 	private JsonObject makeJsonObjForQuit() {
 		JsonObject req = new JsonObject();
 		req.put("reqType", "quit");		
@@ -202,4 +227,5 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		System.out.println("[AgentBodyProxy | web infra layer]  " + msg);
 	}
 
+    
 }

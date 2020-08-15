@@ -27,7 +27,7 @@ import cartago.util.agent.ArtifactObsProperty;
  * @author aricci
  *
  */
-public interface ICartagoSession {
+public interface IAgentSession {
 	
 	/**
 	 * Executing an action, i.e. an operation over an artifact
@@ -74,15 +74,16 @@ public interface ICartagoSession {
 
 	
 	/**
-	 * Executing an action, implicit artifact and workspace
+	 * Executing an action, implicit artifact and current wsp specified
 	 * 
 	 * @param op target operation
+	 * @param currentWspId current workspace id 
 	 * @param test alignment test
 	 * @param timeout timeout
-	 * @return unique action identifier 
+	 * @return unique action identifier or -1 if no op is found
 	 * @throws CartagoException
 	 */
-	// long doAction(Op op, IAlignmentTest test, long timeout) throws CartagoException;
+	long doActionWithImplicitCtx(Op op, WorkspaceId currentWspId, IAlignmentTest test, long timeout) throws CartagoException;
 	
 	/**
 	 * Executing an action, implicit artifact

@@ -43,8 +43,6 @@ public interface ICartagoContext {
 	/**
 	 * Use an artifact by requesting the execution of the specified operation.
 	 * 
-	 * 
-	 * 
 	 * @param actionId identifier of the use action - used by the callback
 	 * @param wid  identifier of the target workspace
 	 * @param op operation to execute
@@ -54,6 +52,21 @@ public interface ICartagoContext {
 	 */
 	void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException;
 	
+	
+	/**
+	 * Try to perform an action in the workspace. If there are no artifacts 
+	 * providing an operation corresponding to the action, the request is not processed
+	 * and no failures are generated (false is returned).
+	 * 
+	 * @param actionId identifier of the use action - used by the callback
+	 * @param op operation to execute
+	 * @param test alignment test - null if not specified
+	 * @param timeout operation timeout - -1 if not specified
+	 * @return true if the action has processed
+	 * @throws CartagoException
+	 */
+	boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException;
+
 	/**
 	 * Quit from the workspace.
 	 */

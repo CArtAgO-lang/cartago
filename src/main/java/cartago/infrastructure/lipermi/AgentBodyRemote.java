@@ -41,6 +41,11 @@ public class AgentBodyRemote implements IAgentBodyRemote {
 	}
 
 	@Override
+	public boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+		return mCtx.doTryAction(actionId, op, test, timeout);
+	}
+
+	@Override
 	public AgentId getAgentId() throws CartagoException {
 		return mCtx.getAgentId();
 	}

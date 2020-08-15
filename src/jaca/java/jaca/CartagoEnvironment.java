@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import jaca.CAgentArch;
 import jaca.CartagoEnvironment;
 import cartago.CartagoException;
-import cartago.ICartagoSession;
+import cartago.IAgentSession;
 import cartago.tools.inspector.Inspector;
 
 /**
@@ -240,9 +240,9 @@ public class CartagoEnvironment extends Environment {
 	 * @return the interface to act inside the workspace
 	 * @throws Exception
 	 */
-	public ICartagoSession startSession(String agName, CAgentArch arch) throws Exception {
+	public IAgentSession startSession(String agName, CAgentArch arch) throws Exception {
 		if (wspAddress == null){ 
-			ICartagoSession context = cartago.CartagoEnvironment.getInstance().startSession(wspName,new cartago.AgentIdCredential(agName),arch);
+			IAgentSession context = cartago.CartagoEnvironment.getInstance().startSession(wspName,new cartago.AgentIdCredential(agName),arch);
 			logger.info("NEW AGENT JOINED: "+agName);
 			return context;
 		} else {

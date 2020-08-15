@@ -21,6 +21,7 @@ public interface IAgentBodyRemote extends Serializable {
 	
 	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
 	void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
+	boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  CartagoException;
 	void quit();
 	
 	WorkspaceId getWorkspaceId() throws  CartagoException;

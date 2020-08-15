@@ -78,6 +78,13 @@ public class AgentBody implements ICartagoContext {
 		}
 		wsp.execOp(actionId, id, agentCallback, op, timeout, test);
 	}
+
+	public boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) {
+		if (timeout == -1){
+			timeout = Integer.MAX_VALUE;
+		}
+		return wsp.tryExecOp(actionId, id, agentCallback, op, timeout, test);
+	}
 	
 	public void quit() throws CartagoException {
 		wsp.quitAgent(id);

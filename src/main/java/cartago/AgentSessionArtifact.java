@@ -35,9 +35,9 @@ public class AgentSessionArtifact extends Artifact {
 	private AgentCredential cred;
 	private ICartagoCallback eventListener;
 	private Workspace homeWsp;
-	private CartagoSession session;
+	private AgentSession session;
 	
-	@OPERATION void init(AgentCredential cred, ICartagoCallback eventListener, CartagoSession session, Workspace homeWsp){
+	@OPERATION void init(AgentCredential cred, ICartagoCallback eventListener, AgentSession session, Workspace homeWsp){
 		this.cred = cred;
 		this.eventListener = eventListener;
 		this.homeWsp = homeWsp;

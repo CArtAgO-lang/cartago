@@ -5,11 +5,10 @@
  * 
  */
 
-!test_new_wsp_model.  // OK
+// !test_new_wsp_model.  // OK
 // !test_wsp_multiple_intentions. // OK
 // !test_wsp_classic. 	// OK
-// !test_link. 			// OK
-
+!test_implicit_action2.
 
 +!test_new_wsp_model
   <- lookupArtifact("workspace", WspArtId);
@@ -76,9 +75,7 @@
           
 -!test_wsp [error_msg(Msg)]
   <- println("OOOPS failed: ",Msg).
-
-
-  
+ 
 +!test_wsp_classic 
   <- createWorkspace("w0");
      println("joining...");
@@ -130,23 +127,30 @@
 +count(X)
 	<- println("count: ", X).	  
   
-  
-// -- link
+// test implicit actions executed on artifact out of the current wsp
 
-+!test_link
-  <-  makeArtifact("myArtifact","acme.LinkingArtifact",[],Id1);
-      makeArtifact("count","acme.LinkableArtifact",[],Id2);
-	  linkArtifacts(Id1,"out-1",Id2);			
-	  println("artifacts linked: going to test");
-	  test;
-      test2(V);
-      println("value ",V);
-	  println("testing link with multiple artifacts..");
-	  makeArtifact("count3","acme.LinkableArtifact",[],Id3);
-	  linkArtifacts(Id1,"out-1",Id3);			
-	  test;
-      println("the test op should have been called on two count artifacts...").	  
-     
++!test_implicit_action2
+	<-	println("creating a counter in the home wsp");
+	    makeArtifact("c3", "acme.Counter", [], Id);
+        println("creating a new wsp w0");
+	    createWorkspace("w0");
+	    joinWorkspace("w0",Wid);
+	    println("now current wsp is w0");
+	    println("executing an implicit action not found in the current wsp");
+	    inc;
+	    println("done");
+		!test_wrong_action.
+		    
++!test_wrong_action
+	<- println("now executing an action which is not provided by any artifact..");
+	   pop.
+
+-!test_wrong_action
+	<- println("action failure handled.").	
+	    
++count(X)[artifact_name(c3)]
+	<- println("count: ", c3).
+       
 // not handled events      
 
 +Ev [source(s)] : true <-

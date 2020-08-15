@@ -119,6 +119,15 @@ public class AgentBodyProxy implements ICartagoContext, Serializable {
 		}
 	}
 
+	@Override
+	public boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) throws CartagoException {
+		try {
+			return ctx.doTryAction(actionId, op, test, timeout);			
+		} catch (RemoteException ex) {
+			throw new CartagoException(ex.getMessage());
+		}
+	}
+
 
 	
 }

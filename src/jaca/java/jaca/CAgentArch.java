@@ -27,7 +27,7 @@ import cartago.CartagoEvent;
 import cartago.CartagoException;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
-import cartago.ICartagoSession;
+import cartago.IAgentSession;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
 import cartago.Op;
@@ -82,7 +82,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		      "getNodeId","enableLinkingWithNode","shutdownNode","crash","joinWorkspace","createWorkspace","print","println");
     */
 	
-	protected transient ICartagoSession envSession;
+	protected transient IAgentSession envSession;
 
 	// actions that have been executed and wait for a completion events
 	protected Map<Long, PendingAction> pendingActions;
@@ -120,7 +120,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		lib = new JavaLibrary();
 	}
 
-	public ICartagoSession getSession() {
+	public IAgentSession getSession() {
 		return envSession;
 	}
 
@@ -225,7 +225,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				Op op = parseOp(action);
 				IAlignmentTest test = null;
 				long timeout = Long.MAX_VALUE;
-				long actId   = Long.MIN_VALUE;
+
+				long actId   = -1;
 				if (aid != null) {
 					/* general case - the artifact id is known */
 					actId = envSession.doAction(aid, op, test, timeout);
@@ -355,48 +356,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 									ex.printStackTrace();
 								}
 							}							
-						}  /* else if (op.getName().equals("mountWorkspace")) {
-							Object[] params = op.getParamValues();
-							String mountingPoint = (String) params[1];
-							try {
-								int index = mountingPoint.indexOf('/');
-								if (index == -1) {
-									// action on the workspace artifact of the implicit workspace 
-									actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
-								} else {
-									String fullPath = mountingPoint;
-									if (!mountingPoint.startsWith("/")) {
-										fullPath = currentImplicitWsp.getFullName() + "/" + mountingPoint;
-									}
-									fullPath = resolveRelativePath(fullPath);
-									
-									int index2 = fullPath.lastIndexOf("/");
-									String parentPath = fullPath.substring(0, index2);
-									String linkName = fullPath.substring(index2 + 1);
-									
-									WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(parentPath);
-									if (des.isLocal()) {
-										// use only the name 
-										params[1] = linkName;
-										// invoke the op on the wsp artifact of that wsp 
-										actId = envSession.doAction(des.getWorkspace().getWspArtifactId(), op, test, timeout);
-										
-									} else {
-										wspId = CartagoEnvironment.getInstance().getRootWSP().getId();
-										actId = envSession.doAction(op, wspId, test, timeout);
-									}
-								}
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}			
-						} */ else if (op.getName().equals("quitWorkspace")) {
+						}  else if (op.getName().equals("quitWorkspace")) {
 							try {
 								actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}
-						} else {								
-							actId = envSession.doAction(op, currentImplicitWsp, test,timeout);
+						} else {
+							actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test,timeout);
 						}
 					} catch (Exception e) {
 						logger.warning("error trying action with cartago "+e.getMessage());
@@ -404,7 +371,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					
 				}
 
-				if (actId != Long.MIN_VALUE) {
+				if (actId != -1) {
 					PendingAction pa = new PendingAction(actId, action, (ActionExec) actionExec);
 					pendingActions.put(actId, pa);
 					// getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
@@ -920,7 +887,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		System.out.println(">> CONSULT MANUAL << " + man.getURI());
 	}
 
-	public ICartagoSession getEnvSession() {
+	public IAgentSession getEnvSession() {
 		return envSession;
 	}
 

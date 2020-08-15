@@ -72,13 +72,15 @@ public class AgentBodyRemote extends UnicastRemoteObject implements IAgentBodyRe
 		ctx.doAction(agentCallbackId, name, op, test, timeout);
 	}
 
-	@Override
 	public void doAction(long agentCallbackId, Op op, IAlignmentTest test, long timeout)
 			throws RemoteException, CartagoException {
 		ctx.doAction(agentCallbackId, op, test, timeout);
 	}
 
-	@Override
+	public boolean doTryAction(long agentCallbackId, Op op, IAlignmentTest test, long timeout) throws RemoteException, CartagoException {
+		return ctx.doTryAction(agentCallbackId, op, test, timeout);
+	}
+	
 	public void quit() throws RemoteException, CartagoException {
 		ctx.quit();
 	}

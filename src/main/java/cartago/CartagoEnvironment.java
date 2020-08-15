@@ -295,9 +295,9 @@ public class CartagoEnvironment {
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized ICartagoSession startSession(String wspName, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
+	public synchronized IAgentSession startSession(String wspName, AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 			Workspace wsp = this.resolveWSP("/"+wspName).getWorkspace();
-			CartagoSession session = new CartagoSession(cred,null,eventListener);
+			AgentSession session = new AgentSession(cred,null,eventListener);
 			wsp.startSession(cred, session);
 			return session;
 	}
@@ -311,7 +311,7 @@ public class CartagoEnvironment {
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized ICartagoSession startSession(AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
+	public synchronized IAgentSession startSession(AgentCredential cred, ICartagoListener eventListener) throws CartagoException {
 		return this.startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, cred, eventListener);
 	}
 	
@@ -325,7 +325,7 @@ public class CartagoEnvironment {
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized ICartagoSession startSession(String wspName, AgentCredential cred) throws CartagoException {
+	public synchronized IAgentSession startSession(String wspName, AgentCredential cred) throws CartagoException {
 		return this.startSession(wspName, cred, null);
 	}
 
@@ -338,7 +338,7 @@ public class CartagoEnvironment {
 	 * @return
 	 * @throws CartagoException
 	 */
-	public synchronized ICartagoSession startSession(AgentCredential cred) throws CartagoException {
+	public synchronized IAgentSession startSession(AgentCredential cred) throws CartagoException {
 		return startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME,cred);
 	}
 	

@@ -16,7 +16,7 @@ import cartago.security.*;
 public class CartagoBasicContext {
 
 	public String name;
-	private ICartagoSession session;
+	private IAgentSession session;
 	private CartagoListener agentCallback;
 
 	private ActionFeedbackQueue actionFeedbackQueue;

@@ -19,7 +19,7 @@ import cartago.util.agent.*;
  */
 public class CartagoContext {
 
-	private ICartagoSession session;
+	private IAgentSession session;
 	private CartagoListener agentCallback;
 
 	private ActionFeedbackQueue actionFeedbackQueue;
@@ -52,7 +52,7 @@ public class CartagoContext {
 		credential = cred;
 		agentRole = "";
 		try {
-			session = (CartagoSession) CartagoEnvironment.getInstance().startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, credential, agentCallback);
+			session = (AgentSession) CartagoEnvironment.getInstance().startSession(CartagoEnvironment.ROOT_WSP_DEFAULT_NAME, credential, agentCallback);
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
@@ -101,8 +101,8 @@ public class CartagoContext {
 		}
 	}*/
 	
-	CartagoSession getCartagoSession(){
-		return (CartagoSession) session;
+	AgentSession getCartagoSession(){
+		return (AgentSession) session;
 	}
 	
 	/**

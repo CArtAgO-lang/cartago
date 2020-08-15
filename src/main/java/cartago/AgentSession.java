@@ -18,22 +18,22 @@ import cartago.events.*;
  * @author aricci
  *
  */
-public class CartagoSession implements ICartagoSession, ICartagoCallback, Serializable {
+public class AgentSession implements IAgentSession, ICartagoCallback, Serializable {
 
 	// one context for workspace, the agent can work in multiple workspaces
 	private ConcurrentHashMap<WorkspaceId, ICartagoContext> contexts;
-	
 	// queue where percepts are notified by the environment
 	private java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent> perceptQueue;
 
 	private ICartagoListener agentArchListener;
 	private AtomicLong actionId;
-
+	private static long NO_OP_FOUND = -1;
+	
 	private static AgentCredential credential;
 	private static String agentRole;
 	private ArtifactId agentContextId;	
 		
-	CartagoSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
+	AgentSession(AgentCredential credential, String agentRole, ICartagoListener listener) throws CartagoException {
 		contexts = new ConcurrentHashMap<WorkspaceId, ICartagoContext>();
 		perceptQueue = new java.util.concurrent.ConcurrentLinkedQueue<CartagoEvent>();
 		agentArchListener = listener;
@@ -148,7 +148,36 @@ public class CartagoSession implements ICartagoSession, ICartagoCallback, Serial
 			}
 		}
 	}
-
+	
+	public long doActionWithImplicitCtx(Op op, WorkspaceId currentWspId, IAlignmentTest test, long timeout) throws CartagoException {
+		long actId = actionId.incrementAndGet();
+		ICartagoContext ctx = null;
+		synchronized (this){
+			boolean processed = false;
+			ctx = contexts.get(currentWspId);
+			if (ctx != null) {
+				processed = ctx.doTryAction(actId, op, test, timeout);
+			}
+			if (!processed) {
+				for (Map.Entry<WorkspaceId, ICartagoContext> e: contexts.entrySet()){
+					if (!e.getKey().equals(currentWspId)) {
+						ctx = e.getValue();
+						processed = ctx.doTryAction(actId, op, test, timeout);
+						if (processed) {
+							break;
+						}
+					}
+				}
+			}
+			if (!processed) {
+				return NO_OP_FOUND;
+			} else {
+				return actId;
+			}			
+		}
+	}
+	
+	
 	public List<WorkspaceId> getJoinedWorkspaces() throws CartagoException {
 		List<WorkspaceId> wsps = new LinkedList<WorkspaceId>();
 		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {

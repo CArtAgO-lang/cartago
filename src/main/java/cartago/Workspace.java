@@ -97,8 +97,6 @@ public class Workspace {
 	private ArtifactId wspArtifactId;
 	
 
-	/* v. 3.0 */
-	
 	/**
 	 * Create an  workspace
 	 * 
@@ -417,7 +415,7 @@ public class Workspace {
 	 * @param session
 	 * @throws CartagoException
 	 */
-	public void startSession(AgentCredential cred, CartagoSession session) throws CartagoException {
+	public void startSession(AgentCredential cred, AgentSession session) throws CartagoException {
 
 		ICartagoContext startContext = this.joinWorkspace(cred, null, session);
 		WorkspaceId wspId = startContext.getWorkspaceId();
@@ -1071,6 +1069,118 @@ public class Workspace {
 			}
 		}
 	}	
+
+	/**
+	 * This execOp is for action requested with implicit workspace. If the operation is not found
+	 * in the workspace, no failures are generated and false is returned. 
+	 * 
+	 * Otherwise, true is returned when the operation is found and either 
+	 * taken in charge (or the op failed)
+	 * 
+	 * @param actionId
+	 * @param userId
+	 * @param ctx
+	 * @param op
+	 * @param timeout
+	 * @param test
+	 * @return
+	 */
+	public boolean tryExecOp(long actionId, AgentId userId, ICartagoCallback ctx, Op op, long timeout, IAlignmentTest test) /* throws CartagoException */ {
+		
+		if (isShutdown){
+			return false;
+		}
+
+		ArtifactDescriptor des = null;
+		synchronized(opMap){
+				List<ArtifactDescriptor> list = opMap.get(Artifact.getOpKey(op.getName(), op.getParamValues().length));
+				if (list == null){
+					// try with var args
+					String opsign = Artifact.getOpKey(op.getName(), -1);
+					//log("use - try with varags: "+opsign+" -- "+op);
+					list = opMap.get(opsign);
+					if (list == null){
+						// notifyFailure(ctx, arId, actionId, op, "Operation Not Available", new Tuple("operation_not_available",op));
+						return false;
+					}
+				}
+				// if only one artifact has that operation, no problems...
+				if (list.size() == 1){
+					des = list.get(0);
+				} else {
+					// first we check for artifacts created by the agent
+					for (ArtifactDescriptor desc: list){
+						if (desc.getAgentCreator().equals(userId)){
+							des = desc;
+							break;
+						}
+					}
+					if (des == null){
+						// then artifacts focussed by the agent
+						for (ArtifactDescriptor desc: list){
+							if (desc.isObservedBy(userId)){
+								des = desc;
+								break;
+							}
+						}
+					}
+					if (des == null){
+						des = list.get(0);
+					}
+				}
+		}
+		
+		if (des == null){
+			// notifyFailure(ctx, arId, actionId, op, "Artifact Not Available", new Tuple("artifact_not_available",aid));
+			return false;
+		} 
+		
+		ArtifactId aid = des.getArtifact().getId();
+		
+		if (logManager.isLogging()){
+			logManager.opRequested(System.currentTimeMillis(), userId, aid, op);
+			//logManager.logActionUseExecuted(System.currentTimeMillis(),userId,aid,op.getName());
+		}					
+
+		if (this.wspRuleEngine == null){
+			boolean allowed = securityManager.canDoAction(userId, aid , op);
+			if (allowed) {	
+				OpId oid = des.getAdapter().getFreshId(op.getName(),userId);
+				OpExecutionFrame info = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid,op,timeout,test);
+				try {
+					opTodo.put(info);
+					return true;
+				} catch (Exception ex){
+					ex.printStackTrace();
+					notifyFailure(ctx, aid, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					return true;
+				}
+			} else {
+				notifyFailure(ctx, aid, actionId, op, "Security exception.", new Tuple("security_exception",userId,aid));
+				return true;
+			}
+		} else {
+			OpRequestInfo request = new OpRequestInfo(actionId, userId, aid, op);
+			wspRuleEngine.processActionRequest(request);
+			if (!request.isFailed()){
+				OpId oid = des.getAdapter().getFreshId(request.getOp().getName(),userId);
+				OpExecutionFrame frame = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid, request.getOp(), timeout, test);
+				try {
+					opTodo.put(frame);
+					return true;
+				} catch (Exception ex){
+					//ex.printStackTrace();
+					notifyFailure(ctx, aid, actionId, op, "Internal Failure: exec op exception.", new Tuple("internal_failure","exec_op_exception"));
+					return true;
+				}
+			} else {
+				notifyFailure(ctx, aid, actionId, op, "Internal Failure: wsp-rule exception.", new Tuple("internal_failure","wsp-rule"));
+				return true;
+			}
+		}
+	}	
+	
+	
 	
 	private void notifyFailure(ICartagoCallback ctx, ArtifactId aid, long actionId, Op op, String msg, Tuple t) {
 		try {
@@ -1270,8 +1380,6 @@ public class Workspace {
 			throw new ArtifactNotAvailableException();
 		}
 	}
-
-
 
 	public boolean hasOperation(ArtifactId aid, Op op) throws NoArtifactException {
 		ArtifactDescriptor des = null; 

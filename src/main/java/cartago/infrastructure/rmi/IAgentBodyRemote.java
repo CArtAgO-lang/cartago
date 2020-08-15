@@ -54,6 +54,7 @@ public interface IAgentBodyRemote extends Remote {
 
 	void doAction(long actionId, String name, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
 	void doAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
+	boolean doTryAction(long actionId, Op op, IAlignmentTest test, long timeout) throws  RemoteException, CartagoException;
 	void quit() throws  RemoteException, CartagoException;
 
 	// ArtifactId getArtifactIdFromOp(Op op) throws  RemoteException, CartagoException;
