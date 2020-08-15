@@ -7,10 +7,9 @@
  *
  */
 plugins {
-  id 'application'
+  // id 'application'
   id 'org.openjfx.javafxplugin' version '0.0.8'
 }
-
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -63,7 +62,6 @@ dependencies {
 	// for book examples
 	implementation "org.apache.commons:commons-math3:3.4"
     implementation "org.apache.httpcomponents:httpclient:4.5"
-
     implementation 'com.google.maps:google-maps-services:0.9.4'
     */
     implementation 'org.slf4j:slf4j-simple:1.7.25'
@@ -107,12 +105,12 @@ javadoc {
     options.setUse(true)
     options.author(true)
     options.version(true)
-    options.windowTitle('Cartago API')
-    options.docTitle('Cartago API')
+    options.windowTitle('CArtAgO API')
+    options.docTitle('CArtAgO API')
     options.footer('<a href=http://cartago.sf.net>Cartago Site</a>')
     destinationDir = file("${buildDir}/../docs/api")
     doFirst {
-        javadoc.title = 'Cartago API'
+        javadoc.title = 'CArtAgO API'
         javadoc.options.docTitle = javadoc.title
     }
 }
