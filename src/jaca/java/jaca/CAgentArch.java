@@ -104,7 +104,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	// short cuts
 	protected transient jason.bb.BeliefBase belBase;
 	protected transient jason.asSemantics.Agent agent;
-	protected Set<WorkspaceId> allJoinedWsp; // used in stopAg to quit this workspaces
 	private Set<ArtifactId> focusedArts = null;
 
 	
@@ -140,7 +139,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 
 			envSession = jaca.CartagoEnvironment.getInstance().startSession(agentName, this);
 			lastWspId = envSession.getJoinedWorkspaces().get(0);
-			allJoinedWsp = new HashSet<>(envSession.getJoinedWorkspaces());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.warning("[CARTAGO] WARNING: No default workspace found for " + agentName);
@@ -150,20 +148,23 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	@Override
 	public void stop() {
 		if (envSession != null) {
-			for (WorkspaceId wid: allJoinedWsp) {
-	            try {
-	                envSession.doAction(new Op("quitWorkspace"), wid, null, -1);
-	                //getTS().getLogger().info("quit "+wid.getName());
-	            } catch (CartagoException e) {
-	            } catch (Exception e) {
-	                if (! (e instanceof InterruptedException)) {
-	                    e.printStackTrace();
-	                }
-	            }
-	
+			try {
+				for (WorkspaceId wid: getEnvSession().getJoinedWorkspaces()) {
+				    try {
+				        envSession.doAction(new Op("quitWorkspace"), wid, null, -1);
+				        //getTS().getLogger().info("quit "+wid.getName());
+				    } catch (CartagoException e) {
+				    } catch (Exception e) {
+				        if (! (e instanceof InterruptedException)) {
+				            e.printStackTrace();
+				        }
+				    }
+
+				}
+			} catch (CartagoException e) {
+				e.printStackTrace();
 			}
 		}
-		allJoinedWsp.clear();
 	}
 
 	@Override
@@ -593,7 +594,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				perceiveStopFocus((StopFocusSucceededEvent) ev);
 			} else if (ev instanceof JoinWSPSucceededEvent) {
 				this.lastWspId = ((JoinWSPSucceededEvent) ev).getWorkspaceId();
-				allJoinedWsp.add(this.lastWspId);
 				
 				Intention intent = pendingJoinWsp.get(ev.getActionId());
 				if (intent != null) {
@@ -896,8 +896,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		return envSession;
 	}
 
-	public Set<WorkspaceId> getAllJoinedWsps() {
-		return allJoinedWsp;
+	public Collection<WorkspaceId> getAllJoinedWsps() {
+		try {
+			return getEnvSession().getJoinedWorkspaces();
+		} catch (CartagoException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public static CAgentArch getCartagoAgArch(TransitionSystem ts) {
