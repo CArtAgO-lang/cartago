@@ -25,9 +25,10 @@ import cartago.ArtifactObsProperty;
 import cartago.CartagoEnvironment;
 import cartago.CartagoEvent;
 import cartago.CartagoException;
+import cartago.IAgentSession;
 import cartago.IAlignmentTest;
 import cartago.ICartagoCallback;
-import cartago.IAgentSession;
+import cartago.ICartagoController;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
 import cartago.Op;
@@ -58,13 +59,11 @@ import jason.asSyntax.ListTerm;
 import jason.asSyntax.Literal;
 import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.StringTerm;
-import jason.asSyntax.StringTermImpl;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
 import jason.asSyntax.Trigger;
 import jason.asSyntax.Trigger.TEOperator;
 import jason.asSyntax.Trigger.TEType;
-import jason.asSyntax.parser.ParseException;
 import jason.bb.BeliefBase;
 
 public class CAgentArch extends AgArch implements cartago.ICartagoListener, Serializable {
@@ -106,7 +105,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	protected transient jason.bb.BeliefBase belBase;
 	protected transient jason.asSemantics.Agent agent;
 	protected Set<WorkspaceId> allJoinedWsp; // used in stopAg to quit this workspaces
-	private List<ArtifactId> focusedArts = null;
+	private Set<ArtifactId> focusedArts = null;
 
 	
 	public CAgentArch() {
@@ -483,6 +482,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		return super.perceive();
 	}
 	
+	@Override
     public Map<String,Object> getStatus() {
     	Map<String,Object> r = super.getStatus();
     	r.put("nbAcumEvents", this.nbAcumEvents);
@@ -1033,12 +1033,13 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	
 	private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         try {
-        	focusedArts = new ArrayList<>();
+        	focusedArts = new HashSet<>();
         	for (WorkspaceId w: envSession.getJoinedWorkspaces()) {
-        		for (ArtifactId aid : CartagoEnvironment.getInstance().getController(w.getName()).getCurrentArtifacts()) {
-        			ArtifactInfo info = CartagoEnvironment.getInstance().getController(w.getName()).getArtifactInfo(aid.getName());
+        		ICartagoController ctrl = CartagoEnvironment.getInstance().getController(w.getFullName());
+        		for (ArtifactId aid : ctrl.getCurrentArtifacts()) {
+        			ArtifactInfo info = ctrl.getArtifactInfo(aid.getName());
                     info.getObservers().forEach(y -> {
-                        if (y.getAgentId().getAgentName().equals(getAgName())) {
+                        if (y.getAgentId().getAgentName().equals(getAgName())) {                        	
                         	focusedArts.add(info.getId());
                         }
                     });
@@ -1047,10 +1048,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
         } catch (CartagoException e) {
             e.printStackTrace();
         }
-        
         stream.defaultWriteObject();
     }
-	public List<ArtifactId> getFocusedArtsBeforeSerialization() {
+	public Collection<ArtifactId> getFocusedArtsBeforeSerialization() {
 		return focusedArts;
 	}
 	
@@ -1058,7 +1058,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		in.defaultReadObject();
 		logger = Logger.getLogger("CAgentArch");		
 	}
-	
 	
 	
 	@Override
