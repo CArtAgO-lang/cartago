@@ -1,6 +1,6 @@
 #/bin/sh
 
-REL=3.0-SNAPSHOT
+REL=3.0
 
 # for cartago
 

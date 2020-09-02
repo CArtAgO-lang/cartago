@@ -17,7 +17,7 @@
  */
 package cartago;
 
-import java.util.Set;
+import java.util.Collection;
 
 import jaca.CAgentArch;
 import jason.JasonException;
@@ -46,7 +46,7 @@ public class current_wsps extends DefaultInternalAction {
 		}
 
 		try {
-			Set<WorkspaceId> wlist = agent.getAllJoinedWsps();
+			Collection<WorkspaceId> wlist = agent.getAllJoinedWsps();
 			ListTermImpl list = new ListTermImpl();
 		    for (WorkspaceId id: wlist){
 		    		 list.add(agent.getJavaLib().registerDynamic(id));
