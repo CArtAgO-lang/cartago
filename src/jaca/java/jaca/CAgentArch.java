@@ -32,6 +32,8 @@ import cartago.ICartagoController;
 import cartago.Manual;
 import cartago.ObservableArtifactInfo;
 import cartago.Op;
+import cartago.OpDescriptor;
+
 import cartago.Tuple;
 import cartago.Workspace;
 import cartago.WorkspaceDescriptor;
@@ -249,7 +251,30 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 						actId = envSession.doAction(op, wspName, test, timeout);
 					}
 
-				} else {
+				}
+
+				
+				if (actId == -1) {
+					// try using assigned namespaces x artefact
+					outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
+						try {
+							ArtifactInfo info = CartagoEnvironment.getInstance()
+									.getController(aid1.getWorkspaceId().getFullName())
+									.getArtifactInfo(aid1.getName());
+							for (OpDescriptor o : info.getOperations()) {
+								if (o.getOp().getName().equals(op.getName())) { // if artifact aid1 implements op then
+									actId = envSession.doAction(aid1, op, test, timeout); 
+									break outer; // action executes a corresponding op in only one artifact
+								}
+							}
+						} catch (CartagoException e) {
+							// can be ignored (?)
+							//e.printStackTrace();
+						}
+					}					
+				}
+				
+				if (actId == -1) {
 										
 					/* 
 					 * Op with implicit artifact & workspace 
@@ -1064,6 +1089,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		logger = Logger.getLogger("CAgentArch");		
 	}
 	
+	private List<ArtifactId> focusedArtifacts(Atom nid) {
+		List<ArtifactId> aids = new ArrayList<>();
+		for (ArtifactId aid : mappings.keySet())
+			if (mappings.get(aid).contains(nid))
+				aids.add(aid);
+
+		return aids;
+	}
 	
 	@Override
 	public String toString() {
