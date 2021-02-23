@@ -221,8 +221,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					}
 				}
 			}
-
-			String failureMsg = "";
 			
 			if (!failed) {
 				// parse op
@@ -252,9 +250,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					}
 
 				}
-
 				
-				if (actId == -1) {
+				if (actId == -1 && !isCartagoOperation(op.getName())) {
 					// try using assigned namespaces x artefact
 					outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
 						try {
@@ -295,116 +292,92 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 						currentImplicitWsp = this.lastWspId;
 					}
 					
-					try {
-						// implicit artifact
-					
-						/*
-						 * handling special cases
-						 */
-						if (op.getName().equals("joinWorkspace")){
-							
-							/* make the wspRef absolute if needed, depending on the currentWsp */
-							
-							Object[] params = op.getParamValues();
-							if (params.length > 0) {
-								String wspRef = (String) params[0];
+					// implicit artifact
+				
+					/*
+					 * handling special cases
+					 */
+					if (op.getName().equals("joinWorkspace")){
+						
+						/* make the wspRef absolute if needed, depending on the currentWsp */
+						
+						Object[] params = op.getParamValues();
+						if (params.length > 0) {
+							String wspRef = (String) params[0];
+							if (!wspRef.startsWith("/")) {
+								params[0] = currentImplicitWsp.getFullName() + "/" + wspRef;
+							} 
+						}			
+						actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
+						pendingJoinWsp.put(actId, currentIntention);
+					} else if (op.getName().equals("createWorkspace")) {
+						Object[] params = op.getParamValues();
+						if (params.length > 0) {
+							String wspRef = (String) params[0];
+							int index = wspRef.indexOf('/');
+							if (index == -1) {
+								/* action on the workspace artifact of the implicit workspace */
+								actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
+							} else {
+								String fullPath = wspRef;
 								if (!wspRef.startsWith("/")) {
-									params[0] = currentImplicitWsp.getFullName() + "/" + wspRef;
-								} 
-							}							
-							try {
-								actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
-								pendingJoinWsp.put(actId, currentIntention);
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-						} else if (op.getName().equals("createWorkspace")) {
-							Object[] params = op.getParamValues();
-							if (params.length > 0) {
-								String wspRef = (String) params[0];
-								try {
-									int index = wspRef.indexOf('/');
-									if (index == -1) {
-										/* action on the workspace artifact of the implicit workspace */
-										actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
-									} else {
-										String fullPath = wspRef;
-										if (!wspRef.startsWith("/")) {
-											fullPath = currentImplicitWsp.getFullName() + "/" + wspRef;
-										}
-										fullPath = resolveRelativePath(fullPath);
-										int index2 = fullPath.lastIndexOf('/');
-										String wspRef2 = fullPath.substring(0, index2);
-										artName = fullPath.substring(index2 + 1);
-										
-										WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef2);
-										
-										/* override the workspace full name in the op with the simple name */
-										params[0] = artName;
-										actId = envSession.doAction(op, des.getId(), test, timeout);
-									}
-								} catch (Exception ex) {
-									ex.printStackTrace();
+									fullPath = currentImplicitWsp.getFullName() + "/" + wspRef;
 								}
-							}							
-							
-						} else if (op.getName().equals("lookupArtifact") || op.getName().equals("makeArtifact")) {
-							Object[] params = op.getParamValues();
-							if (params.length > 0) {
-								String artRef = (String) params[0];
-								try {
-									int index = artRef.indexOf('/');
-									if (index == -1) {
-										/* action on the workspace artifact of the implicit workspace */
-										actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
-									} else {
-										String fullPath = artRef;
-										if (!artRef.startsWith("/")) {
-											fullPath = currentImplicitWsp.getFullName() + "/" + artRef;
-										}
-										
-										fullPath = resolveRelativePath(fullPath);
-										
-										int index2 = fullPath.lastIndexOf('/');
-										String wspRef = fullPath.substring(0, index2);
-										artName = fullPath.substring(index2 + 1);
-										
-										WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef);
-										if (des.isLocal()) {
-											/* use only the name */
-											params[0] = artName;
-											actId = envSession.doAction(op, des.getId(), test, timeout);
-										} else {
-											wspId = CartagoEnvironment.getInstance().getRootWSP().getId();
-											actId = envSession.doAction(op, wspId, test, timeout);
-										}
-									}
-								} catch (Exception ex) {
-									// ex.printStackTrace();
-									failureMsg = ex.getMessage();
-								}
-							}							
-						}  else if (op.getName().equals("quitWorkspace")) {
-							try {
-								actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
-							} catch (Exception ex) {
-								// ex.printStackTrace();
-								failureMsg = ex.getMessage();
+								fullPath = resolveRelativePath(fullPath);
+								int index2 = fullPath.lastIndexOf('/');
+								String wspRef2 = fullPath.substring(0, index2);
+								artName = fullPath.substring(index2 + 1);
+								
+								WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef2);
+								
+								/* override the workspace full name in the op with the simple name */
+								params[0] = artName;
+								actId = envSession.doAction(op, des.getId(), test, timeout);
 							}
-						} else {
-							actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test,timeout);
-						}
-					} catch (Exception e) {
-						logger.warning("error trying action with cartago "+e.getMessage());
-						failureMsg = e.getMessage();
+						}							
+						
+					} else if (op.getName().equals("lookupArtifact") || op.getName().equals("makeArtifact")) {
+						Object[] params = op.getParamValues();
+						if (params.length > 0) {
+							String artRef = (String) params[0];
+							int index = artRef.indexOf('/');
+							if (index == -1) {
+								/* action on the workspace artifact of the implicit workspace */
+								actId = envSession.doAction(op, currentImplicitWsp, test, timeout);
+							} else {
+								String fullPath = artRef;
+								if (!artRef.startsWith("/")) {
+									fullPath = currentImplicitWsp.getFullName() + "/" + artRef;
+								}
+								
+								fullPath = resolveRelativePath(fullPath);
+								
+								int index2 = fullPath.lastIndexOf('/');
+								String wspRef = fullPath.substring(0, index2);
+								artName = fullPath.substring(index2 + 1);
+								
+								WorkspaceDescriptor des = CartagoEnvironment.getInstance().resolveWSP(wspRef);
+								if (des.isLocal()) {
+									/* use only the name */
+									params[0] = artName;
+									actId = envSession.doAction(op, des.getId(), test, timeout);
+								} else {
+									wspId = CartagoEnvironment.getInstance().getRootWSP().getId();
+									actId = envSession.doAction(op, wspId, test, timeout);
+								}
+							}
+						}							
+					}  else if (op.getName().equals("quitWorkspace")) {
+						actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
+					} else {
+						actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test,timeout);
 					}
-					
 				}
 
 				if (actId != -1) {
 					PendingAction pa = new PendingAction(actId, action, (ActionExec) actionExec);
 					pendingActions.put(actId, pa);
-					// getLogger().info("Agent "+agName+" executed op: "+op.getName()+" on artifact "+aid);
+					//getTS().getLogger().info("Agent "+getAgName()+" executed op: "+op.getName()+" on artifact "+aid);
 				} else {
 					String msg = "Action failed: " + actionExec.getActionTerm()+", in namespace " + action.getNS() + ", operation " + op;
 					logger.warning(msg);
@@ -428,6 +401,14 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		}
 	}
 	
+	boolean isCartagoOperation(String o) {
+		return o.equals("joinWorkspace") ||
+			   o.equals("createWorkspace") ||
+			   o.equals("lookupArtifact") ||
+			   o.equals("makeArtifact") ||
+			   o.equals("quitWorkspace");
+				
+	}
 	private int nbAcumEvents = 0;
 
 	private String resolveRelativePath(String path) {
@@ -619,7 +600,6 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				perceiveStopFocus((StopFocusSucceededEvent) ev);
 			} else if (ev instanceof JoinWSPSucceededEvent) {
 				this.lastWspId = ((JoinWSPSucceededEvent) ev).getWorkspaceId();
-				
 				Intention intent = pendingJoinWsp.get(ev.getActionId());
 				if (intent != null) {
 					LinkedList<WorkspaceId> wsps = currentWspIntentionMap.get(intent);	
