@@ -155,7 +155,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				    try {
 				        envSession.doAction(new Op("quitWorkspace"), wid, null, -1);
 				        //getTS().getLogger().info("quit "+wid.getName());
-				    } catch (CartagoException e) {
+				    //} catch (CartagoException e) {
 				    } catch (Exception e) {
 				        if (! (e instanceof InterruptedException)) {
 				            e.printStackTrace();
@@ -166,6 +166,18 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			} catch (CartagoException e) {
 				e.printStackTrace();
 			}
+		    /*// experimental
+		     try {
+		    	// remove session_ artifacts of the agent
+		    	for (ArtifactId a: computeFocusedArts()) {
+		    		if (a.getArtifactType().equals(AgentSessionArtifact.class.getName()) ||
+		    		    a.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
+		    			envSession.doAction(new Op("disposeArtifact", new Object[] { a }), a.getWorkspaceId(), null, -1);  
+		    		}
+		    	}
+		    } catch (Exception e) {
+		    	e.printStackTrace();
+		    }*/
 		}
 	}
 
@@ -1043,23 +1055,27 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	
 	private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         try {
-        	focusedArts = new HashSet<>();
-        	for (WorkspaceId w: envSession.getJoinedWorkspaces()) {
-        		ICartagoController ctrl = CartagoEnvironment.getInstance().getController(w.getFullName());
-        		for (ArtifactId aid : ctrl.getCurrentArtifacts()) {
-        			ArtifactInfo info = ctrl.getArtifactInfo(aid.getName());
-                    info.getObservers().forEach(y -> {
-                        if (y.getAgentId().getAgentName().equals(getAgName())) {                        	
-                        	focusedArts.add(info.getId());
-                        }
-                    });
-                }
-        	}
+        	focusedArts = computeFocusedArts();
         } catch (CartagoException e) {
             e.printStackTrace();
         }
         stream.defaultWriteObject();
     }
+	private Set<ArtifactId> computeFocusedArts() throws CartagoException {
+		Set<ArtifactId> farts = new HashSet<>();
+    	for (WorkspaceId w: envSession.getJoinedWorkspaces()) {
+    		ICartagoController ctrl = CartagoEnvironment.getInstance().getController(w.getFullName());
+    		for (ArtifactId aid : ctrl.getCurrentArtifacts()) {
+    			ArtifactInfo info = ctrl.getArtifactInfo(aid.getName());
+                info.getObservers().forEach(y -> {
+                    if (y.getAgentId().getAgentName().equals(getAgName())) {                        	
+                    	farts.add(info.getId());
+                    }
+                });
+            }
+    	}
+    	return farts;
+	}
 	public Collection<ArtifactId> getFocusedArtsBeforeSerialization() {
 		return focusedArts;
 	}
