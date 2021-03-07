@@ -9,4 +9,4 @@
 	focus(Aid);
 	.print("Fucused at ",A).
 
-+count(X) <- .print("Count is ".X).
++count(X) <- .print("Count is ", X).
