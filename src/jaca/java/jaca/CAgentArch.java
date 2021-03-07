@@ -166,18 +166,19 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			} catch (CartagoException e) {
 				e.printStackTrace();
 			}
-		    /*// experimental
+		    // experimental
 		     try {
 		    	// remove session_ artifacts of the agent
 		    	for (ArtifactId a: computeFocusedArts()) {
 		    		if (a.getArtifactType().equals(AgentSessionArtifact.class.getName()) ||
 		    		    a.getArtifactType().equals(AgentBodyArtifact.class.getName())) {
+		    			System.out.println("**** disposing "+a.getName());
 		    			envSession.doAction(new Op("disposeArtifact", new Object[] { a }), a.getWorkspaceId(), null, -1);  
 		    		}
 		    	}
 		    } catch (Exception e) {
 		    	e.printStackTrace();
-		    }*/
+		    }
 		}
 	}
 
