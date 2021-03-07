@@ -378,9 +378,15 @@ public class WorkspaceArtifact extends Artifact {
 	@OPERATION @LINK void disposeArtifact(ArtifactId id){
 		try {
 			wsp.disposeArtifact(this.getCurrentOpAgentId(),id);
-			this.removeObsPropertyByTemplate("artifact", id, null, null);
 		} catch (Exception ex){
 			failed(ex.toString());
+			return;
+		}
+		try {
+			// some artifact (session_XXX for instance) are not registered 
+			// here and the removeObsProo could fail
+			this.removeObsPropertyByTemplate("artifact", id, null, null);
+		} catch (Exception ex) {
 		}
 	}
 	

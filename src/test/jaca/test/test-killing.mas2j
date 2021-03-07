@@ -1,0 +1,10 @@
+MAS test {
+
+    environment: jaca.CartagoEnvironment
+        
+    agents:  
+   	tester_killer agentArchClass jaca.CAgentArch;
+   	tester_killed agentArchClass jaca.CAgentArch;
+
+	aslSourcePath: "src/test/jaca/test";
+}

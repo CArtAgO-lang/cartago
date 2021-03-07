@@ -122,7 +122,44 @@ public class AgentSessionArtifact extends Artifact {
 		joinWorkspace(wspRef, null);
 	}	
 	
+	/**
+	 * Quit from the environment.
+	 * 
+	 * @param wspId
+	 */
+	@OPERATION void quitFromEnvironment() {
+		try {
+			for (WorkspaceId wspId: session.getJoinedWorkspaces()) {
+				try {
+					ICartagoContext ctx = session.getJoinedWsp(wspId);
+					ctx.quit();
+					this.removeObsPropertyByTemplate("joinedWsp",  wspId, null, null);
+				} catch (Exception ex){
+					failed("Quit from Workspace " + wspId +" failed.");
+				}
+			}
+		} catch (Exception ex){
+			failed("quit from env failed: " + ex.getLocalizedMessage());
+		}
+	}
 
+	/**
+	 * Quit from a joined workspace
+	 * 
+	 * @param wspId
+	 */
+	@OPERATION void quitWorkspace(WorkspaceId wspId) {
+		try {
+			ICartagoContext ctx = session.getJoinedWsp(wspId);
+			ctx.quit();
+			this.removeObsPropertyByTemplate("joinedWsp",  wspId, null, null);
+		} catch (Exception ex){
+			failed("Quit Workspace failed.");
+		}
+	}
+	
+	
+	
 	// aux
 	
 	private String removeRelativePath(String path) {
@@ -156,20 +193,6 @@ public class AgentSessionArtifact extends Artifact {
 		return sb.toString();
 	}
 	
-	/**
-	 * Quit from a joined workspace
-	 * 
-	 * @param wspId
-	 */
-	@OPERATION void quitWorkspace(WorkspaceId wspId) {
-		try {
-			ICartagoContext ctx = session.getJoinedWsp(wspId);
-			ctx.quit();
-			this.removeObsPropertyByTemplate("joinedWsp",  wspId, null, null);
-		} catch (Exception ex){
-			failed("Quit Workspace failed.");
-		}
-	}
 	
 	
 }
