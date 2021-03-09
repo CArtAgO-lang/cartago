@@ -167,7 +167,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				e.printStackTrace();
 			}
 		    // experimental
-		     try {
+		    try {
 		    	// remove session_ artifacts of the agent
 		    	for (ArtifactId a: computeFocusedArts()) {
 		    		if (a.getArtifactType().equals(AgentSessionArtifact.class.getName()) ||
