@@ -421,7 +421,15 @@ public class Workspace {
 		WorkspaceId wspId = startContext.getWorkspaceId();
 	
 		/* creating the session artifact and focusing on it */
-		ArtifactId agentSessionArtifact = makeArtifact(startContext.getAgentId(), "session_"+cred.getId(), "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
+		String sessArtName = "session_"+cred.getId();
+		ArtifactId agentSessionArtifact = null;
+		try {
+			agentSessionArtifact = makeArtifact(startContext.getAgentId(), sessArtName, "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
+		} catch (Exception ex) {
+			ArtifactId id = lookupArtifact(startContext.getAgentId(), sessArtName);
+			this.disposeArtifact(startContext.getAgentId(), id);
+			agentSessionArtifact = makeArtifact(startContext.getAgentId(), sessArtName, "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
+		}
 		List<ArtifactObsProperty> props = this.focus(startContext.getAgentId(), null, session, agentSessionArtifact);
 		notifyFocusCompleted(session, -1, null, null, agentSessionArtifact, props);
 		session.init(agentSessionArtifact, wspId, startContext);		
