@@ -426,6 +426,7 @@ public class Workspace {
 		try {
 			agentSessionArtifact = makeArtifact(startContext.getAgentId(), sessArtName, "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
 		} catch (Exception ex) {
+			/* exception can occur if the artifact was not cleaned-up by an agent crash */
 			ArtifactId id = lookupArtifact(startContext.getAgentId(), sessArtName);
 			this.disposeArtifact(startContext.getAgentId(), id);
 			agentSessionArtifact = makeArtifact(startContext.getAgentId(), sessArtName, "cartago.AgentSessionArtifact", new ArtifactConfig(cred, session, session, this));
@@ -433,6 +434,23 @@ public class Workspace {
 		List<ArtifactObsProperty> props = this.focus(startContext.getAgentId(), null, session, agentSessionArtifact);
 		notifyFocusCompleted(session, -1, null, null, agentSessionArtifact, props);
 		session.init(agentSessionArtifact, wspId, startContext);		
+	}
+	
+	/**
+	 * Close a session, cleaning up the artifact created in the home workspace 
+	 *  
+	 * @param session
+	 */
+	public void closeSession(AgentId aid, AgentSession session) {
+		try {
+			String sessArtName = "session_"+aid;
+			/* exception can occur if the artifact was not cleaned-up by an agent crash */
+			ArtifactId id = lookupArtifact(aid, sessArtName);
+			this.stopFocus(aid, null, id);
+			this.disposeArtifact(aid, id);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	/**

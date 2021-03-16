@@ -112,6 +112,12 @@ public interface IAgentSession {
 	long doAction(Op op, String wspName, IAlignmentTest test, long timeout) throws CartagoException;
 	
 	/**
+	 * Close this session
+	 */
+	void closeSession()  throws CartagoException;
+	
+	
+	/**
 	 * Get the current workspaces joined by the agent.
 	 * 
 	 * @return workspace identifier.

@@ -190,7 +190,22 @@ public class AgentSession implements IAgentSession, ICartagoCallback, Serializab
 		}
 	}
 	
-	
+	/**
+	 * Close this session
+	 */
+	public void closeSession()  throws CartagoException {
+			for (java.util.Map.Entry<WorkspaceId, ICartagoContext> e : contexts.entrySet()) {
+				try {
+					e.getValue().quit();
+				} catch (Exception ex){
+					ex.printStackTrace();
+				}
+			}
+			/* cleanup things in the home wsp */
+			Workspace wsp = CartagoEnvironment.getInstance().resolveWSP(homeWspId.getFullName()).getWorkspace();
+			wsp.closeSession(this.homeWspCtx.getAgentId(), this);
+	}
+
 	public List<WorkspaceId> getJoinedWorkspaces() throws CartagoException {
 		List<WorkspaceId> wsps = new LinkedList<WorkspaceId>();
 		for (java.util.Map.Entry<WorkspaceId, ICartagoContext> c : contexts.entrySet()) {

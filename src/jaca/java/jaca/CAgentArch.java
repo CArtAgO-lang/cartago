@@ -151,6 +151,12 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 	public void stop() {
 		if (envSession != null) {
 			try {
+				envSession.closeSession();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			/*
+			try {
 				for (WorkspaceId wid: getEnvSession().getJoinedWorkspaces()) {
 				    try {
 				        envSession.doAction(new Op("quitWorkspace"), wid, null, -1);
@@ -178,7 +184,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 		    	}
 		    } catch (Exception e) {
 		    	e.printStackTrace();
-		    }
+		    }*/
 		}
 	}
 
