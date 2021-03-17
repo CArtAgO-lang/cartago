@@ -247,6 +247,11 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 				IAlignmentTest test = null;
 				long timeout = Long.MAX_VALUE;
 
+				// identify wid for focus
+				if (wspId == null && op.getName().equals("focus") && op.getParamValues().length > 0 && op.getParamValues()[0] instanceof ArtifactId) {
+					wspId = ((ArtifactId)op.getParamValues()[0]).getWorkspaceId();					
+				}
+				
 				long actId   = -1;
 				if (aid != null) {
 					/* general case - the artifact id is known */
@@ -266,8 +271,9 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					} else {
 						// only operation + wsp name known
 						actId = envSession.doAction(op, wspName, test, timeout);
-					}
-
+					}					
+				} else if (artName != null) {
+					logger.info("the anotation artifact_name only works if either wid or wsp is also informed. "+artName+" being ignored!");
 				}
 				
 				if (actId == -1 && !isCartagoOperation(op.getName())) {
