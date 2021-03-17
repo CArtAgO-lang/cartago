@@ -276,7 +276,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 					logger.info("the anotation artifact_name only works if either wid or wsp is also informed. "+artName+" being ignored!");
 				}
 				
-				if (actId == -1 && !isCartagoOperation(op.getName())) {
+				if (actId == -1 && action.getNS() != Atom.DefaultNS && !isCartagoOperation(op.getName())) {
 					// try using assigned namespaces x artefact
 					outer: for (ArtifactId aid1 : focusedArtifacts(action.getNS())) {// iterates artifacts focused using nsp associated with the action
 						try {
@@ -392,10 +392,10 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 								}
 							}
 						}							
-					}  else if (op.getName().equals("quitWorkspace")) {
+					} else if (op.getName().equals("quitWorkspace")) {
 						actId = envSession.doAction(envSession.getAgentSessionArtifactId(), op, test, timeout);
 					} else {
-						actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test,timeout);
+						actId = envSession.doActionWithImplicitCtx(op, currentImplicitWsp, test, timeout);
 					}
 				}
 
@@ -431,6 +431,8 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
 			   o.equals("createWorkspace") ||
 			   o.equals("lookupArtifact") ||
 			   o.equals("makeArtifact") ||
+			   o.equals("focus") ||
+			   o.equals("focusWhenAvailable") ||
 			   o.equals("quitWorkspace");
 				
 	}
