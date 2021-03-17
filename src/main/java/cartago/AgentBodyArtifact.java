@@ -98,7 +98,7 @@ public class AgentBodyArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			ArtifactId aid = null;
+			ArtifactId aid = wsp.getArtifact(artName);
 			while (aid == null){
 				await("artifactAvailable", artName);		
 				aid = wsp.getArtifact(artName);
