@@ -1076,7 +1076,7 @@ public class CAgentArch extends AgArch implements cartago.ICartagoListener, Seri
         }
         stream.defaultWriteObject();
     }
-	private Set<ArtifactId> computeFocusedArts() throws CartagoException {
+	public Set<ArtifactId> computeFocusedArts() throws CartagoException {
 		Set<ArtifactId> farts = new HashSet<>();
     	for (WorkspaceId w: envSession.getJoinedWorkspaces()) {
     		ICartagoController ctrl = CartagoEnvironment.getInstance().getController(w.getFullName());
