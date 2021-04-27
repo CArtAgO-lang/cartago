@@ -408,6 +408,11 @@ public class Workspace {
 		}
 	}
 	
+	public Collection<WorkspaceDescriptor> getChildWSPs() {
+		return childWsp.values();
+	}
+
+	
 
 	/**
 	 * Start a session on the environment, using this wsp as home

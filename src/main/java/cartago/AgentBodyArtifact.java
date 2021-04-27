@@ -21,7 +21,8 @@ public class AgentBodyArtifact extends Artifact {
 	 * @param aid the artifact id
 	 */
 	@OPERATION void focus(ArtifactId aid){
-		AgentId userId = this.getCurrentOpAgentId();
+		focus(aid,null);
+		/*AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			boolean wasAlreadyObserving = body.isObserving(aid);
@@ -34,7 +35,7 @@ public class AgentBodyArtifact extends Artifact {
 			}
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
-		}
+		}*/
 	}
 
 	/**
@@ -53,7 +54,7 @@ public class AgentBodyArtifact extends Artifact {
 			// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
 			opFrame.setCompletionNotified();
 			if (!wasAlreadyObserving) {
-				defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+				createFocusingObsProperty(aid);
 			}
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -66,10 +67,11 @@ public class AgentBodyArtifact extends Artifact {
 	 * @param artName artifact name
 	 */
 	@OPERATION void focusWhenAvailable(String artName){
-		AgentId userId = this.getCurrentOpAgentId();
+		focusWhenAvailable(artName, null);
+		/*AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-				ArtifactId aid = null;
+				ArtifactId aid = wsp.getArtifact(artName);
 				while (aid == null){
 					await("artifactAvailable", artName);		
 					aid = wsp.getArtifact(artName);
@@ -81,7 +83,7 @@ public class AgentBodyArtifact extends Artifact {
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
-		}
+		}*/
 	}
 
 	
@@ -96,20 +98,26 @@ public class AgentBodyArtifact extends Artifact {
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
-			ArtifactId aid = null;
+			ArtifactId aid = wsp.getArtifact(artName);
 			while (aid == null){
 				await("artifactAvailable", artName);		
 				aid = wsp.getArtifact(artName);
 			}
+			boolean wasAlreadyObserving = body.isObserving(aid);
 			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+			if (!wasAlreadyObserving) {
+				createFocusingObsProperty(aid);
+			}
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
 		}
 	}
 
+	private void createFocusingObsProperty(ArtifactId aid) {
+		defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
+	}
 	/**
 	 * Stop observing an artifact
 	 * 
