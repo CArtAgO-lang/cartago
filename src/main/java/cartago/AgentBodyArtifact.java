@@ -123,7 +123,7 @@ public class AgentBodyArtifact extends Artifact {
 			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
 			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			// this.removeObsPropertyByTemplate("focused", null, null, aid);
-			removeObsPropertyByTemplate("focusing", null, null, aid, null, null, null);
+			removeObsPropertyByTemplate("focusing", aid, null, null, null, null, null);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
