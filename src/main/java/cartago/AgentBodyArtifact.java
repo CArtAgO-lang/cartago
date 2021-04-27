@@ -104,7 +104,6 @@ public class AgentBodyArtifact extends Artifact {
 			List<ArtifactObsProperty> props = wsp.focus(userId, filter, opFrame.getAgentListener(), aid);
 			wsp.notifyFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
 			defineObsProperty("focusing", aid, aid.getName(), aid.getArtifactType(), aid.getWorkspaceId(), aid.getWorkspaceId().getName(), aid.getWorkspaceId().getFullName());
-			// defineObsProperty("focused", aid.getWorkspaceId().getName(), aid.getName(), aid);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){
 			failed("Artifact Not Available.");
@@ -116,13 +115,12 @@ public class AgentBodyArtifact extends Artifact {
 	 * 
 	 * @param aid
 	 */
-	@OPERATION void stopFocus(ArtifactId aid){
+	@OPERATION void  stopFocus(ArtifactId aid){
 		AgentId userId = this.getCurrentOpAgentId();
 		OpExecutionFrame opFrame = this.getOpFrame();
 		try {
 			List<ArtifactObsProperty> props = wsp.stopFocus(userId, opFrame.getAgentListener(), aid);
 			wsp.notifyStopFocusCompleted(opFrame.getAgentListener(), opFrame.getActionId(), opFrame.getSourceArtifactId(), opFrame.getOperation(), aid, props);
-			// this.removeObsPropertyByTemplate("focused", null, null, aid);
 			removeObsPropertyByTemplate("focusing", aid, null, null, null, null, null);
 			opFrame.setCompletionNotified();
 		} catch(Exception ex){

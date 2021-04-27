@@ -1,10 +1,9 @@
 
+!test_stop_focus.
 
-// !main_test.
-
+//!main_test.
 //!test_art_dyn_ops.
-
-!test_double_focus.
+//!test_double_focus.
 //!test_double_join.
 //!test_focus_with_filter.
 //!test_make_lookup_dispose.
@@ -26,6 +25,22 @@
 //!test_wspruleman.
 //!test_array_obj.
 //!test_ext_interface.
+
+/* test only stopFocus */
+
++!test_stop_focus
+	<- makeArtifact("c0", "acme.Counter", [], Id);
+	   focus(Id);
+	   println("first focus done.");
+	   inc;
+	   inc;
+	   stopFocus(Id);
+	   inc;
+	   inc.
+	   
++count(V)
+	<- println(V).
+	   
 
 /* testing double focus */
 
