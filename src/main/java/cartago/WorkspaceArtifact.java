@@ -436,6 +436,15 @@ public class WorkspaceArtifact extends Artifact {
 			failed(ex.getMessage());
 		}
 	}
+	
+	@OPERATION void addWSPRuleEngine(AbstractWSPRuleEngine man){
+		try {
+			man.setKernel(wsp);
+			wsp.addWSPRuleEngine(man);
+		} catch(Exception ex){
+			failed(ex.getMessage());
+		}
+	}
 
 	/* Topology management */
 	

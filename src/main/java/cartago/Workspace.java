@@ -82,8 +82,8 @@ public class Workspace {
 	private final ICartagoLoggerManager DEFAULT_LOGGER_MANAGER = new CartagoLoggerManager();
 
 	private LinkedList<ArtifactFactory> artifactFactories;
-	private AbstractWSPRuleEngine wspRuleEngine;
-	
+	private List<AbstractWSPRuleEngine> wspRuleEngines;
+
 	private AbstractWorkspaceTopology topology;
 	private WorkspaceId id;
 	
@@ -113,7 +113,7 @@ public class Workspace {
 		desc.setWorkspace(this);
 		
 		securityManagerEnabled = false;
-		wspRuleEngine = null;
+		wspRuleEngines = new ArrayList<AbstractWSPRuleEngine>();
 		isShutdown = false;
 		eventRegistry = new EventRegistry();
 
@@ -501,7 +501,7 @@ public class Workspace {
 			boolean joinOK = true;
 			String failureMsg = "no msg";
 			
-			if (wspRuleEngine!=null){
+			for(AbstractWSPRuleEngine wspRuleEngine:wspRuleEngines){
 				AgentJoinRequestInfo req = new AgentJoinRequestInfo(userId);
 				wspRuleEngine.processAgentJoinRequest(req);
 				if (req.isFailed()){
@@ -677,7 +677,7 @@ public class Workspace {
 		boolean quitOk = true;
 		String failureMsg = "no msg";
 		
-		if (wspRuleEngine!=null){
+		for(AbstractWSPRuleEngine wspRuleEngine:wspRuleEngines){
 			AgentQuitRequestInfo req = new AgentQuitRequestInfo(userId);
 			wspRuleEngine.processAgentQuitRequest(req);
 			if (req.isFailed()){
@@ -1058,7 +1058,7 @@ public class Workspace {
 			//logManager.logActionUseExecuted(System.currentTimeMillis(),userId,aid,op.getName());
 		}					
 
-		if (this.wspRuleEngine == null){
+		if (wspRuleEngines.size()==0){
 			boolean allowed = securityManager.canDoAction(userId, aid , op);
 			if (allowed) {	
 				OpId oid = des.getAdapter().getFreshId(op.getName(),userId);
@@ -1082,7 +1082,9 @@ public class Workspace {
 			}
 		} else {
 			OpRequestInfo request = new OpRequestInfo(actionId, userId, aid, op);
-			wspRuleEngine.processActionRequest(request);
+			for(AbstractWSPRuleEngine wspRuleEngine: wspRuleEngines) {
+			   wspRuleEngine.processActionRequest(request);
+			}   
 			if (!request.isFailed()){
 				OpId oid = des.getAdapter().getFreshId(request.getOp().getName(),userId);
 				OpExecutionFrame frame = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid, request.getOp(), timeout, test);
@@ -1173,7 +1175,7 @@ public class Workspace {
 			//logManager.logActionUseExecuted(System.currentTimeMillis(),userId,aid,op.getName());
 		}					
 
-		if (this.wspRuleEngine == null){
+		if (this.wspRuleEngines.size()==0){
 			boolean allowed = securityManager.canDoAction(userId, aid , op);
 			if (allowed) {	
 				OpId oid = des.getAdapter().getFreshId(op.getName(),userId);
@@ -1192,7 +1194,9 @@ public class Workspace {
 			}
 		} else {
 			OpRequestInfo request = new OpRequestInfo(actionId, userId, aid, op);
-			wspRuleEngine.processActionRequest(request);
+			for(AbstractWSPRuleEngine wspRuleEngine: wspRuleEngines) {
+				wspRuleEngine.processActionRequest(request);
+			}							
 			if (!request.isFailed()){
 				OpId oid = des.getAdapter().getFreshId(request.getOp().getName(),userId);
 				OpExecutionFrame frame = new OpExecutionFrame(this,oid,ctx, actionId, userId, aid, request.getOp(), timeout, test);
@@ -1228,7 +1232,12 @@ public class Workspace {
 	// *****  @EXPERIMENTAL - external controller support  
 	
 	public void setWSPRuleEngine(AbstractWSPRuleEngine man){
-		this.wspRuleEngine = man;
+		this.wspRuleEngines.clear();
+		this.addWSPRuleEngine(man);
+	}
+	
+	public void addWSPRuleEngine(AbstractWSPRuleEngine man){
+		this.wspRuleEngines.add(man);
 	}
 	
 	boolean wspRuleManExecOp(ArtifactId aid, Op op) {
@@ -1652,7 +1661,7 @@ public class Workspace {
 		}
 		if (des!=null){
 			des.notifyObservers(ev);
-			if (wspRuleEngine!=null){ //informing the changes in observable properties to the AbstractWSPRuleEngine
+			for(AbstractWSPRuleEngine wspRuleEngine:wspRuleEngines){ //informing the changes in observable properties to the AbstractWSPRuleEngine
 				if(changed != null){
 					wspRuleEngine.processObsPropertyChanged(sourceId, changed);
 				}			
@@ -1666,7 +1675,7 @@ public class Workspace {
 		}
 
 		if(signal!=null){ //informing the signal the AbstractWSPRuleEngine
-			if (wspRuleEngine!=null){ 
+			for(AbstractWSPRuleEngine wspRuleEngine:wspRuleEngines){
 				wspRuleEngine.processSignal(signal);
 			}
 		}
@@ -1681,7 +1690,7 @@ public class Workspace {
 	
 	public void notifyActionCompleted(ICartagoCallback listener, long actionId, ArtifactId aid, Op op, AgentId userId) {			
 		ActionSucceededEvent ev = eventRegistry.makeActionSucceededEvent(actionId, aid, op);
-		if(wspRuleEngine!=null){ //informing the action completed to the AbstractWSPRuleEngine.
+		for(AbstractWSPRuleEngine wspRuleEngine:wspRuleEngines){
 			wspRuleEngine.processActionCompleted(ev, userId);		   
 		}
 		listener.notifyCartagoEvent(ev);						
