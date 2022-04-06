@@ -1,6 +1,6 @@
 #/bin/sh
 
-REL=3.1-SNAPSHOT
+REL=3.2-SNAPSHOT
 
 # for cartago
 
