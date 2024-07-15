@@ -194,6 +194,16 @@ public class Workspace {
 	}
 
 	/**
+	 * Remove a child workspace
+	 *
+	 * @param name workspace name
+	 * @return
+	 */
+	public synchronized Optional<WorkspaceDescriptor> removeWorkspace(String name) {
+		return this.removeWorkspace(name, (ICartagoLogger) null);
+	}
+
+	/**
 	 * Create a child workspace on a remote node
 	 * 
 	 * @param name
@@ -236,6 +246,26 @@ public class Workspace {
 			} else {
 				throw new CartagoException("workspace already present");
 			}
+	}
+
+	/**
+	 * Remove a child workspace
+	 *
+	 * @param name
+	 * @param log
+	 * @return
+	 */
+	public synchronized Optional<WorkspaceDescriptor> removeWorkspace(String name, ICartagoLogger log) {
+		Optional<WorkspaceDescriptor> res = this.resolveWSP(name);
+		if(res.isPresent()) {
+			WorkspaceDescriptor des = res.get();
+			des.getWorkspace().shutdown();
+			this.childWsp.remove(name);
+			return Optional.of(des);
+		} else {
+			return Optional.empty();
+
+		}
 	}
 	
 	/**
@@ -1922,13 +1952,12 @@ public class Workspace {
 					env.serveOperation(item);
 					//nfailures = 0;
 				} catch (Exception ex){
+					if (ex instanceof InterruptedException && isStopped()){
+						break;
+					} else {
 					ex.printStackTrace();
 					env.log("[ENV-CONTROLLER] uncaught operation exception: "+ex);
-					/*
-					 nfailures++;
-					if (nfailures>10){
-						break;
-					}*/
+					}
 				}
 			}
 
